@@ -80,25 +80,14 @@
             to { transform: translateY(0); opacity: 1; }
         }
         
-        @keyframes critFlash {
-            0% { filter: brightness(1); }
-            50% { filter: brightness(2) saturate(2); }
-            100% { filter: brightness(1); }
-        }
-        
         @keyframes coinDrop {
             from { transform: translateY(-50px); opacity: 1; }
             to { transform: translateY(100px); opacity: 0; }
         }
         
-        @keyframes laserShoot {
-            from { width: 0; opacity: 1; }
-            to { width: 100%; opacity: 0; }
-        }
-        
-        @keyframes explode {
-            0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(2); opacity: 0; }
+        @keyframes rotateIn {
+            from { transform: rotateY(90deg); opacity: 0; }
+            to { transform: rotateY(0); opacity: 1; }
         }
         
         .hidden { display: none !important; }
@@ -137,409 +126,252 @@
         .back-arrow:hover {
             background: #004400;
             box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
-            transform: scale(1.1);
-        }
-        
-        .back-arrow:active {
-            transform: scale(0.9);
-            animation: shake 0.3s;
         }
         
         .pixel-border {
             border: 4px solid #00ff00;
-            box-shadow: 
-                0 0 0 2px #0a0a2e,
-                0 0 0 6px #00ff00,
-                0 0 20px rgba(0, 255, 0, 0.3);
-            position: relative;
+            box-shadow: 0 0 0 2px #0a0a2e, 0 0 0 6px #00ff00, 0 0 20px rgba(0, 255, 0, 0.3);
         }
         
-        #screen1 { 
-            padding-top: 60px;
-            animation: slideIn 0.5s ease-out;
-        }
+        #screen1 { padding-top: 60px; animation: slideIn 0.5s ease-out; }
         
         .game-logo { 
-            font-size: 24px; 
-            font-weight: bold; 
-            color: #00ff00; 
-            text-shadow: 4px 4px 0 #003300;
-            margin-bottom: 20px;
-            letter-spacing: 2px;
+            font-size: 24px; font-weight: bold; color: #00ff00; 
+            text-shadow: 4px 4px 0 #003300; margin-bottom: 20px;
             animation: float 3s ease-in-out infinite;
         }
         
         .game-subtitle { 
-            font-size: 10px; 
-            color: #00cc00; 
-            margin-bottom: 60px;
+            font-size: 10px; color: #00cc00; margin-bottom: 60px;
             animation: glitch 3s infinite;
         }
         
         .start-btn { 
-            width: 180px; 
-            height: 180px; 
-            background: #003300;
-            border: 6px solid #00ff00; 
-            margin: 0 auto; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 12px; 
-            font-weight: bold; 
-            color: #00ff00; 
-            cursor: pointer; 
-            transition: all 0.1s;
-            position: relative;
+            width: 180px; height: 180px; background: #003300;
+            border: 6px solid #00ff00; margin: 0 auto; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 12px; font-weight: bold; color: #00ff00; 
+            cursor: pointer; transition: all 0.1s;
             box-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
             animation: pulse 2s ease-in-out infinite;
         }
         
-        .start-btn:hover {
-            background: #004400;
-            box-shadow: 0 0 50px rgba(0, 255, 0, 0.8);
-        }
-        
-        .start-btn:active { 
-            transform: scale(0.9);
-            animation: shake 0.3s;
-        }
+        .start-btn:hover { background: #004400; box-shadow: 0 0 50px rgba(0, 255, 0, 0.8); }
+        .start-btn:active { transform: scale(0.9); animation: shake 0.3s; }
         
         .title-screen { 
-            font-size: 16px; 
-            font-weight: bold; 
-            margin-bottom: 30px; 
-            color: #00ff00; 
-            text-shadow: 2px 2px 0 #003300;
+            font-size: 14px; font-weight: bold; margin-bottom: 25px; 
+            color: #00ff00; text-shadow: 2px 2px 0 #003300;
         }
         
         .frac-card { 
-            width: 100%; 
-            max-width: 320px; 
-            padding: 20px; 
-            margin: 15px auto; 
-            border: 3px solid;
-            text-align: left; 
-            cursor: pointer; 
-            transition: all 0.3s;
-            animation: slideIn 0.5s ease-out;
-            background: #0a0a2e;
+            width: 100%; max-width: 320px; padding: 15px; margin: 12px auto; 
+            border: 3px solid; text-align: left; cursor: pointer; 
+            transition: all 0.3s; background: #0a0a2e;
         }
         
-        .frac-card:hover {
-            transform: translateX(5px);
-            box-shadow: 0 0 20px currentColor;
-        }
+        .frac-card:hover { transform: translateX(5px); box-shadow: 0 0 20px currentColor; }
         
-        .frac-card:active { 
-            animation: shake 0.3s;
-        }
+        .confed { border-color: #0066ff; color: #0066ff; }
+        .rebels { border-color: #ff6600; color: #ff6600; }
+        .guild { border-color: #ffcc00; color: #ffcc00; }
         
-        .confed { 
-            border-color: #0066ff; 
-            color: #0066ff;
-        }
-        
-        .rebels { 
-            border-color: #ff6600; 
-            color: #ff6600;
-        }
-        
-        .guild { 
-            border-color: #ffcc00; 
-            color: #ffcc00;
-        }
-        
-        .frac-name { 
-            font-size: 11px; 
-            font-weight: bold; 
-            margin-bottom: 8px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
-        }
-        
-        .frac-bonus { 
-            font-size: 7px; 
-            background: rgba(255,255,255,0.1); 
-            padding: 4px 6px; 
-            border: 1px solid;
-        }
-        
-        .frac-desc { 
-            font-size: 8px; 
-            opacity: 0.8; 
-            line-height: 1.6; 
-        }
+        .frac-name { font-size: 10px; font-weight: bold; margin-bottom: 6px; display: flex; justify-content: space-between; }
+        .frac-bonus { font-size: 7px; background: rgba(255,255,255,0.1); padding: 3px 5px; border: 1px solid; }
+        .frac-desc { font-size: 8px; opacity: 0.8; line-height: 1.5; }
 
-        .stats-panel {
+        /* ВЫБОР КОРАБЛЯ */
+        .ship-select-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 15px;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin: 20px 0;
         }
         
-        .stat-card {
+        .ship-card {
             background: #0a0a2e;
-            border: 2px solid #00ff00;
-            padding: 8px;
+            border: 3px solid #00ff00;
+            padding: 15px 10px;
+            cursor: pointer;
+            transition: all 0.3s;
             text-align: center;
+            animation: rotateIn 0.5s ease-out;
         }
         
-        .stat-label {
+        .ship-card:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 25px currentColor;
+        }
+        
+        .ship-card.selected {
+            border-color: #ffcc00;
+            box-shadow: 0 0 30px rgba(255, 204, 0, 0.5);
+            animation: pulse 1s ease-in-out infinite;
+        }
+        
+        .ship-emoji {
+            font-size: 50px;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .ship-name {
             font-size: 7px;
-            color: #00cc00;
+            color: #00ff00;
             margin-bottom: 5px;
         }
         
-        .stat-value {
-            font-size: 12px;
-            font-weight: bold;
+        .ship-stats-preview {
+            font-size: 6px;
+            color: #00cc00;
+            line-height: 1.4;
         }
         
-        .shield-stat { color: #00ffff; }
-        .weapon-stat { color: #ff4444; }
-        .luck-stat { color: #ffcc00; }
-        
-        .battle-arena {
+        .confirm-btn {
             width: 100%;
-            height: 150px;
-            position: relative;
-            margin: 15px 0;
-            overflow: hidden;
-            background: rgba(0, 0, 0, 0.3);
-            border: 2px solid #00ff00;
+            padding: 15px;
+            margin-top: 20px;
+            background: #003300;
+            border: 3px solid #ffcc00;
+            color: #ffcc00;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
         }
         
-        .player-ship {
-            position: absolute;
-            left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 40px;
-            transition: all 0.3s;
-            z-index: 2;
+        .confirm-btn:hover {
+            background: #004400;
+            box-shadow: 0 0 20px rgba(255, 204, 0, 0.5);
         }
         
-        .enemy-ship {
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 40px;
-            transition: all 0.3s;
-            z-index: 2;
-        }
-        
-        .enemy-hp-bar {
-            position: absolute;
-            top: 10px;
-            right: 20px;
-            width: 60px;
-            height: 8px;
-            background: #333;
-            border: 1px solid #ff0000;
-            z-index: 3;
-        }
-        
-        .enemy-hp-fill {
-            height: 100%;
-            background: #ff0000;
-            transition: width 0.3s;
-        }
-        
-        .laser-beam {
-            position: absolute;
-            height: 4px;
-            background: #ff0000;
-            box-shadow: 0 0 10px #ff0000;
-            animation: laserShoot 0.5s ease-out;
-            z-index: 1;
-        }
-        
-        .explosion {
-            position: absolute;
-            font-size: 30px;
-            animation: explode 0.5s ease-out;
-            z-index: 3;
-        }
-        
-        .resource-section { 
-            margin: 15px 0;
-        }
-        
-        #res-type { 
-            font-size: 10px; 
-            color: #00cc00; 
-            margin-bottom: 8px; 
-        }
-        
-        .balance-digits { 
-            font-size: 32px; 
-            font-weight: bold; 
-            color: #00ff00; 
-            text-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
-            transition: all 0.3s;
-        }
-        
-        .pushed-income { 
-            font-size: 9px; 
-            color: #00ff00; 
-            margin-top: 6px; 
+        .confirm-btn:disabled {
+            background: #1a1a1a;
+            color: #333;
+            border-color: #333;
+            cursor: not-allowed;
         }
 
-        .main-reactor { 
-            width: 160px; 
-            height: 160px; 
-            border: 6px solid #00ff00;
-            margin: 15px auto; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 12px; 
-            font-weight: bold; 
-            color: #00ff00; 
-            cursor: pointer; 
-            transition: all 0.05s;
-            position: relative;
+        /* ГЛАВНОЕ МЕНЮ */
+        .menu-btn {
+            width: 100%; padding: 15px; margin: 10px 0;
+            background: #003300; border: 3px solid #00ff00;
+            color: #00ff00; font-family: 'Press Start 2P', monospace;
+            font-size: 11px; cursor: pointer; transition: all 0.2s;
+        }
+        
+        .menu-btn:hover { background: #004400; box-shadow: 0 0 15px rgba(0, 255, 0, 0.5); }
+        .menu-btn:active { transform: scale(0.95); }
+
+        /* КАРТА */
+        .map-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .map-location {
+            background: #0a0a2e;
+            border: 2px solid #00ff00;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .map-location:hover {
             background: #003300;
-            animation: pulse 2s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+            transform: scale(1.05);
         }
         
-        .main-reactor:hover {
-            box-shadow: 0 0 40px rgba(0, 255, 0, 0.6);
+        .location-icon { font-size: 30px; margin-bottom: 8px; }
+        .location-name { font-size: 8px; color: #00ff00; margin-bottom: 5px; }
+        .location-info { font-size: 7px; color: #00cc00; }
+
+        /* БОЕВАЯ АРЕНА */
+        .battle-arena {
+            width: 100%; height: 150px; position: relative;
+            margin: 15px 0; overflow: hidden;
+            background: rgba(0, 0, 0, 0.3); border: 2px solid #00ff00;
         }
         
-        .main-reactor:active { 
-            transform: scale(0.9);
+        .player-ship, .enemy-ship {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            font-size: 35px; transition: all 0.3s; z-index: 2;
         }
         
-        .reactor-sub { 
-            font-size: 8px; 
-            opacity: 0.7; 
-            margin-top: 6px; 
+        .player-ship { left: 20px; }
+        .enemy-ship { right: 20px; }
+        
+        .hp-bar {
+            position: absolute; width: 60px; height: 6px;
+            background: #333; border: 1px solid #ff0000; z-index: 3;
+        }
+        
+        .player-hp { left: 20px; top: 10px; }
+        .enemy-hp { right: 20px; top: 10px; }
+        
+        .hp-fill { height: 100%; background: #ff0000; transition: width 0.3s; }
+        
+        .battle-log {
+            position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%);
+            font-size: 8px; color: #ffcc00; z-index: 3; text-align: center;
         }
 
         .floating-text {
             position: absolute;
             font-family: 'Press Start 2P', monospace;
-            font-size: 10px;
-            font-weight: bold;
+            font-size: 10px; font-weight: bold;
             pointer-events: none;
             animation: coinDrop 1s ease-out forwards;
             z-index: 100;
         }
         
-        .crit-text {
-            color: #ffcc00;
-            font-size: 14px;
-            text-shadow: 0 0 10px #ffcc00;
+        .crit-text { color: #ffcc00; font-size: 14px; text-shadow: 0 0 10px #ffcc00; }
+        .dodge-text { color: #00ffff; font-size: 12px; text-shadow: 0 0 10px #00ffff; }
+
+        /* МЕНЮ КОРАБЛЯ */
+        .ship-stats {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 15px 0;
         }
         
-        .dodge-text {
-            color: #00ffff;
-            font-size: 12px;
-            text-shadow: 0 0 10px #00ffff;
+        .stat-card {
+            background: #0a0a2e; border: 2px solid #00ff00;
+            padding: 8px; text-align: center;
+        }
+        
+        .stat-label { font-size: 7px; color: #00cc00; margin-bottom: 4px; }
+        .stat-value { font-size: 10px; font-weight: bold; }
+        
+        .upgrade-card {
+            background: #0a0a2e; border: 2px solid #00ff00;
+            padding: 10px; margin-bottom: 8px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        
+        .upgrade-info { display: flex; flex-direction: column; text-align: left; }
+        .upgrade-name { font-size: 8px; color: #00ff00; margin-bottom: 3px; }
+        .upgrade-desc { font-size: 7px; color: #00cc00; }
+        
+        .upgrade-btn {
+            background: #003300; color: #00ff00; padding: 6px 10px;
+            border: 2px solid #00ff00; font-family: 'Press Start 2P', monospace;
+            font-size: 8px; cursor: pointer; transition: all 0.2s;
+        }
+        
+        .upgrade-btn:hover { background: #004400; box-shadow: 0 0 10px rgba(0, 255, 0, 0.5); }
+        .upgrade-btn:disabled { background: #1a1a1a; color: #333; cursor: not-allowed; border-color: #333; }
+
+        .resource-display {
+            font-size: 10px; color: #ffcc00; margin: 10px 0;
         }
 
-        .upgrade-section { 
-            width: 100%; 
-            max-width: 340px; 
-            margin: 25px auto 0; 
-            text-align: left; 
-        }
-        
-        .section-label { 
-            font-size: 9px; 
-            color: #00cc00; 
-            font-weight: bold; 
-            margin-bottom: 12px; 
-            text-shadow: 2px 2px 0 #003300;
-        }
-        
-        .up-card { 
-            background: #0a0a2e;
-            border: 2px solid #00ff00;
-            padding: 10px; 
-            margin-bottom: 8px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
-            transition: all 0.3s;
-        }
-        
-        .up-card:hover {
-            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
-        }
-        
-        .up-info { 
-            display: flex; 
-            flex-direction: column; 
-        }
-        
-        .up-title { 
-            font-size: 9px; 
-            font-weight: bold; 
-            color: #00ff00; 
-        }
-        
-        .up-desc { 
-            font-size: 7px; 
-            color: #00cc00; 
-            margin-top: 3px; 
-        }
-        
-        .up-btn { 
-            background: #003300;
-            color: #00ff00; 
-            padding: 6px 10px; 
-            border: 2px solid #00ff00;
-            font-family: 'Press Start 2P', monospace;
-            font-size: 8px; 
-            cursor: pointer; 
-            transition: all 0.2s;
-        }
-        
-        .up-btn:hover {
-            background: #004400;
-            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
-        }
-        
-        .up-btn:active { 
-            animation: shake 0.2s;
-        }
-        
-        .up-btn:disabled { 
-            background: #1a1a1a;
-            color: #333; 
-            cursor: not-allowed;
-            border-color: #333;
-        }
-
-        .system-footer { 
-            margin-top: 25px; 
-            display: flex; 
-            justify-content: center; 
-            gap: 10px; 
-            flex-wrap: wrap;
-            margin-bottom: 30px;
-        }
-        
-        .tech-btn { 
-            background: #0a0a2e;
-            border: 2px solid #00ff00;
-            color: #00ff00; 
-            padding: 6px 10px; 
-            font-family: 'Press Start 2P', monospace;
-            font-size: 7px; 
-            cursor: pointer; 
-            transition: all 0.2s;
-        }
-        
-        .tech-btn:hover {
-            background: #003300;
-            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+        .current-ship-display {
+            font-size: 60px;
+            margin: 10px 0;
+            animation: float 3s ease-in-out infinite;
         }
     </style>
 </head>
@@ -547,510 +379,613 @@
     <div class="stars" id="stars"></div>
 
     <div class="container">
-        <!-- ЭКРАН 1 -->
+        <!-- ЭКРАН 1: СТАРТ -->
         <div id="screen1">
             <div class="game-logo">SPACE DREAM</div>
             <div class="game-subtitle">КОСМИЧЕСКОЕ ПРИКЛЮЧЕНИЕ</div>
-            <div class="start-btn pixel-border" id="start-btn">
-                СТАРТ
-            </div>
+            <div class="start-btn pixel-border" id="start-btn">СТАРТ</div>
         </div>
 
-        <!-- ЭКРАН 2 -->
+        <!-- ЭКРАН 2: ВЫБОР ФРАКЦИИ -->
         <div id="screen2" class="hidden">
             <div class="top-bar">
                 <button class="back-arrow" onclick="goBackToStart()">←</button>
             </div>
             <div class="title-screen">ВЫБЕРИ ФРАКЦИЮ</div>
             
-            <div class="frac-card confed" onclick="selectFrac('Конфедерация', '#0066ff', 'shield')">
-                <div class="frac-name">КОНФЕДЕРАЦИЯ <span class="frac-bonus">БРОНЯ +50%</span></div>
-                <div class="frac-desc">Тяжелая броня корабля. Повышенная защита в бою.</div>
+            <div class="frac-card confed" onclick="selectFaction('Конфедерация', '#0066ff', 'shield')">
+                <div class="frac-name">КОНФЕДЕРАЦИЯ <span class="frac-bonus">ЩИТ +50%</span></div>
+                <div class="frac-desc">Усиленные щиты. Повышенная защита в бою.</div>
             </div>
             
-            <div class="frac-card rebels" onclick="selectFrac('Повстанцы', '#ff6600', 'weapon')">
-                <div class="frac-name">ПОВСТАНЦЫ <span class="frac-bonus">ОРУЖИЕ +50%</span></div>
-                <div class="frac-desc">Мощные орудия. Увеличенный урон по врагам.</div>
+            <div class="frac-card rebels" onclick="selectFaction('Повстанцы', '#ff6600', 'weapon')">
+                <div class="frac-name">ПОВСТАНЦЫ <span class="frac-bonus">УРОН +50%</span></div>
+                <div class="frac-desc">Мощное оружие. Увеличенный урон по врагам.</div>
             </div>
             
-            <div class="frac-card guild" onclick="selectFrac('Торговая гильдия', '#ffcc00', 'luck')">
-                <div class="frac-name">ТОРГОВАЯ ГИЛЬДИЯ <span class="frac-bonus">УДАЧА +50%</span></div>
-                <div class="frac-desc">Высокая удача. Шанс крита и уклонения от атак.</div>
+            <div class="frac-card guild" onclick="selectFaction('Торговая гильдия', '#ffcc00', 'mining')">
+                <div class="frac-name">ТОРГОВАЯ ГИЛЬДИЯ <span class="frac-bonus">ДОБЫЧА +50%</span></div>
+                <div class="frac-desc">Улучшенные буры. Быстрая добыча ресурсов.</div>
             </div>
         </div>
 
-        <!-- ЭКРАН 3 -->
-        <div id="screen3" class="hidden">
+        <!-- ЭКРАН 7: ВЫБОР КОРАБЛЯ -->
+        <div id="screen7" class="hidden">
             <div class="top-bar">
-                <button class="back-arrow" onclick="changeFaction()">←</button>
+                <button class="back-arrow" onclick="backToFactionSelect()">←</button>
+            </div>
+            <div class="title-screen">ВЫБЕРИ КОРАБЛЬ</div>
+            <div id="faction-color-text" style="font-size: 10px; margin-bottom: 20px;"></div>
+            
+            <div class="ship-select-grid" id="ship-grid"></div>
+            
+            <button class="confirm-btn" id="confirm-ship-btn" disabled onclick="confirmShip()">
+                ПОДТВЕРДИТЬ ВЫБОР
+            </button>
+        </div>
+
+        <!-- ЭКРАН 3: ГЛАВНОЕ МЕНЮ -->
+        <div id="screen3" class="hidden">
+            <div class="game-logo" style="font-size: 18px;">SPACE DREAM</div>
+            <div class="current-ship-display" id="current-ship-display">🚀</div>
+            <div class="resource-display" id="main-resources">РЕСУРСЫ: 0</div>
+            
+            <button class="menu-btn" onclick="openMap()">🗺 КАРТА</button>
+            <button class="menu-btn" onclick="openShipMenu()">🚀 КАПИТАНСКИЙ МОСТИК</button>
+        </div>
+
+        <!-- ЭКРАН 4: КАРТА -->
+        <div id="screen4" class="hidden">
+            <div class="top-bar">
+                <button class="back-arrow" onclick="backToMenu()">←</button>
+            </div>
+            <div class="title-screen">КАРТА СЕКТОРА</div>
+            
+            <div class="map-grid">
+                <div class="map-location" onclick="startMining('asteroid1')">
+                    <div class="location-icon">🪨</div>
+                    <div class="location-name">АСТЕРОИД А-7</div>
+                    <div class="location-info">Ресурсы: средние</div>
+                </div>
+                <div class="map-location" onclick="startMining('asteroid2')">
+                    <div class="location-icon">💎</div>
+                    <div class="location-name">АСТЕРОИД Х-3</div>
+                    <div class="location-info">Ресурсы: высокие</div>
+                </div>
+                <div class="map-location" onclick="startBattle('pirate1')">
+                    <div class="location-icon">🏴‍☠️</div>
+                    <div class="location-name">ПИРАТСКАЯ БАЗА</div>
+                    <div class="location-info">Контрабандисты</div>
+                </div>
+                <div class="map-location" onclick="startBattle('pirate2')">
+                    <div class="location-icon">💀</div>
+                    <div class="location-name">ЛОГОВО БАНДИТОВ</div>
+                    <div class="location-info">Опасно!</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ЭКРАН 5: АКТИВНАЯ МИССИЯ -->
+        <div id="screen5" class="hidden">
+            <div class="top-bar">
+                <button class="back-arrow" onclick="cancelMission()">←</button>
+            </div>
+            <div class="title-screen" id="mission-title">МИССИЯ</div>
+            
+            <div class="battle-arena" id="mission-arena">
+                <div class="player-ship" id="mission-player">🚀</div>
+                <div class="enemy-ship" id="mission-enemy" style="display:none;">👾</div>
+                <div class="hp-bar player-hp"><div class="hp-fill" id="player-hp-fill" style="width:100%;"></div></div>
+                <div class="hp-bar enemy-hp" id="enemy-hp-bar" style="display:none;"><div class="hp-fill" id="enemy-hp-fill" style="width:100%;"></div></div>
+                <div class="battle-log" id="battle-log"></div>
             </div>
             
-            <div class="stats-panel">
-                <div class="stat-card">
-                    <div class="stat-label">БРОНЯ</div>
-                    <div class="stat-value shield-stat" id="shield-stat">10</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">ОРУЖИЕ</div>
-                    <div class="stat-value weapon-stat" id="weapon-stat">5</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">УДАЧА</div>
-                    <div class="stat-value luck-stat" id="luck-stat">3</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">ФРАКЦИЯ</div>
-                    <div class="stat-value" id="hud-frac" style="font-size: 8px;">—</div>
-                </div>
-            </div>
+            <div class="resource-display" id="mission-resources">ДОБЫТО: 0</div>
+            <button class="menu-btn" onclick="cancelMission()">ЗАВЕРШИТЬ МИССИЮ</button>
+        </div>
 
-            <div class="battle-arena" id="battle-arena">
-                <div class="player-ship" id="player-ship">🚀</div>
-                <div class="enemy-ship" id="enemy-ship">👾</div>
-                <div class="enemy-hp-bar">
-                    <div class="enemy-hp-fill" id="enemy-hp-fill" style="width: 100%;"></div>
-                </div>
+        <!-- ЭКРАН 6: МЕНЮ КОРАБЛЯ -->
+        <div id="screen6" class="hidden">
+            <div class="top-bar">
+                <button class="back-arrow" onclick="backToMenu()">←</button>
             </div>
-
-            <div class="resource-section">
-                <div id="res-type">МОНЕТЫ</div>
-                <div class="balance-digits" id="balance">0</div>
-                <div class="pushed-income" id="passive-income-display">+0/с</div>
+            <div class="title-screen">КАПИТАНСКИЙ МОСТИК</div>
+            
+            <div class="current-ship-display" id="ship-menu-display">🚀</div>
+            
+            <div class="ship-stats">
+                <div class="stat-card">
+                    <div class="stat-label">ЩИТ</div>
+                    <div class="stat-value" id="stat-shield" style="color:#00ffff;">10</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">УРОН</div>
+                    <div class="stat-value" id="stat-damage" style="color:#ff4444;">5</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">КРИТ ШАНС</div>
+                    <div class="stat-value" id="stat-crit" style="color:#ffcc00;">5%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">ДОДЖ ШАНС</div>
+                    <div class="stat-value" id="stat-dodge" style="color:#00ff00;">5%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">ДОБЫЧА/С</div>
+                    <div class="stat-value" id="stat-mining" style="color:#ffaa00;">1</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">РЕСУРСЫ</div>
+                    <div class="stat-value" id="stat-resources" style="color:#ffcc00;">0</div>
+                </div>
             </div>
             
-            <div id="main-reactor" class="pixel-border">
-                <span>АТАКА</span>
-                <span class="reactor-sub" id="reactor-action-text">В БОЙ</span>
-            </div>
-
-            <div class="upgrade-section">
-                <div class="section-label">УЛУЧШЕНИЯ</div>
-                
-                <div class="up-card">
-                    <div class="up-info">
-                        <div class="up-title">УСИЛИТЬ БРОНЮ</div>
-                        <div class="up-desc" id="up1-desc">УР.1 (+2 брони)</div>
+            <div style="text-align:left; margin-top:15px;">
+                <div class="upgrade-card">
+                    <div class="upgrade-info">
+                        <div class="upgrade-name">УСИЛИТЬ ЩИТЫ</div>
+                        <div class="upgrade-desc" id="upg-shield-desc">УР.1 (+2 щита)</div>
                     </div>
-                    <button class="up-btn" id="up1-btn" onclick="buyUpgrade(1)">50</button>
-                </div>
-
-                <div class="up-card">
-                    <div class="up-info">
-                        <div class="up-title">УЛУЧШИТЬ ОРУЖИЕ</div>
-                        <div class="up-desc" id="up2-desc">УР.0 (+1 урона)</div>
-                    </div>
-                    <button class="up-btn" id="up2-btn" onclick="buyUpgrade(2)">75</button>
+                    <button class="upgrade-btn" id="upg-shield-btn" onclick="buyUpgrade('shield')">50</button>
                 </div>
                 
-                <div class="up-card">
-                    <div class="up-info">
-                        <div class="up-title">ПОВЫСИТЬ УДАЧУ</div>
-                        <div class="up-desc" id="up3-desc">УР.0 (+1 удачи)</div>
+                <div class="upgrade-card">
+                    <div class="upgrade-info">
+                        <div class="upgrade-name">УЛУЧШИТЬ ОРУДИЯ</div>
+                        <div class="upgrade-desc" id="upg-damage-desc">УР.0 (+1 урона)</div>
                     </div>
-                    <button class="up-btn" id="up3-btn" onclick="buyUpgrade(3)">100</button>
+                    <button class="upgrade-btn" id="upg-damage-btn" onclick="buyUpgrade('damage')">75</button>
                 </div>
-            </div>
-
-            <div class="system-footer">
-                <button class="tech-btn" onclick="changeFaction()">СМЕНИТЬ ФРАКЦИЮ</button>
-                <button class="tech-btn" onclick="resetAllData()">СБРОС</button>
+                
+                <div class="upgrade-card">
+                    <div class="upgrade-info">
+                        <div class="upgrade-name">ПОВЫСИТЬ КРИТ</div>
+                        <div class="upgrade-desc" id="upg-crit-desc">УР.0 (+2% крита)</div>
+                    </div>
+                    <button class="upgrade-btn" id="upg-crit-btn" onclick="buyUpgrade('crit')">60</button>
+                </div>
+                
+                <div class="upgrade-card">
+                    <div class="upgrade-info">
+                        <div class="upgrade-name">УЛУЧШИТЬ ДОДЖ</div>
+                        <div class="upgrade-desc" id="upg-dodge-desc">УР.0 (+2% доджа)</div>
+                    </div>
+                    <button class="upgrade-btn" id="upg-dodge-btn" onclick="buyUpgrade('dodge')">60</button>
+                </div>
+                
+                <div class="upgrade-card">
+                    <div class="upgrade-info">
+                        <div class="upgrade-name">УСКОРИТЬ ДОБЫЧУ</div>
+                        <div class="upgrade-desc" id="upg-mining-desc">УР.0 (+1 добычи/с)</div>
+                    </div>
+                    <button class="upgrade-btn" id="upg-mining-btn" onclick="buyUpgrade('mining')">100</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Создание звезд
-        function createStars() {
-            const starsContainer = document.getElementById('stars');
-            for (let i = 0; i < 100; i++) {
-                const star = document.createElement('div');
-                star.className = 'star';
-                star.style.left = Math.random() * 100 + '%';
-                star.style.top = Math.random() * 100 + '%';
-                star.style.width = Math.random() * 3 + 'px';
-                star.style.height = star.style.width;
-                star.style.animationDelay = Math.random() * 2 + 's';
-                starsContainer.appendChild(star);
-            }
-        }
-        
-        // Дожидаемся загрузки DOM
         document.addEventListener('DOMContentLoaded', function() {
+            // Звездное небо
+            function createStars() {
+                const starsContainer = document.getElementById('stars');
+                for (let i = 0; i < 100; i++) {
+                    const star = document.createElement('div');
+                    star.className = 'star';
+                    star.style.left = Math.random() * 100 + '%';
+                    star.style.top = Math.random() * 100 + '%';
+                    star.style.width = Math.random() * 3 + 'px';
+                    star.style.height = star.style.width;
+                    star.style.animationDelay = Math.random() * 2 + 's';
+                    starsContainer.appendChild(star);
+                }
+            }
             createStars();
-            
-            // Telegram WebApp
+
+            // Telegram
             let tg = null;
             if (window.Telegram && window.Telegram.WebApp) {
                 tg = window.Telegram.WebApp;
                 try { tg.expand(); } catch(e) {}
             }
 
-            // ИГРОВЫЕ ПЕРЕМЕННЫЕ
-            let score = parseFloat(localStorage.getItem('sd_score')) || 0;
+            // КОРАБЛИ ФРАКЦИЙ
+            const ships = {
+                'Конфедерация': [
+                    { emoji: '🛸', name: 'СТРАЖ-1', desc: 'Стандартный\nщит: +0' },
+                    { emoji: '🛰️', name: 'СТРАЖ-2', desc: 'Улучшенный\nщит: +2' },
+                    { emoji: '🛡️', name: 'ЗАЩИТНИК', desc: 'Тяжелый\nщит: +4' }
+                ],
+                'Повстанцы': [
+                    { emoji: '🚀', name: 'МСТИТЕЛЬ-1', desc: 'Стандартный\nурон: +0' },
+                    { emoji: '💫', name: 'МСТИТЕЛЬ-2', desc: 'Улучшенный\nурон: +2' },
+                    { emoji: '⚡', name: 'РАЗРУШИТЕЛЬ', desc: 'Мощный\nурон: +4' }
+                ],
+                'Торговая гильдия': [
+                    { emoji: '🚢', name: 'ТОРГОВЕЦ-1', desc: 'Стандартный\nдобыча: +0' },
+                    { emoji: '🛳️', name: 'ТОРГОВЕЦ-2', desc: 'Улучшенный\nдобыча: +1' },
+                    { emoji: '🏗️', name: 'МАГНАТ', desc: 'Огромный\nдобыча: +2' }
+                ]
+            };
+
+            // СОСТОЯНИЕ ИГРЫ
+            let resources = parseFloat(localStorage.getItem('sd_resources')) || 0;
             let frac = localStorage.getItem('sd_frac') || null;
             let fracColor = localStorage.getItem('sd_color') || '#00ff00';
             let fracBonus = localStorage.getItem('sd_bonus') || null;
+            let selectedShip = localStorage.getItem('sd_ship') || null;
+            let selectedShipIndex = parseInt(localStorage.getItem('sd_ship_index')) || 0;
             
-            let up1Level = parseInt(localStorage.getItem('sd_up1_lvl')) || 1;
-            let up2Level = parseInt(localStorage.getItem('sd_up2_lvl')) || 0;
-            let up3Level = parseInt(localStorage.getItem('sd_up3_lvl')) || 0;
+            let tempFaction = null;
+            let tempFactionColor = null;
+            let tempFactionBonus = null;
+            let tempSelectedShip = null;
             
-            const up1BaseCost = 50;
-            const up2BaseCost = 75;
-            const up3BaseCost = 100;
+            // Уровни улучшений
+            let upgShield = parseInt(localStorage.getItem('sd_upg_shield')) || 1;
+            let upgDamage = parseInt(localStorage.getItem('sd_upg_damage')) || 0;
+            let upgCrit = parseInt(localStorage.getItem('sd_upg_crit')) || 0;
+            let upgDodge = parseInt(localStorage.getItem('sd_upg_dodge')) || 0;
+            let upgMining = parseInt(localStorage.getItem('sd_upg_mining')) || 0;
             
-            let passiveInterval = null;
-            let enemyHP = 20;
-            let maxEnemyHP = 20;
-            let isAttacking = false;
-
-            if (localStorage.getItem('sd_enemy_hp')) {
-                enemyHP = parseInt(localStorage.getItem('sd_enemy_hp'));
-                maxEnemyHP = parseInt(localStorage.getItem('sd_enemy_max_hp')) || 20;
-            }
-
+            // Состояние миссии
+            let currentMission = null;
+            let missionInterval = null;
+            let missionEnemyHP = 0;
+            let missionMaxEnemyHP = 0;
+            let missionResources = 0;
+            
             // Звуки
-            function playBeep(frequency = 440, duration = 100) {
+            function playBeep(freq = 440, dur = 100) {
                 try {
-                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    const oscillator = audioContext.createOscillator();
-                    const gainNode = audioContext.createGain();
-                    oscillator.connect(gainNode);
-                    gainNode.connect(audioContext.destination);
-                    oscillator.frequency.value = frequency;
-                    oscillator.type = 'square';
-                    gainNode.gain.value = 0.1;
-                    oscillator.start();
-                    oscillator.stop(audioContext.currentTime + duration / 1000);
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    osc.frequency.value = freq; osc.type = 'square';
+                    gain.gain.value = 0.1; osc.start();
+                    osc.stop(ctx.currentTime + dur / 1000);
                 } catch(e) {}
             }
 
-            function showFloatingText(x, y, text, className = '') {
-                const floatingText = document.createElement('div');
-                floatingText.className = 'floating-text ' + className;
-                floatingText.innerText = text;
-                floatingText.style.left = x + 'px';
-                floatingText.style.top = y + 'px';
-                document.body.appendChild(floatingText);
-                setTimeout(() => floatingText.remove(), 1000);
+            // Расчет статов
+            function getShipBonus() {
+                if (!selectedShip) return 0;
+                const shipData = ships[frac][selectedShipIndex];
+                if (frac === 'Конфедерация') {
+                    return selectedShipIndex === 0 ? 0 : selectedShipIndex === 1 ? 2 : 4;
+                } else if (frac === 'Повстанцы') {
+                    return selectedShipIndex === 0 ? 0 : selectedShipIndex === 1 ? 2 : 4;
+                } else {
+                    return selectedShipIndex === 0 ? 0 : selectedShipIndex === 1 ? 1 : 2;
+                }
+            }
+            
+            function getShield() {
+                let s = 10 + (upgShield - 1) * 2;
+                if (fracBonus === 'shield') s = Math.floor(s * 1.5);
+                if (frac === 'Конфедерация') s += getShipBonus();
+                return s;
+            }
+            
+            function getDamage() {
+                let d = 5 + upgDamage;
+                if (fracBonus === 'weapon') d = Math.floor(d * 1.5);
+                if (frac === 'Повстанцы') d += getShipBonus();
+                return d;
+            }
+            
+            function getCritChance() {
+                return 5 + upgCrit * 2;
+            }
+            
+            function getDodgeChance() {
+                return 5 + upgDodge * 2;
+            }
+            
+            function getMiningRate() {
+                let m = 1 + upgMining;
+                if (fracBonus === 'mining') m = Math.floor(m * 1.5);
+                if (frac === 'Торговая гильдия') m += getShipBonus();
+                return m;
             }
 
-            function animateBattle(damage, isCrit = false, isDodge = false) {
-                if (isAttacking) return;
-                isAttacking = true;
+            function getShipEmoji() {
+                if (!frac || !ships[frac]) return '🚀';
+                return ships[frac][selectedShipIndex].emoji;
+            }
+
+            // Переключение экранов
+            function showScreen(id) {
+                ['screen1','screen2','screen3','screen4','screen5','screen6','screen7'].forEach(s => {
+                    document.getElementById(s).classList.add('hidden');
+                });
+                document.getElementById(id).classList.remove('hidden');
+            }
+
+            // Старт игры
+            document.getElementById('start-btn').addEventListener('click', () => {
+                playBeep(440, 100);
+                showScreen('screen2');
+            });
+
+            window.goBackToStart = () => {
+                playBeep(220, 100);
+                showScreen('screen1');
+            };
+
+            // Выбор фракции
+            window.selectFaction = (name, color, bonus) => {
+                playBeep(550, 150);
+                tempFaction = name;
+                tempFactionColor = color;
+                tempFactionBonus = bonus;
+                tempSelectedShip = null;
                 
-                const arena = document.getElementById('battle-arena');
-                const player = document.getElementById('player-ship');
-                const enemy = document.getElementById('enemy-ship');
+                document.getElementById('faction-color-text').innerText = `Фракция: ${name}`;
+                document.getElementById('faction-color-text').style.color = color;
                 
-                player.style.transform = 'translateY(-50%) translateX(30px)';
-                setTimeout(() => {
-                    player.style.transform = 'translateY(-50%) translateX(0)';
-                }, 200);
+                const shipGrid = document.getElementById('ship-grid');
+                shipGrid.innerHTML = '';
                 
-                const laser = document.createElement('div');
-                laser.className = 'laser-beam';
-                laser.style.top = '50%';
-                laser.style.left = '60px';
-                laser.style.width = '0';
-                arena.appendChild(laser);
-                
-                requestAnimationFrame(() => {
-                    laser.style.width = '60%';
+                ships[name].forEach((ship, index) => {
+                    const shipCard = document.createElement('div');
+                    shipCard.className = 'ship-card';
+                    shipCard.style.color = color;
+                    shipCard.innerHTML = `
+                        <span class="ship-emoji">${ship.emoji}</span>
+                        <div class="ship-name">${ship.name}</div>
+                        <div class="ship-stats-preview">${ship.desc.replace(/\n/g, '<br>')}</div>
+                    `;
+                    shipCard.onclick = () => selectShip(index, shipCard);
+                    shipGrid.appendChild(shipCard);
                 });
                 
-                setTimeout(() => laser.remove(), 500);
-                
-                if (isDodge) {
-                    enemy.style.transform = 'translateY(-50%) translateY(-30px)';
-                    setTimeout(() => {
-                        enemy.style.transform = 'translateY(-50%)';
-                    }, 300);
-                    
-                    const rect = enemy.getBoundingClientRect();
-                    showFloatingText(rect.left + 20, rect.top, 'УКЛОН!', 'dodge-text');
-                    playBeep(200, 100);
-                } else {
-                    enemy.style.transform = 'translateY(-50%) scale(1.3)';
-                    if (isCrit) {
-                        enemy.style.filter = 'brightness(2)';
-                    }
-                    setTimeout(() => {
-                        enemy.style.transform = 'translateY(-50%) scale(1)';
-                        enemy.style.filter = 'brightness(1)';
-                    }, 200);
-                    
-                    const explosion = document.createElement('div');
-                    explosion.className = 'explosion';
-                    explosion.innerText = '💥';
-                    explosion.style.right = '20px';
-                    explosion.style.top = '40%';
-                    arena.appendChild(explosion);
-                    setTimeout(() => explosion.remove(), 500);
-                    
-                    const rect = enemy.getBoundingClientRect();
-                    const text = isCrit ? 'КРИТ! ' + damage : '' + damage;
-                    showFloatingText(rect.left + 20, rect.top, text, isCrit ? 'crit-text' : '');
-                    
-                    if (isCrit) {
-                        playBeep(880, 100);
-                        setTimeout(() => playBeep(1320, 50), 100);
-                    } else {
-                        playBeep(440, 50);
-                    }
-                }
-                
-                setTimeout(() => {
-                    const playerShield = getShield();
-                    const enemyDamage = Math.floor(Math.random() * 5) + 3;
-                    const dodgeChance = Math.min(getLuck() * 2, 40);
-                    
-                    if (Math.random() * 100 < dodgeChance) {
-                        player.style.transform = 'translateY(-50%) translateY(-25px)';
-                        setTimeout(() => {
-                            player.style.transform = 'translateY(-50%)';
-                        }, 300);
-                        
-                        const rect = player.getBoundingClientRect();
-                        showFloatingText(rect.left + 20, rect.top, 'УКЛОН!', 'dodge-text');
-                    } else {
-                        const actualDamage = Math.max(1, enemyDamage - Math.floor(playerShield / 3));
-                        player.style.transform = 'translateY(-50%) scale(0.8)';
-                        setTimeout(() => {
-                            player.style.transform = 'translateY(-50%) scale(1)';
-                        }, 200);
-                        
-                        const rect = player.getBoundingClientRect();
-                        showFloatingText(rect.left + 20, rect.top, '-' + actualDamage, 'weapon-stat');
-                    }
-                    
-                    isAttacking = false;
-                }, 600);
-            }
+                document.getElementById('confirm-ship-btn').disabled = true;
+                showScreen('screen7');
+            };
 
-            function getShield() {
-                let shield = 10 + (up1Level - 1) * 2;
-                if (fracBonus === 'shield') {
-                    shield = Math.floor(shield * 1.5);
-                }
-                return shield;
-            }
-
-            function getWeapon() {
-                let weapon = 5 + up2Level;
-                if (fracBonus === 'weapon') {
-                    weapon = Math.floor(weapon * 1.5);
-                }
-                return weapon;
-            }
-
-            function getLuck() {
-                let luck = 3 + up3Level;
-                if (fracBonus === 'luck') {
-                    luck = Math.floor(luck * 1.5);
-                }
-                return luck;
-            }
-
-            // Привязываем обработчик к кнопке СТАРТ
-            document.getElementById('start-btn').addEventListener('click', function() {
-                console.log('Кнопка СТАРТ нажата');
+            let selectedShipCard = null;
+            
+            window.selectShip = (index, cardElement) => {
                 playBeep(440, 100);
-                document.getElementById('screen1').classList.add('hidden');
-                document.getElementById('screen2').classList.remove('hidden');
-            });
+                tempSelectedShip = index;
+                
+                if (selectedShipCard) {
+                    selectedShipCard.classList.remove('selected');
+                }
+                cardElement.classList.add('selected');
+                selectedShipCard = cardElement;
+                
+                document.getElementById('confirm-ship-btn').disabled = false;
+            };
 
-            // Делаем функции глобальными
-            window.goBackToStart = function() {
+            window.confirmShip = () => {
+                if (tempSelectedShip === null) return;
+                
+                playBeep(660, 150);
+                frac = tempFaction;
+                fracColor = tempFactionColor;
+                fracBonus = tempFactionBonus;
+                selectedShip = ships[frac][tempSelectedShip].emoji;
+                selectedShipIndex = tempSelectedShip;
+                
+                localStorage.setItem('sd_frac', frac);
+                localStorage.setItem('sd_color', fracColor);
+                localStorage.setItem('sd_bonus', fracBonus);
+                localStorage.setItem('sd_ship', selectedShip);
+                localStorage.setItem('sd_ship_index', selectedShipIndex);
+                
+                showScreen('screen3');
+                updateMainMenu();
+            };
+
+            window.backToFactionSelect = () => {
                 playBeep(220, 100);
-                document.getElementById('screen2').classList.add('hidden');
-                document.getElementById('screen1').classList.remove('hidden');
+                showScreen('screen2');
             };
 
-            window.changeFaction = function() {
-                if (confirm('Сменить фракцию? Прогресс будет сохранен.')) {
-                    playBeep(330, 100);
-                    document.getElementById('screen3').classList.add('hidden');
-                    document.getElementById('screen2').classList.remove('hidden');
-                    if (passiveInterval) {
-                        clearInterval(passiveInterval);
-                        passiveInterval = null;
-                    }
-                }
+            // Главное меню
+            function updateMainMenu() {
+                document.getElementById('main-resources').innerText = `РЕСУРСЫ: ${Math.floor(resources)}`;
+                document.getElementById('main-resources').style.color = fracColor;
+                document.getElementById('current-ship-display').innerText = getShipEmoji();
+            }
+
+            window.openMap = () => {
+                playBeep(440, 100);
+                showScreen('screen4');
             };
 
-            window.selectFrac = function(name, color, bonus) {
-                playBeep(550, 150);
-                frac = name;
-                fracColor = color;
-                fracBonus = bonus;
-                localStorage.setItem('sd_frac', name);
-                localStorage.setItem('sd_color', color);
-                localStorage.setItem('sd_bonus', bonus);
-                initGameInterface();
+            window.openShipMenu = () => {
+                playBeep(440, 100);
+                showScreen('screen6');
+                updateShipMenu();
             };
 
-            function initGameInterface() {
-                document.getElementById('screen1').classList.add('hidden');
-                document.getElementById('screen2').classList.add('hidden');
-                document.getElementById('screen3').classList.remove('hidden');
+            window.backToMenu = () => {
+                playBeep(220, 100);
+                if (currentMission) cancelMission();
+                showScreen('screen3');
+                updateMainMenu();
+            };
+
+            // Меню корабля
+            function updateShipMenu() {
+                document.getElementById('ship-menu-display').innerText = getShipEmoji();
+                document.getElementById('stat-shield').innerText = getShield();
+                document.getElementById('stat-damage').innerText = getDamage();
+                document.getElementById('stat-crit').innerText = getCritChance() + '%';
+                document.getElementById('stat-dodge').innerText = getDodgeChance() + '%';
+                document.getElementById('stat-mining').innerText = getMiningRate();
+                document.getElementById('stat-resources').innerText = Math.floor(resources);
                 
-                const hudFrac = document.getElementById('hud-frac');
-                hudFrac.innerText = frac;
-                hudFrac.style.color = fracColor;
-                
-                const reactor = document.getElementById('main-reactor');
-                reactor.style.borderColor = fracColor;
-                reactor.style.color = fracColor;
-                reactor.style.boxShadow = `0 0 30px ${fracColor}44`;
-                
-                updateUiDisplay();
-                startPassiveIncomeTimer();
+                updateUpgradeButton('shield', upgShield, 50, 1.5);
+                updateUpgradeButton('damage', upgDamage, 75, 1.6);
+                updateUpgradeButton('crit', upgCrit, 60, 1.6);
+                updateUpgradeButton('dodge', upgDodge, 60, 1.6);
+                updateUpgradeButton('mining', upgMining, 100, 1.7);
             }
 
-            function getUpgradeCost(type) {
-                let cost = 0;
-                if (type === 1) {
-                    cost = Math.floor(up1BaseCost * Math.pow(1.5, up1Level - 1));
-                } else if (type === 2) {
-                    cost = Math.floor(up2BaseCost * Math.pow(1.6, up2Level));
-                } else if (type === 3) {
-                    cost = Math.floor(up3BaseCost * Math.pow(1.7, up3Level));
-                }
-                return cost;
+            function updateUpgradeButton(type, level, baseCost, multiplier) {
+                const cost = Math.floor(baseCost * Math.pow(multiplier, level));
+                const btn = document.getElementById(`upg-${type}-btn`);
+                const desc = document.getElementById(`upg-${type}-desc`);
+                
+                const names = {
+                    shield: 'щита',
+                    damage: 'урона',
+                    crit: 'крита',
+                    dodge: 'доджа',
+                    mining: 'добычи/с'
+                };
+                
+                btn.innerText = cost;
+                btn.disabled = resources < cost;
+                desc.innerText = `УР.${level} (+${type === 'crit' || type === 'dodge' ? '2%' : type === 'mining' ? '1' : type === 'shield' ? '2' : '1'} ${names[type]})`;
             }
 
-            function updateUiDisplay() {
-                document.getElementById('balance').innerText = Math.floor(score).toLocaleString();
+            window.buyUpgrade = (type) => {
+                const baseCosts = { shield: 50, damage: 75, crit: 60, dodge: 60, mining: 100 };
+                const multipliers = { shield: 1.5, damage: 1.6, crit: 1.6, dodge: 1.6, mining: 1.7 };
+                const levels = { shield: upgShield, damage: upgDamage, crit: upgCrit, dodge: upgDodge, mining: upgMining };
                 
-                document.getElementById('shield-stat').innerText = getShield();
-                document.getElementById('weapon-stat').innerText = getWeapon();
-                document.getElementById('luck-stat').innerText = getLuck();
+                const cost = Math.floor(baseCosts[type] * Math.pow(multipliers[type], levels[type]));
                 
-                const hpPercent = Math.max(0, (enemyHP / maxEnemyHP) * 100);
-                document.getElementById('enemy-hp-fill').style.width = hpPercent + '%';
-                
-                localStorage.setItem('sd_enemy_hp', enemyHP);
-                localStorage.setItem('sd_enemy_max_hp', maxEnemyHP);
-                
-                let cost1 = getUpgradeCost(1);
-                let cost2 = getUpgradeCost(2);
-                let cost3 = getUpgradeCost(3);
-                
-                document.getElementById('up1-desc').innerText = `УР.${up1Level} (+2 брони)`;
-                const btn1 = document.getElementById('up1-btn');
-                btn1.innerText = cost1;
-                btn1.disabled = (score < cost1);
-                
-                document.getElementById('up2-desc').innerText = `УР.${up2Level} (+1 урона)`;
-                const btn2 = document.getElementById('up2-btn');
-                btn2.innerText = cost2;
-                btn2.disabled = (score < cost2);
-                
-                document.getElementById('up3-desc').innerText = `УР.${up3Level} (+1 удачи)`;
-                const btn3 = document.getElementById('up3-btn');
-                btn3.innerText = cost3;
-                btn3.disabled = (score < cost3);
-                
-                document.getElementById('balance').style.color = fracColor;
-                
-                const passiveIncome = getLuck() * 0.5;
-                document.getElementById('passive-income-display').innerText = '+' + passiveIncome.toFixed(1) + '/с';
-            }
-
-            // Привязываем обработчик к кнопке АТАКА
-            document.getElementById('main-reactor').addEventListener('click', function(e) {
-                if (isAttacking) return;
-                
-                const weapon = getWeapon();
-                const luck = getLuck();
-                let damage = Math.floor(Math.random() * weapon) + 1;
-                let isCrit = false;
-                let isDodge = false;
-                
-                if (Math.random() * 100 < Math.min(luck * 3, 50)) {
-                    damage = Math.floor(damage * 2);
-                    isCrit = true;
-                }
-                
-                if (Math.random() * 100 < 10) {
-                    isDodge = true;
-                    damage = 0;
-                }
-                
-                if (!isDodge) {
-                    enemyHP -= damage;
-                    score += damage * 10;
-                    localStorage.setItem('sd_score', score);
-                }
-                
-                animateBattle(damage, isCrit, isDodge);
-                
-                if (enemyHP <= 0) {
-                    setTimeout(() => {
-                        const bonus = 100;
-                        score += bonus;
-                        localStorage.setItem('sd_score', score);
-                        maxEnemyHP = Math.floor(maxEnemyHP * 1.2);
-                        enemyHP = maxEnemyHP;
-                        
-                        const rect = document.getElementById('enemy-ship').getBoundingClientRect();
-                        showFloatingText(rect.left + 20, rect.top, '+' + bonus, 'crit-text');
-                        playBeep(660, 150);
-                        updateUiDisplay();
-                    }, 800);
-                }
-                
-                updateUiDisplay();
-            });
-
-            window.buyUpgrade = function(type) {
-                let cost = getUpgradeCost(type);
-                if (score >= cost) {
-                    score -= cost;
+                if (resources >= cost) {
+                    resources -= cost;
                     playBeep(660, 100);
                     setTimeout(() => playBeep(880, 100), 100);
                     
-                    if (type === 1) {
-                        up1Level++;
-                        localStorage.setItem('sd_up1_lvl', up1Level);
-                    } else if (type === 2) {
-                        up2Level++;
-                        localStorage.setItem('sd_up2_lvl', up2Level);
-                    } else if (type === 3) {
-                        up3Level++;
-                        localStorage.setItem('sd_up3_lvl', up3Level);
+                    switch(type) {
+                        case 'shield': upgShield++; localStorage.setItem('sd_upg_shield', upgShield); break;
+                        case 'damage': upgDamage++; localStorage.setItem('sd_upg_damage', upgDamage); break;
+                        case 'crit': upgCrit++; localStorage.setItem('sd_upg_crit', upgCrit); break;
+                        case 'dodge': upgDodge++; localStorage.setItem('sd_upg_dodge', upgDodge); break;
+                        case 'mining': upgMining++; localStorage.setItem('sd_upg_mining', upgMining); break;
                     }
                     
-                    localStorage.setItem('sd_score', score);
-                    updateUiDisplay();
+                    localStorage.setItem('sd_resources', resources);
+                    updateShipMenu();
                 }
             };
 
-            function startPassiveIncomeTimer() {
-                if (passiveInterval) {
-                    clearInterval(passiveInterval);
-                }
-                passiveInterval = setInterval(() => {
-                    const passiveIncome = getLuck() * 0.5;
-                    if (passiveIncome > 0) {
-                        score += passiveIncome;
-                        localStorage.setItem('sd_score', score);
-                        updateUiDisplay();
-                    }
+            // Миссии
+            window.startMining = (asteroid) => {
+                playBeep(440, 100);
+                currentMission = 'mining';
+                missionResources = 0;
+                showScreen('screen5');
+                
+                const rates = { asteroid1: 1, asteroid2: 2 };
+                const baseRate = rates[asteroid] || 1;
+                
+                document.getElementById('mission-title').innerText = 'ДОБЫЧА РЕСУРСОВ';
+                document.getElementById('mission-player').innerText = getShipEmoji();
+                document.getElementById('mission-enemy').style.display = 'none';
+                document.getElementById('enemy-hp-bar').style.display = 'none';
+                document.getElementById('battle-log').innerText = 'Идет добыча...';
+                
+                missionInterval = setInterval(() => {
+                    const mined = (baseRate + getMiningRate()) * 0.5;
+                    missionResources += mined;
+                    resources += mined;
+                    localStorage.setItem('sd_resources', resources);
+                    document.getElementById('mission-resources').innerText = `ДОБЫТО: ${Math.floor(missionResources)}`;
                 }, 1000);
-            }
-
-            window.resetAllData = function() {
-                if (confirm('Сбросить весь прогресс? Данные будут удалены.')) {
-                    localStorage.clear();
-                    location.reload();
-                }
             };
 
-            // Если фракция уже выбрана, показываем игру
-            if (frac) {
-                initGameInterface();
+            window.startBattle = (enemy) => {
+                playBeep(440, 100);
+                currentMission = 'battle';
+                missionResources = 0;
+                
+                const enemies = {
+                    pirate1: { name: 'ПИРАТЫ', hp: 30, damage: 3, reward: 50, emoji: '🏴‍☠️' },
+                    pirate2: { name: 'БАНДИТЫ', hp: 50, damage: 5, reward: 100, emoji: '💀' }
+                };
+                
+                const enemyData = enemies[enemy];
+                missionEnemyHP = enemyData.hp;
+                missionMaxEnemyHP = enemyData.hp;
+                
+                showScreen('screen5');
+                document.getElementById('mission-title').innerText = 'БОЙ: ' + enemyData.name;
+                document.getElementById('mission-player').innerText = getShipEmoji();
+                document.getElementById('mission-enemy').innerText = enemyData.emoji;
+                document.getElementById('mission-enemy').style.display = 'block';
+                document.getElementById('enemy-hp-bar').style.display = 'block';
+                document.getElementById('battle-log').innerText = 'В атаку!';
+                
+                const playerHP = getShield();
+                let currentPlayerHP = playerHP;
+                
+                missionInterval = setInterval(() => {
+                    // Игрок атакует
+                    let dmg = Math.floor(Math.random() * getDamage()) + 1;
+                    let isCrit = Math.random() * 100 < getCritChance();
+                    if (isCrit) dmg = Math.floor(dmg * 2);
+                    
+                    missionEnemyHP -= dmg;
+                    const enemyHPPercent = Math.max(0, (missionEnemyHP / missionMaxEnemyHP) * 100);
+                    document.getElementById('enemy-hp-fill').style.width = enemyHPPercent + '%';
+                    
+                    const critText = isCrit ? 'КРИТ! ' : '';
+                    document.getElementById('battle-log').innerText = `${critText}Урон: ${dmg}`;
+                    
+                    if (missionEnemyHP <= 0) {
+                        clearInterval(missionInterval);
+                        const reward = enemyData.reward + Math.floor(Math.random() * 30);
+                        resources += reward;
+                        missionResources += reward;
+                        localStorage.setItem('sd_resources', resources);
+                        document.getElementById('mission-resources').innerText = `ДОБЫТО: ${Math.floor(missionResources)}`;
+                        document.getElementById('battle-log').innerText = 'ПОБЕДА! +' + reward;
+                        document.getElementById('mission-enemy').style.display = 'none';
+                        playBeep(880, 200);
+                        currentMission = null;
+                        return;
+                    }
+                    
+                    // Враг атакует
+                    setTimeout(() => {
+                        if (missionEnemyHP <= 0) return;
+                        
+                        let enemyDmg = Math.floor(Math.random() * enemyData.damage) + 1;
+                        const isDodge = Math.random() * 100 < getDodgeChance();
+                        
+                        if (!isDodge) {
+                            currentPlayerHP -= enemyDmg;
+                            const playerHPPercent = Math.max(0, (currentPlayerHP / playerHP) * 100);
+                            document.getElementById('player-hp-fill').style.width = playerHPPercent + '%';
+                            document.getElementById('battle-log').innerText += ` | Враг: ${enemyDmg}`;
+                        } else {
+                            document.getElementById('battle-log').innerText += ' | ДОДЖ!';
+                        }
+                        
+                        if (currentPlayerHP <= 0) {
+                            clearInterval(missionInterval);
+                            document.getElementById('battle-log').innerText = 'ПОРАЖЕНИЕ!';
+                            playBeep(200, 300);
+                            currentMission = null;
+                        }
+                    }, 500);
+                }, 1500);
+            };
+
+            window.cancelMission = () => {
+                if (missionInterval) clearInterval(missionInterval);
+                currentMission = null;
+                missionInterval = null;
+                playBeep(220, 100);
+                showScreen('screen3');
+                updateMainMenu();
+            };
+
+            // Загрузка игры
+            if (frac && selectedShip) {
+                showScreen('screen3');
+                updateMainMenu();
             }
         });
     </script>
