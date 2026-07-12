@@ -91,11 +91,6 @@
             to { transform: translateY(100px); opacity: 0; }
         }
         
-        @keyframes damageFloat {
-            0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-80px); opacity: 0; }
-        }
-        
         @keyframes laserShoot {
             from { width: 0; opacity: 1; }
             to { width: 100%; opacity: 0; }
@@ -115,7 +110,6 @@
             margin: 0 auto;
         }
         
-        /* Верхняя панель */
         .top-bar {
             display: flex;
             align-items: center;
@@ -160,7 +154,6 @@
             position: relative;
         }
         
-        /* ЭКРАН 1 */
         #screen1 { 
             padding-top: 60px;
             animation: slideIn 0.5s ease-out;
@@ -212,7 +205,6 @@
             animation: shake 0.3s;
         }
         
-        /* ЭКРАН 2 */
         .title-screen { 
             font-size: 16px; 
             font-weight: bold; 
@@ -280,7 +272,6 @@
             line-height: 1.6; 
         }
 
-        /* ЭКРАН 3 */
         .stats-panel {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -310,7 +301,6 @@
         .weapon-stat { color: #ff4444; }
         .luck-stat { color: #ffcc00; }
         
-        /* БОЕВАЯ АРЕНА */
         .battle-arena {
             width: 100%;
             height: 150px;
@@ -683,401 +673,386 @@
                 starsContainer.appendChild(star);
             }
         }
-        createStars();
-
-        // Telegram WebApp
-        let tg = null;
-        if (window.Telegram && window.Telegram.WebApp) {
-            tg = window.Telegram.WebApp;
-            try { tg.expand(); } catch(e) {}
-        }
-
-        // ИГРОВЫЕ ПЕРЕМЕННЫЕ
-        let score = parseFloat(localStorage.getItem('sd_score')) || 0;
-        let frac = localStorage.getItem('sd_frac') || null;
-        let fracColor = localStorage.getItem('sd_color') || '#00ff00';
-        let fracBonus = localStorage.getItem('sd_bonus') || null;
         
-        let up1Level = parseInt(localStorage.getItem('sd_up1_lvl')) || 1; // Броня
-        let up2Level = parseInt(localStorage.getItem('sd_up2_lvl')) || 0; // Оружие
-        let up3Level = parseInt(localStorage.getItem('sd_up3_lvl')) || 0; // Удача
-        
-        const up1BaseCost = 50;
-        const up2BaseCost = 75;
-        const up3BaseCost = 100;
-        
-        let passiveInterval = null;
-        let enemyHP = 20;
-        let maxEnemyHP = 20;
-        let isAttacking = false;
+        // Дожидаемся загрузки DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            createStars();
+            
+            // Telegram WebApp
+            let tg = null;
+            if (window.Telegram && window.Telegram.WebApp) {
+                tg = window.Telegram.WebApp;
+                try { tg.expand(); } catch(e) {}
+            }
 
-        // Загрузка состояния врага
-        if (localStorage.getItem('sd_enemy_hp')) {
-            enemyHP = parseInt(localStorage.getItem('sd_enemy_hp'));
-            maxEnemyHP = parseInt(localStorage.getItem('sd_enemy_max_hp')) || 20;
-        }
+            // ИГРОВЫЕ ПЕРЕМЕННЫЕ
+            let score = parseFloat(localStorage.getItem('sd_score')) || 0;
+            let frac = localStorage.getItem('sd_frac') || null;
+            let fracColor = localStorage.getItem('sd_color') || '#00ff00';
+            let fracBonus = localStorage.getItem('sd_bonus') || null;
+            
+            let up1Level = parseInt(localStorage.getItem('sd_up1_lvl')) || 1;
+            let up2Level = parseInt(localStorage.getItem('sd_up2_lvl')) || 0;
+            let up3Level = parseInt(localStorage.getItem('sd_up3_lvl')) || 0;
+            
+            const up1BaseCost = 50;
+            const up2BaseCost = 75;
+            const up3BaseCost = 100;
+            
+            let passiveInterval = null;
+            let enemyHP = 20;
+            let maxEnemyHP = 20;
+            let isAttacking = false;
 
-        if (frac) {
-            initGameInterface();
-        }
+            if (localStorage.getItem('sd_enemy_hp')) {
+                enemyHP = parseInt(localStorage.getItem('sd_enemy_hp'));
+                maxEnemyHP = parseInt(localStorage.getItem('sd_enemy_max_hp')) || 20;
+            }
 
-        // Звуки
-        function playBeep(frequency = 440, duration = 100) {
-            try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                oscillator.frequency.value = frequency;
-                oscillator.type = 'square';
-                gainNode.gain.value = 0.1;
-                oscillator.start();
-                oscillator.stop(audioContext.currentTime + duration / 1000);
-            } catch(e) {}
-        }
+            // Звуки
+            function playBeep(frequency = 440, duration = 100) {
+                try {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    oscillator.frequency.value = frequency;
+                    oscillator.type = 'square';
+                    gainNode.gain.value = 0.1;
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + duration / 1000);
+                } catch(e) {}
+            }
 
-        // Плавающий текст
-        function showFloatingText(x, y, text, className = '') {
-            const floatingText = document.createElement('div');
-            floatingText.className = 'floating-text ' + className;
-            floatingText.innerText = text;
-            floatingText.style.left = x + 'px';
-            floatingText.style.top = y + 'px';
-            document.body.appendChild(floatingText);
-            setTimeout(() => floatingText.remove(), 1000);
-        }
+            function showFloatingText(x, y, text, className = '') {
+                const floatingText = document.createElement('div');
+                floatingText.className = 'floating-text ' + className;
+                floatingText.innerText = text;
+                floatingText.style.left = x + 'px';
+                floatingText.style.top = y + 'px';
+                document.body.appendChild(floatingText);
+                setTimeout(() => floatingText.remove(), 1000);
+            }
 
-        // БОЕВАЯ АНИМАЦИЯ
-        function animateBattle(damage, isCrit = false, isDodge = false) {
-            if (isAttacking) return;
-            isAttacking = true;
-            
-            const arena = document.getElementById('battle-arena');
-            const player = document.getElementById('player-ship');
-            const enemy = document.getElementById('enemy-ship');
-            
-            // Анимация атаки игрока
-            player.style.transform = 'translateY(-50%) translateX(30px)';
-            setTimeout(() => {
-                player.style.transform = 'translateY(-50%) translateX(0)';
-            }, 200);
-            
-            // Лазерный луч
-            const laser = document.createElement('div');
-            laser.className = 'laser-beam';
-            laser.style.top = '50%';
-            laser.style.left = '60px';
-            laser.style.width = '0';
-            arena.appendChild(laser);
-            
-            requestAnimationFrame(() => {
-                laser.style.width = '60%';
-            });
-            
-            setTimeout(() => laser.remove(), 500);
-            
-            if (isDodge) {
-                enemy.style.transform = 'translateY(-50%) translateY(-30px)';
-                setTimeout(() => {
-                    enemy.style.transform = 'translateY(-50%)';
-                }, 300);
+            function animateBattle(damage, isCrit = false, isDodge = false) {
+                if (isAttacking) return;
+                isAttacking = true;
                 
-                const rect = enemy.getBoundingClientRect();
-                showFloatingText(rect.left + 20, rect.top, 'УКЛОН!', 'dodge-text');
-                playBeep(200, 100);
-            } else {
-                enemy.style.transform = 'translateY(-50%) scale(1.3)';
-                if (isCrit) {
-                    enemy.style.filter = 'brightness(2)';
-                }
+                const arena = document.getElementById('battle-arena');
+                const player = document.getElementById('player-ship');
+                const enemy = document.getElementById('enemy-ship');
+                
+                player.style.transform = 'translateY(-50%) translateX(30px)';
                 setTimeout(() => {
-                    enemy.style.transform = 'translateY(-50%) scale(1)';
-                    enemy.style.filter = 'brightness(1)';
+                    player.style.transform = 'translateY(-50%) translateX(0)';
                 }, 200);
                 
-                // Взрыв
-                const explosion = document.createElement('div');
-                explosion.className = 'explosion';
-                explosion.innerText = '💥';
-                explosion.style.right = '20px';
-                explosion.style.top = '40%';
-                arena.appendChild(explosion);
-                setTimeout(() => explosion.remove(), 500);
+                const laser = document.createElement('div');
+                laser.className = 'laser-beam';
+                laser.style.top = '50%';
+                laser.style.left = '60px';
+                laser.style.width = '0';
+                arena.appendChild(laser);
                 
-                const rect = enemy.getBoundingClientRect();
-                const text = isCrit ? 'КРИТ! ' + damage : '' + damage;
-                showFloatingText(rect.left + 20, rect.top, text, isCrit ? 'crit-text' : '');
+                requestAnimationFrame(() => {
+                    laser.style.width = '60%';
+                });
                 
-                if (isCrit) {
-                    playBeep(880, 100);
-                    setTimeout(() => playBeep(1320, 50), 100);
-                } else {
-                    playBeep(440, 50);
-                }
-            }
-            
-            // Контратака врага
-            setTimeout(() => {
-                const playerShield = getShield();
-                const enemyDamage = Math.floor(Math.random() * 5) + 3;
-                const dodgeChance = Math.min(getLuck() * 2, 40);
+                setTimeout(() => laser.remove(), 500);
                 
-                if (Math.random() * 100 < dodgeChance) {
-                    player.style.transform = 'translateY(-50%) translateY(-25px)';
+                if (isDodge) {
+                    enemy.style.transform = 'translateY(-50%) translateY(-30px)';
                     setTimeout(() => {
-                        player.style.transform = 'translateY(-50%)';
+                        enemy.style.transform = 'translateY(-50%)';
                     }, 300);
                     
-                    const rect = player.getBoundingClientRect();
+                    const rect = enemy.getBoundingClientRect();
                     showFloatingText(rect.left + 20, rect.top, 'УКЛОН!', 'dodge-text');
+                    playBeep(200, 100);
                 } else {
-                    const actualDamage = Math.max(1, enemyDamage - Math.floor(playerShield / 3));
-                    player.style.transform = 'translateY(-50%) scale(0.8)';
+                    enemy.style.transform = 'translateY(-50%) scale(1.3)';
+                    if (isCrit) {
+                        enemy.style.filter = 'brightness(2)';
+                    }
                     setTimeout(() => {
-                        player.style.transform = 'translateY(-50%) scale(1)';
+                        enemy.style.transform = 'translateY(-50%) scale(1)';
+                        enemy.style.filter = 'brightness(1)';
                     }, 200);
                     
-                    const rect = player.getBoundingClientRect();
-                    showFloatingText(rect.left + 20, rect.top, '-' + actualDamage, 'weapon-stat');
+                    const explosion = document.createElement('div');
+                    explosion.className = 'explosion';
+                    explosion.innerText = '💥';
+                    explosion.style.right = '20px';
+                    explosion.style.top = '40%';
+                    arena.appendChild(explosion);
+                    setTimeout(() => explosion.remove(), 500);
+                    
+                    const rect = enemy.getBoundingClientRect();
+                    const text = isCrit ? 'КРИТ! ' + damage : '' + damage;
+                    showFloatingText(rect.left + 20, rect.top, text, isCrit ? 'crit-text' : '');
+                    
+                    if (isCrit) {
+                        playBeep(880, 100);
+                        setTimeout(() => playBeep(1320, 50), 100);
+                    } else {
+                        playBeep(440, 50);
+                    }
                 }
                 
-                isAttacking = false;
-            }, 600);
-        }
-
-        // Расчет статов
-        function getShield() {
-            let shield = 10 + (up1Level - 1) * 2;
-            if (fracBonus === 'shield') {
-                shield = Math.floor(shield * 1.5);
+                setTimeout(() => {
+                    const playerShield = getShield();
+                    const enemyDamage = Math.floor(Math.random() * 5) + 3;
+                    const dodgeChance = Math.min(getLuck() * 2, 40);
+                    
+                    if (Math.random() * 100 < dodgeChance) {
+                        player.style.transform = 'translateY(-50%) translateY(-25px)';
+                        setTimeout(() => {
+                            player.style.transform = 'translateY(-50%)';
+                        }, 300);
+                        
+                        const rect = player.getBoundingClientRect();
+                        showFloatingText(rect.left + 20, rect.top, 'УКЛОН!', 'dodge-text');
+                    } else {
+                        const actualDamage = Math.max(1, enemyDamage - Math.floor(playerShield / 3));
+                        player.style.transform = 'translateY(-50%) scale(0.8)';
+                        setTimeout(() => {
+                            player.style.transform = 'translateY(-50%) scale(1)';
+                        }, 200);
+                        
+                        const rect = player.getBoundingClientRect();
+                        showFloatingText(rect.left + 20, rect.top, '-' + actualDamage, 'weapon-stat');
+                    }
+                    
+                    isAttacking = false;
+                }, 600);
             }
-            return shield;
-        }
 
-        function getWeapon() {
-            let weapon = 5 + up2Level;
-            if (fracBonus === 'weapon') {
-                weapon = Math.floor(weapon * 1.5);
+            function getShield() {
+                let shield = 10 + (up1Level - 1) * 2;
+                if (fracBonus === 'shield') {
+                    shield = Math.floor(shield * 1.5);
+                }
+                return shield;
             }
-            return weapon;
-        }
 
-        function getLuck() {
-            let luck = 3 + up3Level;
-            if (fracBonus === 'luck') {
-                luck = Math.floor(luck * 1.5);
+            function getWeapon() {
+                let weapon = 5 + up2Level;
+                if (fracBonus === 'weapon') {
+                    weapon = Math.floor(weapon * 1.5);
+                }
+                return weapon;
             }
-            return luck;
-        }
 
-        // Навигация
-        document.getElementById('start-btn').addEventListener('click', function() {
-            playBeep(440, 100);
-            document.getElementById('screen1').classList.add('hidden');
-            document.getElementById('screen2').classList.remove('hidden');
-        });
+            function getLuck() {
+                let luck = 3 + up3Level;
+                if (fracBonus === 'luck') {
+                    luck = Math.floor(luck * 1.5);
+                }
+                return luck;
+            }
 
-        function goBackToStart() {
-            playBeep(220, 100);
-            document.getElementById('screen2').classList.add('hidden');
-            document.getElementById('screen1').classList.remove('hidden');
-        }
-
-        function changeFaction() {
-            if (confirm('Сменить фракцию? Прогресс будет сохранен.')) {
-                playBeep(330, 100);
-                document.getElementById('screen3').classList.add('hidden');
+            // Привязываем обработчик к кнопке СТАРТ
+            document.getElementById('start-btn').addEventListener('click', function() {
+                console.log('Кнопка СТАРТ нажата');
+                playBeep(440, 100);
+                document.getElementById('screen1').classList.add('hidden');
                 document.getElementById('screen2').classList.remove('hidden');
+            });
+
+            // Делаем функции глобальными
+            window.goBackToStart = function() {
+                playBeep(220, 100);
+                document.getElementById('screen2').classList.add('hidden');
+                document.getElementById('screen1').classList.remove('hidden');
+            };
+
+            window.changeFaction = function() {
+                if (confirm('Сменить фракцию? Прогресс будет сохранен.')) {
+                    playBeep(330, 100);
+                    document.getElementById('screen3').classList.add('hidden');
+                    document.getElementById('screen2').classList.remove('hidden');
+                    if (passiveInterval) {
+                        clearInterval(passiveInterval);
+                        passiveInterval = null;
+                    }
+                }
+            };
+
+            window.selectFrac = function(name, color, bonus) {
+                playBeep(550, 150);
+                frac = name;
+                fracColor = color;
+                fracBonus = bonus;
+                localStorage.setItem('sd_frac', name);
+                localStorage.setItem('sd_color', color);
+                localStorage.setItem('sd_bonus', bonus);
+                initGameInterface();
+            };
+
+            function initGameInterface() {
+                document.getElementById('screen1').classList.add('hidden');
+                document.getElementById('screen2').classList.add('hidden');
+                document.getElementById('screen3').classList.remove('hidden');
+                
+                const hudFrac = document.getElementById('hud-frac');
+                hudFrac.innerText = frac;
+                hudFrac.style.color = fracColor;
+                
+                const reactor = document.getElementById('main-reactor');
+                reactor.style.borderColor = fracColor;
+                reactor.style.color = fracColor;
+                reactor.style.boxShadow = `0 0 30px ${fracColor}44`;
+                
+                updateUiDisplay();
+                startPassiveIncomeTimer();
+            }
+
+            function getUpgradeCost(type) {
+                let cost = 0;
+                if (type === 1) {
+                    cost = Math.floor(up1BaseCost * Math.pow(1.5, up1Level - 1));
+                } else if (type === 2) {
+                    cost = Math.floor(up2BaseCost * Math.pow(1.6, up2Level));
+                } else if (type === 3) {
+                    cost = Math.floor(up3BaseCost * Math.pow(1.7, up3Level));
+                }
+                return cost;
+            }
+
+            function updateUiDisplay() {
+                document.getElementById('balance').innerText = Math.floor(score).toLocaleString();
+                
+                document.getElementById('shield-stat').innerText = getShield();
+                document.getElementById('weapon-stat').innerText = getWeapon();
+                document.getElementById('luck-stat').innerText = getLuck();
+                
+                const hpPercent = Math.max(0, (enemyHP / maxEnemyHP) * 100);
+                document.getElementById('enemy-hp-fill').style.width = hpPercent + '%';
+                
+                localStorage.setItem('sd_enemy_hp', enemyHP);
+                localStorage.setItem('sd_enemy_max_hp', maxEnemyHP);
+                
+                let cost1 = getUpgradeCost(1);
+                let cost2 = getUpgradeCost(2);
+                let cost3 = getUpgradeCost(3);
+                
+                document.getElementById('up1-desc').innerText = `УР.${up1Level} (+2 брони)`;
+                const btn1 = document.getElementById('up1-btn');
+                btn1.innerText = cost1;
+                btn1.disabled = (score < cost1);
+                
+                document.getElementById('up2-desc').innerText = `УР.${up2Level} (+1 урона)`;
+                const btn2 = document.getElementById('up2-btn');
+                btn2.innerText = cost2;
+                btn2.disabled = (score < cost2);
+                
+                document.getElementById('up3-desc').innerText = `УР.${up3Level} (+1 удачи)`;
+                const btn3 = document.getElementById('up3-btn');
+                btn3.innerText = cost3;
+                btn3.disabled = (score < cost3);
+                
+                document.getElementById('balance').style.color = fracColor;
+                
+                const passiveIncome = getLuck() * 0.5;
+                document.getElementById('passive-income-display').innerText = '+' + passiveIncome.toFixed(1) + '/с';
+            }
+
+            // Привязываем обработчик к кнопке АТАКА
+            document.getElementById('main-reactor').addEventListener('click', function(e) {
+                if (isAttacking) return;
+                
+                const weapon = getWeapon();
+                const luck = getLuck();
+                let damage = Math.floor(Math.random() * weapon) + 1;
+                let isCrit = false;
+                let isDodge = false;
+                
+                if (Math.random() * 100 < Math.min(luck * 3, 50)) {
+                    damage = Math.floor(damage * 2);
+                    isCrit = true;
+                }
+                
+                if (Math.random() * 100 < 10) {
+                    isDodge = true;
+                    damage = 0;
+                }
+                
+                if (!isDodge) {
+                    enemyHP -= damage;
+                    score += damage * 10;
+                    localStorage.setItem('sd_score', score);
+                }
+                
+                animateBattle(damage, isCrit, isDodge);
+                
+                if (enemyHP <= 0) {
+                    setTimeout(() => {
+                        const bonus = 100;
+                        score += bonus;
+                        localStorage.setItem('sd_score', score);
+                        maxEnemyHP = Math.floor(maxEnemyHP * 1.2);
+                        enemyHP = maxEnemyHP;
+                        
+                        const rect = document.getElementById('enemy-ship').getBoundingClientRect();
+                        showFloatingText(rect.left + 20, rect.top, '+' + bonus, 'crit-text');
+                        playBeep(660, 150);
+                        updateUiDisplay();
+                    }, 800);
+                }
+                
+                updateUiDisplay();
+            });
+
+            window.buyUpgrade = function(type) {
+                let cost = getUpgradeCost(type);
+                if (score >= cost) {
+                    score -= cost;
+                    playBeep(660, 100);
+                    setTimeout(() => playBeep(880, 100), 100);
+                    
+                    if (type === 1) {
+                        up1Level++;
+                        localStorage.setItem('sd_up1_lvl', up1Level);
+                    } else if (type === 2) {
+                        up2Level++;
+                        localStorage.setItem('sd_up2_lvl', up2Level);
+                    } else if (type === 3) {
+                        up3Level++;
+                        localStorage.setItem('sd_up3_lvl', up3Level);
+                    }
+                    
+                    localStorage.setItem('sd_score', score);
+                    updateUiDisplay();
+                }
+            };
+
+            function startPassiveIncomeTimer() {
                 if (passiveInterval) {
                     clearInterval(passiveInterval);
-                    passiveInterval = null;
                 }
+                passiveInterval = setInterval(() => {
+                    const passiveIncome = getLuck() * 0.5;
+                    if (passiveIncome > 0) {
+                        score += passiveIncome;
+                        localStorage.setItem('sd_score', score);
+                        updateUiDisplay();
+                    }
+                }, 1000);
             }
-        }
 
-        function selectFrac(name, color, bonus) {
-            playBeep(550, 150);
-            frac = name;
-            fracColor = color;
-            fracBonus = bonus;
-            localStorage.setItem('sd_frac', name);
-            localStorage.setItem('sd_color', color);
-            localStorage.setItem('sd_bonus', bonus);
-            initGameInterface();
-        }
+            window.resetAllData = function() {
+                if (confirm('Сбросить весь прогресс? Данные будут удалены.')) {
+                    localStorage.clear();
+                    location.reload();
+                }
+            };
 
-        function initGameInterface() {
-            document.getElementById('screen1').classList.add('hidden');
-            document.getElementById('screen2').classList.add('hidden');
-            document.getElementById('screen3').classList.remove('hidden');
-            
-            const hudFrac = document.getElementById('hud-frac');
-            hudFrac.innerText = frac;
-            hudFrac.style.color = fracColor;
-            
-            const reactor = document.getElementById('main-reactor');
-            reactor.style.borderColor = fracColor;
-            reactor.style.color = fracColor;
-            reactor.style.boxShadow = `0 0 30px ${fracColor}44`;
-            
-            document.getElementById('res-type').innerText = 'МОНЕТЫ';
-            document.getElementById('reactor-action-text').innerText = 'В БОЙ';
-            
-            updateUiDisplay();
-            startPassiveIncomeTimer();
-        }
-
-        // Стоимость улучшений
-        function getUpgradeCost(type) {
-            let cost = 0;
-            if (type === 1) {
-                cost = Math.floor(up1BaseCost * Math.pow(1.5, up1Level - 1));
-            } else if (type === 2) {
-                cost = Math.floor(up2BaseCost * Math.pow(1.6, up2Level));
-            } else if (type === 3) {
-                cost = Math.floor(up3BaseCost * Math.pow(1.7, up3Level));
+            // Если фракция уже выбрана, показываем игру
+            if (frac) {
+                initGameInterface();
             }
-            return cost;
-        }
-
-        // Обновление интерфейса
-        function updateUiDisplay() {
-            document.getElementById('balance').innerText = Math.floor(score).toLocaleString();
-            
-            document.getElementById('shield-stat').innerText = getShield();
-            document.getElementById('weapon-stat').innerText = getWeapon();
-            document.getElementById('luck-stat').innerText = getLuck();
-            
-            // Обновление HP врага
-            const hpPercent = Math.max(0, (enemyHP / maxEnemyHP) * 100);
-            document.getElementById('enemy-hp-fill').style.width = hpPercent + '%';
-            
-            // Сохраняем состояние врага
-            localStorage.setItem('sd_enemy_hp', enemyHP);
-            localStorage.setItem('sd_enemy_max_hp', maxEnemyHP);
-            
-            let cost1 = getUpgradeCost(1);
-            let cost2 = getUpgradeCost(2);
-            let cost3 = getUpgradeCost(3);
-            
-            document.getElementById('up1-desc').innerText = `УР.${up1Level} (+2 брони)`;
-            const btn1 = document.getElementById('up1-btn');
-            btn1.innerText = cost1;
-            btn1.disabled = (score < cost1);
-            
-            document.getElementById('up2-desc').innerText = `УР.${up2Level} (+1 урона)`;
-            const btn2 = document.getElementById('up2-btn');
-            btn2.innerText = cost2;
-            btn2.disabled = (score < cost2);
-            
-            document.getElementById('up3-desc').innerText = `УР.${up3Level} (+1 удачи)`;
-            const btn3 = document.getElementById('up3-btn');
-            btn3.innerText = cost3;
-            btn3.disabled = (score < cost3);
-            
-            document.getElementById('balance').style.color = fracColor;
-            
-            // Пассивный доход
-            const passiveIncome = getLuck() * 0.5;
-            document.getElementById('passive-income-display').innerText = '+' + passiveIncome.toFixed(1) + '/с';
-        }
-
-        // Атака
-        document.getElementById('main-reactor').addEventListener('click', function(e) {
-            if (isAttacking) return;
-            
-            const weapon = getWeapon();
-            const luck = getLuck();
-            let damage = Math.floor(Math.random() * weapon) + 1;
-            let isCrit = false;
-            let isDodge = false;
-            
-            // Проверка на крит (шанс = удача * 3%, макс 50%)
-            if (Math.random() * 100 < Math.min(luck * 3, 50)) {
-                damage = Math.floor(damage * 2);
-                isCrit = true;
-            }
-            
-            // Проверка на уклонение врага (10% шанс)
-            if (Math.random() * 100 < 10) {
-                isDodge = true;
-                damage = 0;
-            }
-            
-            if (!isDodge) {
-                enemyHP -= damage;
-                score += damage * 10;
-                localStorage.setItem('sd_score', score);
-            }
-            
-            animateBattle(damage, isCrit, isDodge);
-            
-            // Если враг побежден
-            if (enemyHP <= 0) {
-                setTimeout(() => {
-                    const bonus = 100;
-                    score += bonus;
-                    localStorage.setItem('sd_score', score);
-                    maxEnemyHP = Math.floor(maxEnemyHP * 1.2);
-                    enemyHP = maxEnemyHP;
-                    
-                    const rect = document.getElementById('enemy-ship').getBoundingClientRect();
-                    showFloatingText(rect.left + 20, rect.top, '+' + bonus, 'crit-text');
-                    playBeep(660, 150);
-                    updateUiDisplay();
-                }, 800);
-            }
-            
-            updateUiDisplay();
         });
-
-        // Покупка улучшений
-        function buyUpgrade(type) {
-            let cost = getUpgradeCost(type);
-            if (score >= cost) {
-                score -= cost;
-                playBeep(660, 100);
-                setTimeout(() => playBeep(880, 100), 100);
-                
-                if (type === 1) {
-                    up1Level++;
-                    localStorage.setItem('sd_up1_lvl', up1Level);
-                } else if (type === 2) {
-                    up2Level++;
-                    localStorage.setItem('sd_up2_lvl', up2Level);
-                } else if (type === 3) {
-                    up3Level++;
-                    localStorage.setItem('sd_up3_lvl', up3Level);
-                }
-                
-                localStorage.setItem('sd_score', score);
-                updateUiDisplay();
-            }
-        }
-
-        // Пассивный доход
-        function startPassiveIncomeTimer() {
-            if (passiveInterval) {
-                clearInterval(passiveInterval);
-            }
-            passiveInterval = setInterval(() => {
-                const passiveIncome = getLuck() * 0.5;
-                if (passiveIncome > 0) {
-                    score += passiveIncome;
-                    localStorage.setItem('sd_score', score);
-                    updateUiDisplay();
-                }
-            }, 1000);
-        }
-
-        // Сброс
-        function resetAllData() {
-            if (confirm('Сбросить весь прогресс? Данные будут удалены.')) {
-                localStorage.clear();
-                location.reload();
-            }
-        }
     </script>
 </body>
 </html>
