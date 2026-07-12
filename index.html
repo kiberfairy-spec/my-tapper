@@ -3,70 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Моя Первая Тапалка</title>
-    <!-- Подключаем внутренние инструменты Telegram -->
+    <title>Space Dream: Survival</title>
     <script src="https://telegram.org"></script>
     <style>
         body {
-            background-color: #1c1c1e;
-            color: white;
-            font-family: Arial, sans-serif;
+            background: radial-gradient(circle, #101216 0%, #050608 100%);
+            color: #e0e6ed;
+            font-family: 'Segoe UI', Roboto, sans-serif;
             text-align: center;
             margin: 0;
-            padding-top: 50px;
-            user-select: none; /* Чтобы текст не выделялся при кликах */
+            padding-top: 60px;
+            user-select: none;
+        }
+        .status-container {
+            font-size: 20px;
+            letter-spacing: 2px;
+            color: #a0aec0;
+            margin-bottom: 10px;
         }
         .score-container {
-            font-size: 28px;
-            margin-bottom: 30px;
+            font-size: 42px;
+            font-weight: 800;
+            color: #ff4a4a; /* Огненно-красный под цвет лавы */
+            text-shadow: 0 0 20px rgba(255, 74, 74, 0.6);
+            margin-bottom: 50px;
         }
-        /* Стили для нашей большой круглой кнопки */
-        #coin {
-            width: 200px;
-            height: 200px;
-            background: linear-gradient(135deg, #ffcc00, #ff9900);
+        #core-button {
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle, #ff6b6b 0%, #b71c1c 100%);
+            border: 4px solid #ff4a4a;
             border-radius: 50%;
             margin: 0 auto;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 20px;
             font-weight: bold;
-            color: #fff;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            color: #ffffff;
+            box-shadow: 0 0 35px rgba(255, 28, 28, 0.4);
             cursor: pointer;
-            transition: transform 0.05s;
+            transition: transform 0.05s, box-shadow 0.1s;
         }
-        #coin:active {
-            transform: scale(0.95); /* Эффект нажатия */
+        #core-button:active {
+            transform: scale(0.93);
+            box-shadow: 0 0 50px rgba(255, 28, 28, 0.7);
         }
     </style>
 </head>
 <body>
 
+    <div class="status-container">СИСТЕМА ЖИЗНЕОБЕСПЕЧЕНИЯ</div>
     <div class="score-container">
-        Монеты: <span id="balance">0</span>
+        <span id="balance">0</span> ГВт
     </div>
 
-    <div id="coin">ТАПАЙ!</div>
+    <div id="core-button">ЗАПУСТИТЬ РЕАКТОР</div>
 
     <script>
-        // Инициализируем окно Telegram
         const tg = window.Telegram.WebApp;
-        tg.expand(); // Открываем игру на весь экран смартфона
+        tg.expand();
 
-        let score = 0;
+        // 1. Пытаемся загрузить сохраненный баланс из памяти телефона
+        // Если там ничего нет (первый вход), ставим 0
+        let score = parseInt(localStorage.getItem('space_score')) || 0;
+        
         const balanceEl = document.getElementById('balance');
-        const coinEl = document.getElementById('coin');
+        const buttonEl = document.getElementById('core-button');
 
-        // Логика при клике на кнопку
-        coinEl.addEventListener('click', () => {
+        // Отображаем сохраненный баланс сразу при запуске игры
+        balanceEl.innerText = score;
+
+        buttonEl.addEventListener('click', () => {
             score++;
             balanceEl.innerText = score;
 
-            // Включаем легкую вибрацию на телефоне, если это возможно
+            // 2. Сохраняем новое значение в память при каждом клике
+            localStorage.setItem('space_score', score);
+
             if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('light');
+                tg.HapticFeedback.impactOccurred('medium');
             }
         });
     </script>
