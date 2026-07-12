@@ -91,6 +91,23 @@
             to { transform: translateY(100px); opacity: 0; }
         }
         
+        @keyframes damageFloat {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-80px); opacity: 0; }
+        }
+        
+        @keyframes shieldPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.5); }
+            50% { box-shadow: 0 0 40px rgba(0, 255, 255, 0.8); }
+        }
+        
+        @keyframes dodgeAnim {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-20px); }
+            75% { transform: translateX(20px); }
+            100% { transform: translateX(0); }
+        }
+        
         .hidden { display: none !important; }
         
         .container {
@@ -100,10 +117,16 @@
             margin: 0 auto;
         }
         
+        /* Исправленная кнопка НАЗАД */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            height: 50px;
+        }
+        
         .back-arrow {
-            position: absolute;
-            top: 20px;
-            left: 20px;
             width: 40px;
             height: 40px;
             background: #003300;
@@ -111,14 +134,13 @@
             color: #00ff00;
             font-size: 20px;
             cursor: pointer;
-            z-index: 10;
             transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-            line-height: 1;
             padding: 0;
             font-family: 'Press Start 2P', monospace;
+            flex-shrink: 0;
         }
         
         .back-arrow:hover {
@@ -132,6 +154,11 @@
             animation: shake 0.3s;
         }
         
+        .top-spacer {
+            width: 40px;
+            flex-shrink: 0;
+        }
+        
         .pixel-border {
             border: 4px solid #00ff00;
             box-shadow: 
@@ -139,17 +166,6 @@
                 0 0 0 6px #00ff00,
                 0 0 20px rgba(0, 255, 0, 0.3);
             position: relative;
-        }
-        
-        .pixel-border::before {
-            content: '';
-            position: absolute;
-            top: -8px;
-            left: -8px;
-            right: -8px;
-            bottom: -8px;
-            border: 2px solid #00ff00;
-            pointer-events: none;
         }
         
         #screen1 { 
@@ -191,7 +207,6 @@
             position: relative;
             box-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
             animation: pulse 2s ease-in-out infinite;
-            image-rendering: pixelated;
         }
         
         .start-btn:hover {
@@ -209,7 +224,6 @@
             font-weight: bold; 
             margin-bottom: 30px; 
             color: #00ff00; 
-            margin-top: 80px;
             text-shadow: 2px 2px 0 #003300;
         }
         
@@ -231,10 +245,6 @@
             box-shadow: 0 0 20px currentColor;
         }
         
-        .frac-card:active { 
-            animation: shake 0.3s;
-        }
-        
         .confed { 
             border-color: #0066ff; 
             color: #0066ff;
@@ -254,7 +264,7 @@
         }
         
         .frac-name { 
-            font-size: 14px; 
+            font-size: 12px; 
             font-weight: bold; 
             margin-bottom: 8px; 
             display: flex; 
@@ -262,45 +272,52 @@
         }
         
         .frac-bonus { 
-            font-size: 8px; 
+            font-size: 7px; 
             background: rgba(255,255,255,0.1); 
             padding: 4px 6px; 
             border: 1px solid;
         }
         
         .frac-desc { 
-            font-size: 9px; 
+            font-size: 8px; 
             opacity: 0.8; 
             line-height: 1.6; 
         }
 
-        .header-panel { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            background: #003300;
-            padding: 12px; 
-            border: 3px solid #00ff00;
+        /* БОЕВЫЕ СТАТЫ */
+        .stats-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
             margin-bottom: 20px;
-            margin-top: 70px;
-            font-size: 8px;
         }
         
-        .panel-item { 
-            font-size: 7px; 
-            color: #00cc00; 
-            text-align: left; 
+        .stat-card {
+            background: #0a0a2e;
+            border: 2px solid #00ff00;
+            padding: 10px;
+            text-align: center;
+            transition: all 0.3s;
         }
         
-        .panel-val { 
-            font-size: 10px; 
-            font-weight: bold; 
-            color: #00ff00; 
-            margin-top: 4px; 
+        .stat-label {
+            font-size: 7px;
+            color: #00cc00;
+            margin-bottom: 5px;
         }
+        
+        .stat-value {
+            font-size: 14px;
+            font-weight: bold;
+            color: #00ff00;
+        }
+        
+        .shield-stat { color: #00ffff; }
+        .weapon-stat { color: #ff4444; }
+        .luck-stat { color: #ffcc00; }
         
         .resource-section { 
-            margin: 30px 0;
+            margin: 20px 0;
             animation: slideIn 0.5s ease-out;
         }
         
@@ -324,11 +341,76 @@
             margin-top: 8px; 
         }
 
+        /* БОЕВАЯ АНИМАЦИЯ */
+        .battle-arena {
+            width: 100%;
+            height: 200px;
+            position: relative;
+            margin: 20px 0;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid #00ff00;
+        }
+        
+        .player-ship {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 40px;
+            transition: all 0.3s;
+            z-index: 2;
+        }
+        
+        .enemy-ship {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 40px;
+            transition: all 0.3s;
+            z-index: 2;
+        }
+        
+        .laser-beam {
+            position: absolute;
+            height: 4px;
+            background: #ff0000;
+            box-shadow: 0 0 10px #ff0000;
+            animation: laserShoot 0.5s ease-out;
+        }
+        
+        @keyframes laserShoot {
+            from { width: 0; opacity: 1; }
+            to { width: 100%; opacity: 0; }
+        }
+        
+        .explosion {
+            position: absolute;
+            font-size: 30px;
+            animation: explode 0.5s ease-out;
+            z-index: 3;
+        }
+        
+        @keyframes explode {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        
+        .shield-effect {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid #00ffff;
+            animation: shieldPulse 0.5s;
+        }
+
         .main-reactor { 
             width: 180px; 
             height: 180px; 
             border: 6px solid #00ff00;
-            margin: 30px auto; 
+            margin: 20px auto; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
@@ -349,7 +431,6 @@
         
         .main-reactor:active { 
             transform: scale(0.9);
-            animation: shake 0.2s;
         }
         
         .reactor-sub { 
@@ -373,11 +454,17 @@
             font-size: 16px;
             text-shadow: 0 0 10px #ffcc00;
         }
+        
+        .dodge-text {
+            color: #00ffff;
+            font-size: 14px;
+            text-shadow: 0 0 10px #00ffff;
+        }
 
         .upgrade-section { 
             width: 100%; 
             max-width: 340px; 
-            margin: 40px auto 0; 
+            margin: 30px auto 0; 
             text-align: left; 
         }
         
@@ -392,8 +479,8 @@
         .up-card { 
             background: #0a0a2e;
             border: 2px solid #00ff00;
-            padding: 14px; 
-            margin-bottom: 10px; 
+            padding: 12px; 
+            margin-bottom: 8px; 
             display: flex; 
             justify-content: space-between; 
             align-items: center;
@@ -410,13 +497,13 @@
         }
         
         .up-title { 
-            font-size: 11px; 
+            font-size: 10px; 
             font-weight: bold; 
             color: #00ff00; 
         }
         
         .up-desc { 
-            font-size: 8px; 
+            font-size: 7px; 
             color: #00cc00; 
             margin-top: 4px; 
         }
@@ -427,7 +514,7 @@
             padding: 8px 12px; 
             border: 2px solid #00ff00;
             font-family: 'Press Start 2P', monospace;
-            font-size: 10px; 
+            font-size: 9px; 
             cursor: pointer; 
             transition: all 0.2s;
         }
@@ -449,7 +536,7 @@
         }
 
         .system-footer { 
-            margin-top: 40px; 
+            margin-top: 30px; 
             display: flex; 
             justify-content: center; 
             gap: 10px; 
@@ -463,7 +550,7 @@
             color: #00ff00; 
             padding: 8px 12px; 
             font-family: 'Press Start 2P', monospace;
-            font-size: 8px; 
+            font-size: 7px; 
             cursor: pointer; 
             transition: all 0.2s;
         }
@@ -471,10 +558,6 @@
         .tech-btn:hover {
             background: #003300;
             box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
-        }
-        
-        .tech-btn:active { 
-            animation: shake 0.2s;
         }
     </style>
 </head>
@@ -493,44 +576,70 @@
 
         <!-- ЭКРАН 2: ВЫБОР СТОРОНЫ -->
         <div id="screen2" class="hidden">
-            <button class="back-arrow" onclick="goBackToStart()">←</button>
+            <div class="top-bar">
+                <button class="back-arrow" onclick="goBackToStart()">←</button>
+                <div class="top-spacer"></div>
+            </div>
             <div class="title-screen">ВЫБЕРИ ФРАКЦИЮ</div>
             
-            <div class="frac-card confed" onclick="selectFrac('Конфедерация', '#0066ff')">
-                <div class="frac-name">КОНФЕДЕРАЦИЯ <span class="frac-bonus">СКИДКА 15%</span></div>
-                <div class="frac-desc">Порядок и дисциплина. Экономия ресурсов при улучшениях.</div>
+            <div class="frac-card confed" onclick="selectFrac('Конфедерация', '#0066ff', 'shield')">
+                <div class="frac-name">КОНФЕДЕРАЦИЯ <span class="frac-bonus">БРОНЯ +50%</span></div>
+                <div class="frac-desc">Тяжелая броня корабля. Повышенная защита в бою.</div>
             </div>
             
-            <div class="frac-card rebels" onclick="selectFrac('Повстанцы', '#ff6600')">
-                <div class="frac-name">ПОВСТАНЦЫ <span class="frac-bonus">КРИТ x2 20%</span></div>
-                <div class="frac-desc">Альянс свободы. Шанс критического сбора ресурсов.</div>
+            <div class="frac-card rebels" onclick="selectFrac('Повстанцы', '#ff6600', 'weapon')">
+                <div class="frac-name">ПОВСТАНЦЫ <span class="frac-bonus">ОРУЖИЕ +50%</span></div>
+                <div class="frac-desc">Мощные орудия. Увеличенный урон по врагам.</div>
             </div>
             
-            <div class="frac-card guild" onclick="selectFrac('Торговая гильдия', '#ffcc00')">
-                <div class="frac-name">ТОРГОВАЯ ГИЛЬДИЯ <span class="frac-bonus">ПАССИВ +30%</span></div>
-                <div class="frac-desc">Коммерция пришельцев. Улучшенные авто-генераторы.</div>
+            <div class="frac-card guild" onclick="selectFrac('Торговая гильдия', '#ffcc00', 'luck')">
+                <div class="frac-name">ТОРГОВАЯ ГИЛЬДИЯ <span class="frac-bonus">УДАЧА +50%</span></div>
+                <div class="frac-desc">Высокая удача. Шанс крита и уклонения от атак.</div>
             </div>
         </div>
 
         <!-- ЭКРАН 3: ГЛАВНЫЙ ИГРОВОЙ МОСТИК -->
         <div id="screen3" class="hidden">
-            <button class="back-arrow" onclick="changeFaction()">←</button>
+            <div class="top-bar">
+                <button class="back-arrow" onclick="changeFaction()">←</button>
+                <div class="top-spacer"></div>
+            </div>
             
-            <div class="header-panel pixel-border">
-                <div class="panel-item">КОРАБЛЬ<div class="panel-val" id="hud-frac">—</div></div>
-                <div class="panel-item">СИЛА КЛИКА<div class="panel-val" id="hud-click">1</div></div>
-                <div class="panel-item">АВТО-СБОР<div class="panel-val" id="hud-passive">0/с</div></div>
+            <!-- БОЕВЫЕ СТАТЫ -->
+            <div class="stats-panel">
+                <div class="stat-card">
+                    <div class="stat-label">БРОНЯ</div>
+                    <div class="stat-value shield-stat" id="shield-stat">10</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">ОРУЖИЕ</div>
+                    <div class="stat-value weapon-stat" id="weapon-stat">5</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">УДАЧА</div>
+                    <div class="stat-value luck-stat" id="luck-stat">3</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">ФРАКЦИЯ</div>
+                    <div class="stat-value" id="hud-frac" style="font-size: 10px;">—</div>
+                </div>
+            </div>
+
+            <!-- БОЕВАЯ АРЕНА -->
+            <div class="battle-arena" id="battle-arena">
+                <div class="player-ship" id="player-ship">🚀</div>
+                <div class="enemy-ship" id="enemy-ship">👾</div>
             </div>
 
             <div class="resource-section">
-                <div id="res-type">ЗАГРУЗКА...</div>
+                <div id="res-type">МОНЕТЫ</div>
                 <div class="balance-digits" id="balance">0</div>
                 <div class="pushed-income" id="passive-income-display">+0/с</div>
             </div>
             
             <div id="main-reactor" class="pixel-border">
-                <span>ДОБЫЧА</span>
-                <span class="reactor-sub" id="reactor-action-text">КЛИК</span>
+                <span>АТАКА</span>
+                <span class="reactor-sub" id="reactor-action-text">В БОЙ</span>
             </div>
 
             <div class="upgrade-section">
@@ -538,18 +647,26 @@
                 
                 <div class="up-card">
                     <div class="up-info">
-                        <div class="up-title">ЛАЗЕРНАЯ ПУШКА</div>
-                        <div class="up-desc" id="up1-desc">УР.1 (+1 за клик)</div>
+                        <div class="up-title">УСИЛИТЬ БРОНЮ</div>
+                        <div class="up-desc" id="up1-desc">УР.1 (+2 брони)</div>
                     </div>
                     <button class="up-btn" id="up1-btn" onclick="buyUpgrade(1)">0</button>
                 </div>
 
                 <div class="up-card">
                     <div class="up-info">
-                        <div class="up-title">АВТО-ГЕНЕРАТОР</div>
-                        <div class="up-desc" id="up2-desc">УР.0 (+2/с пассивно)</div>
+                        <div class="up-title">УЛУЧШИТЬ ОРУЖИЕ</div>
+                        <div class="up-desc" id="up2-desc">УР.0 (+1 урона)</div>
                     </div>
                     <button class="up-btn" id="up2-btn" onclick="buyUpgrade(2)">0</button>
+                </div>
+                
+                <div class="up-card">
+                    <div class="up-info">
+                        <div class="up-title">ПОВЫСИТЬ УДАЧУ</div>
+                        <div class="up-desc" id="up3-desc">УР.0 (+1 удачи)</div>
+                    </div>
+                    <button class="up-btn" id="up3-btn" onclick="buyUpgrade(3)">0</button>
                 </div>
             </div>
 
@@ -579,21 +696,32 @@
         let tg = null;
         if (window.Telegram && window.Telegram.WebApp) {
             tg = window.Telegram.WebApp;
-            try { 
-                tg.expand(); 
-            } catch(e) {
-                console.log('Telegram WebApp не доступен');
-            }
+            try { tg.expand(); } catch(e) {}
         }
 
+        // ИГРОВЫЕ ПЕРЕМЕННЫЕ
         let score = parseFloat(localStorage.getItem('sd_score')) || 0;
         let frac = localStorage.getItem('sd_frac') || null;
         let fracColor = localStorage.getItem('sd_color') || '#00ff00';
-        let up1Level = parseInt(localStorage.getItem('sd_up1_lvl')) || 1;
-        let up2Level = parseInt(localStorage.getItem('sd_up2_lvl')) || 0;
+        let fracBonus = localStorage.getItem('sd_bonus') || null;
+        
+        // Базовые статы
+        let baseShield = 10;
+        let baseWeapon = 5;
+        let baseLuck = 3;
+        
+        // Уровни улучшений
+        let up1Level = parseInt(localStorage.getItem('sd_up1_lvl')) || 1; // Броня
+        let up2Level = parseInt(localStorage.getItem('sd_up2_lvl')) || 0; // Оружие
+        let up3Level = parseInt(localStorage.getItem('sd_up3_lvl')) || 0; // Удача
+        
         const up1BaseCost = 50;
-        const up2BaseCost = 150;
+        const up2BaseCost = 75;
+        const up3BaseCost = 100;
+        
         let passiveInterval = null;
+        let enemyHP = 20;
+        let maxEnemyHP = 20;
 
         if (frac) {
             initGameInterface();
@@ -614,31 +742,129 @@
             } catch(e) {}
         }
 
-        function playClickSound() {
-            playBeep(440, 50);
-        }
-
-        function playCritSound() {
-            playBeep(880, 100);
-            setTimeout(() => playBeep(1320, 50), 100);
-        }
-
-        function playBuySound() {
-            playBeep(660, 100);
-            setTimeout(() => playBeep(880, 100), 100);
-        }
-
-        function showFloatingText(x, y, text, isCrit = false) {
+        function showFloatingText(x, y, text, className = '') {
             const floatingText = document.createElement('div');
-            floatingText.className = 'floating-text' + (isCrit ? ' crit-text' : '');
+            floatingText.className = 'floating-text ' + className;
             floatingText.innerText = text;
             floatingText.style.left = x + 'px';
             floatingText.style.top = y + 'px';
             document.body.appendChild(floatingText);
+            setTimeout(() => floatingText.remove(), 1000);
+        }
+
+        // БОЕВАЯ АНИМАЦИЯ
+        function animateBattle(damage, isCrit = false, isDodge = false) {
+            const arena = document.getElementById('battle-arena');
+            const player = document.getElementById('player-ship');
+            const enemy = document.getElementById('enemy-ship');
             
+            // Анимация атаки игрока
+            player.style.transform = 'translateY(-50%) translateX(30px)';
             setTimeout(() => {
-                floatingText.remove();
-            }, 1000);
+                player.style.transform = 'translateY(-50%) translateX(0)';
+            }, 200);
+            
+            // Лазерный луч
+            const laser = document.createElement('div');
+            laser.className = 'laser-beam';
+            laser.style.top = '50%';
+            laser.style.left = '60px';
+            arena.appendChild(laser);
+            setTimeout(() => laser.remove(), 500);
+            
+            if (isDodge) {
+                // Анимация уклонения врага
+                enemy.style.transform = 'translateY(-50%) translateY(-20px)';
+                setTimeout(() => {
+                    enemy.style.transform = 'translateY(-50%)';
+                }, 300);
+                
+                const rect = enemy.getBoundingClientRect();
+                showFloatingText(rect.left, rect.top, 'УКЛОН!', 'dodge-text');
+                playBeep(200, 100);
+            } else {
+                // Анимация попадания
+                enemy.style.transform = 'translateY(-50%) scale(1.2)';
+                if (isCrit) {
+                    enemy.style.filter = 'brightness(2)';
+                }
+                setTimeout(() => {
+                    enemy.style.transform = 'translateY(-50%) scale(1)';
+                    enemy.style.filter = 'brightness(1)';
+                }, 200);
+                
+                // Взрыв
+                const explosion = document.createElement('div');
+                explosion.className = 'explosion';
+                explosion.innerText = '💥';
+                explosion.style.right = '20px';
+                explosion.style.top = '40%';
+                arena.appendChild(explosion);
+                setTimeout(() => explosion.remove(), 500);
+                
+                const rect = enemy.getBoundingClientRect();
+                const text = isCrit ? 'КРИТ! ' + damage : '' + damage;
+                showFloatingText(rect.left, rect.top, text, isCrit ? 'crit-text' : '');
+                
+                if (isCrit) {
+                    playBeep(880, 100);
+                    setTimeout(() => playBeep(1320, 50), 100);
+                } else {
+                    playBeep(440, 50);
+                }
+            }
+            
+            // Контратака врага
+            setTimeout(() => {
+                const playerShield = getShield();
+                const enemyDamage = Math.floor(Math.random() * 5) + 3;
+                const dodgeChance = getLuck() * 2;
+                
+                if (Math.random() * 100 < dodgeChance) {
+                    // Игрок уклоняется
+                    player.style.transform = 'translateY(-50%) translateY(-20px)';
+                    setTimeout(() => {
+                        player.style.transform = 'translateY(-50%)';
+                    }, 300);
+                    
+                    const rect = player.getBoundingClientRect();
+                    showFloatingText(rect.left, rect.top, 'УКЛОН!', 'dodge-text');
+                } else {
+                    // Игрок получает урон
+                    const actualDamage = Math.max(1, enemyDamage - Math.floor(playerShield / 3));
+                    player.style.transform = 'translateY(-50%) scale(0.8)';
+                    setTimeout(() => {
+                        player.style.transform = 'translateY(-50%) scale(1)';
+                    }, 200);
+                    
+                    const rect = player.getBoundingClientRect();
+                    showFloatingText(rect.left, rect.top, '-' + actualDamage, 'weapon-stat');
+                }
+            }, 600);
+        }
+
+        function getShield() {
+            let shield = baseShield + (up1Level - 1) * 2;
+            if (fracBonus === 'shield') {
+                shield = Math.floor(shield * 1.5);
+            }
+            return shield;
+        }
+
+        function getWeapon() {
+            let weapon = baseWeapon + up2Level;
+            if (fracBonus === 'weapon') {
+                weapon = Math.floor(weapon * 1.5);
+            }
+            return weapon;
+        }
+
+        function getLuck() {
+            let luck = baseLuck + up3Level;
+            if (fracBonus === 'luck') {
+                luck = Math.floor(luck * 1.5);
+            }
+            return luck;
         }
 
         document.getElementById('start-btn').addEventListener('click', function() {
@@ -665,12 +891,14 @@
             }
         }
 
-        function selectFrac(name, color) {
+        function selectFrac(name, color, bonus) {
             playBeep(550, 150);
             frac = name;
             fracColor = color;
+            fracBonus = bonus;
             localStorage.setItem('sd_frac', name);
             localStorage.setItem('sd_color', color);
+            localStorage.setItem('sd_bonus', bonus);
             initGameInterface();
         }
 
@@ -684,153 +912,59 @@
             hudFrac.style.color = fracColor;
             
             const reactor = document.getElementById('main-reactor');
-            reactor.style.background = `#003300`;
             reactor.style.borderColor = fracColor;
             reactor.style.color = fracColor;
             reactor.style.boxShadow = `0 0 30px ${fracColor}44`;
             
-            const resType = document.getElementById('res-type');
-            const actionText = document.getElementById('reactor-action-text');
-            
-            if (frac === 'Торговая гильдия') {
-                resType.innerText = 'ГАЛАКТИЧЕСКИЕ КРЕДИТЫ';
-                actionText.innerText = 'СДЕЛКА';
-            } else if (frac === 'Повстанцы') {
-                resType.innerText = 'ДАННЫЕ СОПРОТИВЛЕНИЯ';
-                actionText.innerText = 'ВЗЛОМ';
-            } else {
-                resType.innerText = 'ЭНЕРГОБЛОКИ ИМПЕРИИ';
-                actionText.innerText = 'СИНТЕЗ';
-            }
+            document.getElementById('res-type').innerText = 'МОНЕТЫ';
+            document.getElementById('reactor-action-text').innerText = 'В БОЙ';
             
             updateUiDisplay();
             startPassiveIncomeTimer();
         }
 
-        function getClickPower() {
-            return up1Level;
-        }
-
-        function getPassiveIncome() {
-            let income = up2Level * 2;
-            if (frac === 'Торговая гильдия') {
-                income = income * 1.3;
-            }
-            return income;
-        }
-
         function getUpgradeCost(type) {
             let cost = 0;
             if (type === 1) {
-                cost = Math.floor(up1BaseCost * Math.pow(1.6, up1Level - 1));
+                cost = Math.floor(up1BaseCost * Math.pow(1.5, up1Level - 1));
             } else if (type === 2) {
-                cost = Math.floor(up2BaseCost * Math.pow(1.7, up2Level));
-            }
-            if (frac === 'Конфедерация') {
-                cost = Math.floor(cost * 0.85);
+                cost = Math.floor(up2BaseCost * Math.pow(1.6, up2Level));
+            } else if (type === 3) {
+                cost = Math.floor(up3BaseCost * Math.pow(1.7, up3Level));
             }
             return cost;
         }
 
         function updateUiDisplay() {
             document.getElementById('balance').innerText = Math.floor(score).toLocaleString();
-            let clickPower = getClickPower();
-            let passiveIncome = getPassiveIncome();
             
-            document.getElementById('hud-click').innerText = clickPower;
-            document.getElementById('hud-passive').innerText = passiveIncome.toFixed(1) + '/с';
-            document.getElementById('passive-income-display').innerText = '+' + passiveIncome.toFixed(1) + '/с';
+            // Обновляем статы
+            document.getElementById('shield-stat').innerText = getShield();
+            document.getElementById('weapon-stat').innerText = getWeapon();
+            document.getElementById('luck-stat').innerText = getLuck();
             
             let cost1 = getUpgradeCost(1);
             let cost2 = getUpgradeCost(2);
+            let cost3 = getUpgradeCost(3);
             
-            document.getElementById('up1-desc').innerText = `УР.${up1Level} (+1 за клик)`;
+            document.getElementById('up1-desc').innerText = `УР.${up1Level} (+2 брони)`;
             const btn1 = document.getElementById('up1-btn');
             btn1.innerText = cost1;
             btn1.disabled = (score < cost1);
             
-            document.getElementById('up2-desc').innerText = `УР.${up2Level} (+2/с пассивно)`;
+            document.getElementById('up2-desc').innerText = `УР.${up2Level} (+1 урона)`;
             const btn2 = document.getElementById('up2-btn');
             btn2.innerText = cost2;
             btn2.disabled = (score < cost2);
+            
+            document.getElementById('up3-desc').innerText = `УР.${up3Level} (+1 удачи)`;
+            const btn3 = document.getElementById('up3-btn');
+            btn3.innerText = cost3;
+            btn3.disabled = (score < cost3);
             
             document.getElementById('balance').style.color = fracColor;
         }
 
         document.getElementById('main-reactor').addEventListener('click', function(e) {
-            let clickPower = getClickPower();
-            let isCrit = false;
-            
-            if (frac === 'Повстанцы' && Math.random() < 0.2) {
-                clickPower = clickPower * 2;
-                isCrit = true;
-                playCritSound();
-                document.getElementById('main-reactor').style.animation = 'critFlash 0.3s';
-                setTimeout(() => {
-                    document.getElementById('main-reactor').style.animation = 'pulse 2s ease-in-out infinite';
-                }, 300);
-            } else {
-                playClickSound();
-            }
-            
-            score += clickPower;
-            localStorage.setItem('sd_score', score);
-            
-            const rect = e.target.getBoundingClientRect();
-            const x = rect.left + rect.width / 2;
-            const y = rect.top;
-            showFloatingText(x, y, '+' + clickPower, isCrit);
-            
-            updateUiDisplay();
-        });
-
-        function buyUpgrade(type) {
-            let cost = getUpgradeCost(type);
-            if (score >= cost) {
-                score -= cost;
-                playBuySound();
-                
-                if (type === 1) {
-                    up1Level++;
-                    localStorage.setItem('sd_up1_lvl', up1Level);
-                } else if (type === 2) {
-                    up2Level++;
-                    localStorage.setItem('sd_up2_lvl', up2Level);
-                }
-                
-                localStorage.setItem('sd_score', score);
-                updateUiDisplay();
-            }
-        }
-
-        function startPassiveIncomeTimer() {
-            if (passiveInterval) {
-                clearInterval(passiveInterval);
-            }
-            passiveInterval = setInterval(() => {
-                let passive = getPassiveIncome();
-                if (passive > 0) {
-                    score += (passive / 10);
-                    localStorage.setItem('sd_score', score);
-                    updateUiDisplay();
-                }
-            }, 100);
-        }
-
-        function playHaptic(style) {
-            if (tg && tg.HapticFeedback) {
-                try {
-                    tg.HapticFeedback.impactOccurred(style);
-                } catch(e) {}
-            }
-        }
-
-        function resetAllData() {
-            if (confirm('Сбросить весь прогресс? Данные будут удалены.')) {
-                localStorage.clear();
-                location.reload();
-            }
-        }
-    </script>
-</body>
-</html>
+            const weapon = getWeapon();
+            const luck = get
