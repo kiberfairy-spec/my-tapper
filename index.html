@@ -86,9 +86,15 @@
             to { transform: rotate(360deg); }
         }
         
-        @keyframes orbit {
-            from { transform: rotate(0deg) translateX(100px) rotate(0deg); }
-            to { transform: rotate(360deg) translateX(100px) rotate(-360deg); }
+        @keyframes flyToTarget {
+            0% { left: 50%; top: 50%; transform: translate(-50%, -50%) scale(1); }
+            50% { left: var(--target-x); top: var(--target-y); transform: translate(-50%, -50%) scale(0.5); }
+            100% { left: 50%; top: 50%; transform: translate(-50%, -50%) scale(1); }
+        }
+        
+        @keyframes collectEffect {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
         }
         
         .hidden { display: none !important; }
@@ -181,7 +187,6 @@
         .frac-bonus { font-size: 7px; background: rgba(255,255,255,0.1); padding: 3px 5px; border: 1px solid; }
         .frac-desc { font-size: 8px; opacity: 0.8; line-height: 1.5; }
 
-        /* ВЫБОР КОРАБЛЯ */
         .ship-select-grid {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -198,10 +203,7 @@
             text-align: center;
         }
         
-        .ship-card:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 25px currentColor;
-        }
+        .ship-card:hover { transform: scale(1.1); box-shadow: 0 0 25px currentColor; }
         
         .ship-card.selected {
             border-color: #ffcc00;
@@ -222,7 +224,6 @@
         .confirm-btn:hover { background: #004400; box-shadow: 0 0 20px rgba(255, 204, 0, 0.5); }
         .confirm-btn:disabled { background: #1a1a1a; color: #333; border-color: #333; cursor: not-allowed; }
 
-        /* ГЛАВНОЕ МЕНЮ */
         .menu-btn {
             width: 100%; padding: 15px; margin: 10px 0;
             background: #003300; border: 3px solid #00ff00;
@@ -254,6 +255,14 @@
             z-index: 1;
         }
         
+        .flying-ship {
+            position: absolute;
+            font-size: 30px;
+            z-index: 10;
+            pointer-events: none;
+            transition: none;
+        }
+        
         .map-object {
             position: absolute;
             cursor: pointer;
@@ -279,29 +288,55 @@
             text-shadow: 1px 1px 2px #000;
         }
         
-        .asteroid { color: #8B7355; }
-        .pirate { color: #ff4444; }
+        .collect-animation {
+            position: absolute;
+            font-size: 20px;
+            animation: collectEffect 0.5s ease-out;
+            z-index: 15;
+            pointer-events: none;
+        }
 
-        /* ИНВЕНТАРЬ */
-        .inventory-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin: 15px 0;
+        .resources-bar {
+            display: flex;
+            justify-content: space-around;
+            margin: 10px 0;
+            font-size: 7px;
+            flex-wrap: wrap;
         }
         
-        .inventory-item {
-            background: #0a0a2e;
-            border: 2px solid #00ff00;
-            padding: 10px;
+        .resource-item {
             text-align: center;
-            font-size: 8px;
+            margin: 3px;
         }
         
-        .inventory-item .item-icon { font-size: 25px; display: block; margin-bottom: 5px; }
-        .inventory-item .item-count { color: #ffcc00; font-size: 10px; }
+        .resource-item .res-icon { font-size: 18px; display: block; }
+        .resource-item .res-value { color: #ffcc00; margin-top: 2px; font-size: 7px; }
 
-        /* PVP АРЕНА */
+        .upgrade-card {
+            background: #0a0a2e; border: 2px solid #00ff00;
+            padding: 10px; margin-bottom: 8px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        
+        .upgrade-info { display: flex; flex-direction: column; text-align: left; }
+        .upgrade-name { font-size: 8px; color: #00ff00; margin-bottom: 3px; }
+        .upgrade-desc { font-size: 7px; color: #00cc00; }
+        
+        .upgrade-btn {
+            background: #003300; color: #00ff00; padding: 6px 10px;
+            border: 2px solid #00ff00; font-family: 'Press Start 2P', monospace;
+            font-size: 7px; cursor: pointer; transition: all 0.2s;
+        }
+        
+        .upgrade-btn:hover { background: #004400; box-shadow: 0 0 10px rgba(0, 255, 0, 0.5); }
+        .upgrade-btn:disabled { background: #1a1a1a; color: #333; cursor: not-allowed; border-color: #333; }
+
+        .spice-limit {
+            font-size: 8px;
+            color: #ffaa00;
+            margin: 10px 0;
+        }
+
         .pvp-arena {
             width: 100%; height: 200px; position: relative;
             margin: 15px 0; overflow: hidden;
@@ -330,20 +365,6 @@
             position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
             font-size: 10px; color: #ffcc00; text-align: center;
         }
-
-        .resources-bar {
-            display: flex;
-            justify-content: space-around;
-            margin: 10px 0;
-            font-size: 8px;
-        }
-        
-        .resource-item {
-            text-align: center;
-        }
-        
-        .resource-item .res-icon { font-size: 20px; display: block; }
-        .resource-item .res-value { color: #ffcc00; margin-top: 3px; }
     </style>
 </head>
 <body>
@@ -380,7 +401,7 @@
             </div>
         </div>
 
-        <!-- ЭКРАН 7: ВЫБОР КОРАБЛЯ (КОСМЕТИКА) -->
+        <!-- ЭКРАН 7: ВЫБОР КОРАБЛЯ -->
         <div id="screen7" class="hidden">
             <div class="top-bar">
                 <button class="back-arrow" onclick="backToFactionSelect()">←</button>
@@ -400,32 +421,7 @@
             <div class="game-logo" style="font-size: 18px;">SPACE DREAM</div>
             <div style="font-size: 50px;" id="current-ship-display">🚀</div>
             
-            <div class="resources-bar">
-                <div class="resource-item">
-                    <span class="res-icon">🪙</span>
-                    <div class="res-value" id="res-coins">0</div>
-                </div>
-                <div class="resource-item">
-                    <span class="res-icon">🛡️</span>
-                    <div class="res-value" id="res-shield-parts">0</div>
-                </div>
-                <div class="resource-item">
-                    <span class="res-icon">⚔️</span>
-                    <div class="res-value" id="res-weapon-parts">0</div>
-                </div>
-                <div class="resource-item">
-                    <span class="res-icon">⚡</span>
-                    <div class="res-value" id="res-speed-parts">0</div>
-                </div>
-                <div class="resource-item">
-                    <span class="res-icon">🎯</span>
-                    <div class="res-value" id="res-crit-parts">0</div>
-                </div>
-                <div class="resource-item">
-                    <span class="res-icon">💎</span>
-                    <div class="res-value" id="res-spice">0</div>
-                </div>
-            </div>
+            <div class="resources-bar" id="resources-bar"></div>
             
             <button class="menu-btn" onclick="openGalaxyMap()">🌌 ГАЛАКТИКА</button>
             <button class="menu-btn" onclick="openShipMenu()">🚀 АНГАР</button>
@@ -438,6 +434,7 @@
                 <button class="back-arrow" onclick="backToMenu()">←</button>
             </div>
             <div class="title-screen">ГАЛАКТИКА</div>
+            <div class="spice-limit" id="spice-limit">СПАЙС сегодня: 0/50</div>
             
             <div class="galaxy-map" id="galaxy-map">
                 <div class="sun">☀️</div>
@@ -473,39 +470,7 @@
             
             <div style="font-size: 50px;" id="ship-menu-display">🚀</div>
             
-            <div style="text-align:left; margin-top:15px;">
-                <div class="upgrade-card">
-                    <div class="upgrade-info">
-                        <div class="upgrade-name">УСИЛИТЬ ЩИТЫ</div>
-                        <div class="upgrade-desc" id="upg-shield-desc">УР.1 (нужно: 5🛡️)</div>
-                    </div>
-                    <button class="upgrade-btn" onclick="buyUpgrade('shield')">УЛУЧШИТЬ</button>
-                </div>
-                
-                <div class="upgrade-card">
-                    <div class="upgrade-info">
-                        <div class="upgrade-name">УЛУЧШИТЬ ОРУДИЯ</div>
-                        <div class="upgrade-desc" id="upg-damage-desc">УР.0 (нужно: 5⚔️)</div>
-                    </div>
-                    <button class="upgrade-btn" onclick="buyUpgrade('damage')">УЛУЧШИТЬ</button>
-                </div>
-                
-                <div class="upgrade-card">
-                    <div class="upgrade-info">
-                        <div class="upgrade-name">СКОРОСТЬ АТАКИ</div>
-                        <div class="upgrade-desc" id="upg-speed-desc">УР.0 (нужно: 5⚡)</div>
-                    </div>
-                    <button class="upgrade-btn" onclick="buyUpgrade('speed')">УЛУЧШИТЬ</button>
-                </div>
-                
-                <div class="upgrade-card">
-                    <div class="upgrade-info">
-                        <div class="upgrade-name">КРИТ И ДОДЖ</div>
-                        <div class="upgrade-desc" id="upg-crit-desc">УР.0 (нужно: 5🎯)</div>
-                    </div>
-                    <button class="upgrade-btn" onclick="buyUpgrade('crit')">УЛУЧШИТЬ</button>
-                </div>
-            </div>
+            <div style="text-align:left; margin-top:15px;" id="upgrades-container"></div>
         </div>
     </div>
 
@@ -527,12 +492,11 @@
             }
             createStars();
 
-            // Telegram
             if (window.Telegram && window.Telegram.WebApp) {
                 try { window.Telegram.WebApp.expand(); } catch(e) {}
             }
 
-            // КОРАБЛИ (только косметика)
+            // КОРАБЛИ (косметика)
             const ships = {
                 'Конфедерация': [
                     { emoji: '🛸', name: 'СТРАЖ-1' },
@@ -561,6 +525,13 @@
                 spice: parseInt(localStorage.getItem('sd_spice')) || 0
             };
             
+            let spiceData = JSON.parse(localStorage.getItem('sd_spice_data')) || { date: '', collected: 0 };
+            const today = new Date().toDateString();
+            if (spiceData.date !== today) {
+                spiceData = { date: today, collected: 0 };
+                localStorage.setItem('sd_spice_data', JSON.stringify(spiceData));
+            }
+            
             let frac = localStorage.getItem('sd_frac') || null;
             let fracColor = localStorage.getItem('sd_color') || '#00ff00';
             let fracBonus = localStorage.getItem('sd_bonus') || null;
@@ -569,7 +540,6 @@
             let tempFaction = null, tempFactionColor = null, tempFactionBonus = null;
             let tempShipIndex = null, selectedShipCard = null;
             
-            // Уровни улучшений
             let upgrades = {
                 shield: parseInt(localStorage.getItem('sd_upg_shield')) || 1,
                 damage: parseInt(localStorage.getItem('sd_upg_damage')) || 0,
@@ -577,10 +547,10 @@
                 crit: parseInt(localStorage.getItem('sd_upg_crit')) || 0
             };
             
-            let currentMissionInterval = null;
+            let galaxyObjects = [];
+            let isShipFlying = false;
             let pvpInterval = null;
 
-            // Звук
             function beep(f = 440, d = 100) {
                 try {
                     const c = new (window.AudioContext || window.webkitAudioContext)();
@@ -613,7 +583,11 @@
                 };
             }
 
-            // Переключение экранов
+            function saveResources() {
+                Object.keys(resources).forEach(k => localStorage.setItem('sd_' + k, resources[k]));
+                localStorage.setItem('sd_spice_data', JSON.stringify(spiceData));
+            }
+
             function show(id) {
                 ['screen1','screen2','screen3','screen4','screen5','screen6','screen7'].forEach(s => {
                     document.getElementById(s).classList.add('hidden');
@@ -678,135 +652,185 @@
             // ГЛАВНОЕ МЕНЮ
             function updateMainMenu() {
                 document.getElementById('current-ship-display').innerText = getShipEmoji();
-                document.getElementById('res-coins').innerText = resources.coins;
-                document.getElementById('res-shield-parts').innerText = resources.shieldParts;
-                document.getElementById('res-weapon-parts').innerText = resources.weaponParts;
-                document.getElementById('res-speed-parts').innerText = resources.speedParts;
-                document.getElementById('res-crit-parts').innerText = resources.critParts;
-                document.getElementById('res-spice').innerText = resources.spice;
+                
+                const bar = document.getElementById('resources-bar');
+                const items = [
+                    { icon: '🪙', key: 'coins', name: 'Монеты' },
+                    { icon: '🛡️', key: 'shieldParts', name: 'Щит' },
+                    { icon: '⚔️', key: 'weaponParts', name: 'Оружие' },
+                    { icon: '⚡', key: 'speedParts', name: 'Скорость' },
+                    { icon: '🎯', key: 'critParts', name: 'Крит' },
+                    { icon: '💎', key: 'spice', name: 'Спайс' }
+                ];
+                
+                bar.innerHTML = items.map(item => `
+                    <div class="resource-item">
+                        <span class="res-icon">${item.icon}</span>
+                        <div class="res-value">${resources[item.key]}</div>
+                    </div>
+                `).join('');
             }
 
-            function saveResources() {
-                Object.keys(resources).forEach(k => localStorage.setItem('sd_' + k, resources[k]));
-            }
-
-            // ЛУТ СИСТЕМА
+            // ЛУТ
             function getLoot() {
                 const roll = Math.random() * 100;
-                if (roll < 40) return null; // 40% ничего
-                if (roll < 60) return 'coins'; // 20% монеты
-                if (roll < 70) return 'shieldParts'; // 10% детали щита
-                if (roll < 80) return 'weaponParts'; // 10% детали оружия
-                if (roll < 90) return 'speedParts'; // 10% скорость атаки
-                if (roll < 97) return 'critParts'; // 7% крит/додж
-                return 'spice'; // 3% спайс
+                if (roll < 40) return null;
+                if (roll < 60) return 'coins';
+                if (roll < 70) return 'shieldParts';
+                if (roll < 80) return 'weaponParts';
+                if (roll < 90) return 'speedParts';
+                if (roll < 97) return 'critParts';
+                return 'spice';
             }
 
             function addLoot(type) {
                 if (!type) return null;
-                const amounts = {
-                    coins: Math.floor(Math.random() * 20) + 5,
-                    shieldParts: 1,
-                    weaponParts: 1,
-                    speedParts: 1,
-                    critParts: 1,
-                    spice: 1
-                };
-                resources[type] += amounts[type];
+                
+                // Проверка лимита спайса
+                if (type === 'spice') {
+                    if (spiceData.collected >= 50) return null;
+                    spiceData.collected++;
+                    resources.spice++;
+                } else {
+                    const amounts = {
+                        coins: Math.floor(Math.random() * 20) + 5,
+                        shieldParts: 1, weaponParts: 1,
+                        speedParts: 1, critParts: 1
+                    };
+                    resources[type] += amounts[type];
+                }
+                
                 saveResources();
-                return { type, amount: amounts[type] };
+                return type;
             }
 
             // ГАЛАКТИЧЕСКАЯ КАРТА
             window.openGalaxyMap = () => {
                 beep(440, 100);
                 show('screen4');
+                document.getElementById('spice-limit').innerText = `СПАЙС сегодня: ${spiceData.collected}/50`;
                 generateGalaxyMap();
             };
 
             function generateGalaxyMap() {
                 const map = document.getElementById('galaxy-map');
-                // Удаляем старые объекты (кроме солнца)
-                map.querySelectorAll('.map-object').forEach(el => el.remove());
+                map.querySelectorAll('.map-object, .flying-ship, .collect-animation').forEach(el => el.remove());
                 
-                // 3 астероида
-                for (let i = 0; i < 3; i++) {
-                    addMapObject(map, 'asteroid', ['🪨', '💎', '🪐'][i], 
-                        ['Астероид A-' + (i+1), 'Астероид B-' + (i+1), 'Астероид C-' + (i+1)][i],
-                        () => startMission('mining'));
-                }
+                galaxyObjects = [];
                 
-                // 3 пирата
-                for (let i = 0; i < 3; i++) {
-                    addMapObject(map, 'pirate', ['🏴‍☠️', '💀', '👾'][i],
-                        ['Пират X-' + (i+1), 'Бандит Y-' + (i+1), 'Рейдер Z-' + (i+1)][i],
-                        () => startMission('battle'));
-                }
+                // 6 случайных объектов
+                const types = ['asteroid', 'asteroid', 'asteroid', 'pirate', 'pirate', 'pirate'];
+                const shuffled = types.sort(() => Math.random() - 0.5);
+                
+                shuffled.forEach((type, i) => {
+                    const isAsteroid = type === 'asteroid';
+                    const emojis = isAsteroid ? ['🪨', '💎', '🪐', '☄️', '🌑', '🪨'] : ['🏴‍☠️', '💀', '👾', '👽', '🤖', '🐲'];
+                    const names = isAsteroid ? 
+                        ['Астероид A', 'Астероид B', 'Астероид C', 'Астероид D', 'Астероид E', 'Астероид F'] :
+                        ['Пират X', 'Бандит Y', 'Рейдер Z', 'Налетчик W', 'Грабитель V', 'Разбойник U'];
+                    
+                    const obj = {
+                        type: isAsteroid ? 'mining' : 'battle',
+                        emoji: emojis[i],
+                        name: names[i],
+                        x: 30 + Math.random() * 250,
+                        y: 50 + Math.random() * 220
+                    };
+                    galaxyObjects.push(obj);
+                    
+                    addMapObject(map, obj, i);
+                });
             }
 
-            function addMapObject(map, type, emoji, name, onClick) {
-                const obj = document.createElement('div');
-                obj.className = 'map-object ' + type;
-                obj.innerHTML = `<span class="object-emoji">${emoji}</span><span class="object-label">${name}</span>`;
-                
-                // Случайная позиция вокруг солнца
-                const angle = Math.random() * Math.PI * 2;
-                const distance = 80 + Math.random() * 60;
-                const centerX = 150, centerY = 150;
-                obj.style.left = (centerX + Math.cos(angle) * distance) + 'px';
-                obj.style.top = (centerY + Math.sin(angle) * distance) + 'px';
-                
-                obj.onclick = onClick;
-                map.appendChild(obj);
+            function addMapObject(map, obj, index) {
+                const div = document.createElement('div');
+                div.className = 'map-object ' + (obj.type === 'mining' ? 'asteroid' : 'pirate');
+                div.innerHTML = `<span class="object-emoji">${obj.emoji}</span><span class="object-label">${obj.name}</span>`;
+                div.style.left = obj.x + 'px';
+                div.style.top = obj.y + 'px';
+                div.onclick = () => flyToObject(obj, index, div);
+                map.appendChild(div);
             }
 
-            function startMission(type) {
-                if (currentMissionInterval) return;
+            function flyToObject(obj, index, element) {
+                if (isShipFlying) return;
+                isShipFlying = true;
                 beep(440, 100);
                 
+                const map = document.getElementById('galaxy-map');
                 const status = document.getElementById('mission-status');
-                const stats = getStats();
-                let timeLeft = 3;
                 
-                status.innerText = type === 'mining' ? '⛏ Добыча... 3с' : '⚔️ Бой... 3с';
+                // Создаем корабль для анимации
+                const ship = document.createElement('div');
+                ship.className = 'flying-ship';
+                ship.innerText = getShipEmoji();
+                ship.style.left = '50%';
+                ship.style.top = '50%';
+                ship.style.transform = 'translate(-50%, -50%)';
+                map.appendChild(ship);
                 
-                currentMissionInterval = setInterval(() => {
-                    timeLeft--;
-                    status.innerText = type === 'mining' ? `⛏ Добыча... ${timeLeft}с` : `⚔️ Бой... ${timeLeft}с`;
+                // Анимация полета к объекту (3 секунды)
+                const targetX = obj.x + 15;
+                const targetY = obj.y + 15;
+                
+                ship.style.transition = 'all 1.5s ease-in-out';
+                ship.style.left = targetX + 'px';
+                ship.style.top = targetY + 'px';
+                ship.style.transform = 'translate(-50%, -50%) scale(0.5)';
+                
+                status.innerText = '🚀 Летим к цели...';
+                
+                // Достигли цели
+                setTimeout(() => {
+                    // Эффект сбора
+                    const collect = document.createElement('div');
+                    collect.className = 'collect-animation';
+                    collect.innerText = '💫';
+                    collect.style.left = targetX + 'px';
+                    collect.style.top = targetY + 'px';
+                    map.appendChild(collect);
+                    setTimeout(() => collect.remove(), 500);
                     
-                    if (timeLeft <= 0) {
-                        clearInterval(currentMissionInterval);
-                        currentMissionInterval = null;
-                        
-                        if (type === 'battle') {
-                            // Бой: урон зависит от статов
-                            const playerDmg = stats.damage + Math.floor(Math.random() * 5);
-                            const enemyDmg = Math.floor(Math.random() * 8) + 3;
-                            
-                            if (Math.random() * 100 < stats.critDodge) {
-                                status.innerText = '🛡 ДОДЖ! Урон: ' + playerDmg;
-                            } else {
-                                status.innerText = '⚔️ Урон врагу: ' + playerDmg + ' | Получено: ' + enemyDmg;
-                            }
-                        }
-                        
-                        // Лут
-                        const loot = addLoot(getLoot());
-                        if (loot) {
-                            const names = {
-                                coins: 'монет', shieldParts: 'деталей щита',
-                                weaponParts: 'деталей оружия', speedParts: 'деталей скорости',
-                                critParts: 'деталей крита', spice: 'СПАЙСА!'
-                            };
-                            status.innerText += ` | +${loot.amount} ${names[loot.type]}`;
-                            if (loot.type === 'spice') beep(880, 200);
-                        } else {
-                            status.innerText += ' | Пусто';
-                        }
-                        
-                        updateMainMenu();
+                    // Удаляем объект
+                    element.style.opacity = '0';
+                    setTimeout(() => element.remove(), 300);
+                    galaxyObjects.splice(index, 1);
+                    
+                    // Лут
+                    const lootType = addLoot(getLoot());
+                    if (lootType) {
+                        const names = {
+                            coins: 'монет', shieldParts: 'деталей щита',
+                            weaponParts: 'деталей оружия', speedParts: 'деталей скорости',
+                            critParts: 'деталей крита', spice: 'СПАЙСА!'
+                        };
+                        status.innerText = `✅ Получено: ${names[lootType]}`;
+                        if (lootType === 'spice') beep(880, 200);
+                    } else {
+                        status.innerText = '❌ Ничего не найдено';
                     }
-                }, 1000);
+                    
+                    // Возвращение корабля (2 секунды)
+                    setTimeout(() => {
+                        ship.style.left = '50%';
+                        ship.style.top = '50%';
+                        ship.style.transform = 'translate(-50%, -50%) scale(1)';
+                        
+                        setTimeout(() => {
+                            ship.remove();
+                            isShipFlying = false;
+                            document.getElementById('spice-limit').innerText = `СПАЙС сегодня: ${spiceData.collected}/50`;
+                            updateMainMenu();
+                            
+                            // Проверяем, остались ли объекты
+                            const remaining = document.querySelectorAll('.map-object');
+                            if (remaining.length === 0) {
+                                status.innerText = '🔄 Новые объекты найдены!';
+                                setTimeout(() => generateGalaxyMap(), 500);
+                            }
+                        }, 2000);
+                    }, 800);
+                }, 1500);
             }
 
             // PvP
@@ -834,7 +858,6 @@
                 document.getElementById('pvp-player-hp').style.width = '100%';
                 
                 pvpInterval = setInterval(() => {
-                    // Игрок атакует
                     let pDmg = Math.floor(Math.random() * stats.damage) + 1;
                     if (Math.random() * 100 < stats.critDodge) pDmg *= 2;
                     enemyHP -= pDmg;
@@ -851,7 +874,6 @@
                         return;
                     }
                     
-                    // Враг атакует
                     setTimeout(() => {
                         if (enemyHP <= 0) return;
                         let eDmg = Math.floor(Math.random() * 5) + 3;
@@ -881,29 +903,38 @@
             };
 
             function updateAngar() {
-                const costs = { shield: 5, damage: 5, speed: 5, crit: 5 };
-                const names = {
-                    shield: ['щита', 'shieldParts'],
-                    damage: ['урона', 'weaponParts'],
-                    speed: ['скорости', 'speedParts'],
-                    crit: ['крита', 'critParts']
-                };
+                const container = document.getElementById('upgrades-container');
+                const upgradeTypes = [
+                    { key: 'shield', name: 'УСИЛИТЬ ЩИТЫ', icon: '🛡️', costKey: 'shieldParts', stat: 'щита' },
+                    { key: 'damage', name: 'УЛУЧШИТЬ ОРУДИЯ', icon: '⚔️', costKey: 'weaponParts', stat: 'урона' },
+                    { key: 'speed', name: 'СКОРОСТЬ АТАКИ', icon: '⚡', costKey: 'speedParts', stat: 'скорости' },
+                    { key: 'crit', name: 'КРИТ И ДОДЖ', icon: '🎯', costKey: 'critParts', stat: 'крита' }
+                ];
                 
-                Object.keys(upgrades).forEach(type => {
-                    const desc = document.getElementById(`upg-${type}-desc`);
-                    const level = upgrades[type];
-                    const cost = costs[type] * (level + 1);
-                    desc.innerText = `УР.${level} (нужно: ${cost}${type === 'shield' ? '🛡️' : type === 'damage' ? '⚔️' : type === 'speed' ? '⚡' : '🎯'})`;
-                });
+                container.innerHTML = upgradeTypes.map(upg => {
+                    const level = upgrades[upg.key];
+                    const cost = 5 * (level + 1);
+                    const canBuy = resources[upg.costKey] >= cost;
+                    return `
+                        <div class="upgrade-card">
+                            <div class="upgrade-info">
+                                <div class="upgrade-name">${upg.name}</div>
+                                <div class="upgrade-desc">УР.${level} (нужно: ${cost}${upg.icon})</div>
+                            </div>
+                            <button class="upgrade-btn" ${canBuy ? '' : 'disabled'} onclick="buyUpgrade('${upg.key}')">
+                                УЛУЧШИТЬ
+                            </button>
+                        </div>
+                    `;
+                }).join('');
             }
 
             window.buyUpgrade = (type) => {
-                const costs = { shield: 5, damage: 5, speed: 5, crit: 5 };
-                const resKeys = { shield: 'shieldParts', damage: 'weaponParts', speed: 'speedParts', crit: 'critParts' };
-                const cost = costs[type] * (upgrades[type] + 1);
+                const costKeys = { shield: 'shieldParts', damage: 'weaponParts', speed: 'speedParts', crit: 'critParts' };
+                const cost = 5 * (upgrades[type] + 1);
                 
-                if (resources[resKeys[type]] >= cost) {
-                    resources[resKeys[type]] -= cost;
+                if (resources[costKeys[type]] >= cost) {
+                    resources[costKeys[type]] -= cost;
                     upgrades[type]++;
                     localStorage.setItem('sd_upg_' + type, upgrades[type]);
                     saveResources();
@@ -916,10 +947,6 @@
 
             window.backToMenu = () => {
                 beep(220, 100);
-                if (currentMissionInterval) {
-                    clearInterval(currentMissionInterval);
-                    currentMissionInterval = null;
-                }
                 if (pvpInterval) {
                     clearInterval(pvpInterval);
                     pvpInterval = null;
