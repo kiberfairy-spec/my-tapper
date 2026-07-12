@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Dream</title>
+    <script src="https://telegram.org"></script>
+    <style>
+        body { background: #050608; color: #e0e6ed; font-family: sans-serif; text-align: center; padding: 40px 20px; user-select: none; }
+        .hidden { display: none !important; }
+        .btn { width: 220px; height: 220px; background: #3b82f6; border-radius: 50%; margin: 80px auto 0; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; color: white; cursor: pointer; box-shadow: 0 0 20px rgba(59,130,246,0.4); }
+        .frac-btn { width: 100%; max-width: 280px; padding: 20px; margin: 15px auto; border-radius: 10px; font-size: 18px; font-weight: bold; color: white; cursor: pointer; }
+        .confed { background: #1e3a8a; } .rebels { background: #7c2d12; } .guild { background: #78350f; }
+        .reset-btn { margin-top: 40px; background: none; border: 1px solid #334155; color: #64748b; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <!-- ЭКРАН 1: СТАРТ -->
+    <div id="screen1">
+        <h2>SPACE DREAM</h2>
+        <div class="btn" id="start-btn">ЗАПУСТИТЬ ПУТЕШЕСТВИЕ</div>
+    </div>
+
+    <!-- ЭКРАН 2: ВЫБОР ФРАКЦИИ -->
+    <div id="screen2" class="hidden">
+        <h2>ВЫБЕРИТЕ ФРАКЦИЮ</h2>
+        <div class="frac-btn confed" onclick="choose('Конфедерация')">КОНФЕДЕРАЦИЯ</div>
+        <div class="frac-btn rebels" onclick="choose('Повстанцы')">ПОВСТАНЦЫ</div>
+        <div class="frac-btn guild" onclick="choose('Торговая гильдия')">ТОРГОВАЯ ГИЛЬДИЯ</div>
+    </div>
+
+    <!-- ЭКРАН 3: ГЕЙМПЛЕЙ -->
+    <div id="screen3" class="hidden">
+        <h2 id="frac-name">Выбрано</h2>
+        <h1 id="balance">0</h1>
+        <div class="btn" id="click-btn">ДОБЫЧА</div>
+        <br>
+        <button class="reset-btn" onclick="resetGame()">Сбросить фракцию</button>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        if (tg) tg.expand();
+
+        let score = parseInt(localStorage.getItem('space_score')) || 0;
+        let frac = localStorage.getItem('space_fraction');
+
+        // Если игрок уже выбирал фракцию ранее — сразу перекидываем в игру
+        if (frac) {
+            showGame(frac);
+        }
+
+        // Переход с 1 на 2 экран
+        document.getElementById('start-btn').addEventListener('click', () => {
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+            document.getElementById('screen1').classList.add('hidden');
+            document.getElementById('screen2').classList.remove('hidden');
+        });
+
+        // Клик по кнопке выбора фракции
+        function choose(name) {
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
+            localStorage.setItem('space_fraction', name);
+            showGame(name);
+        }
+
+        // Показ финального игрового экрана
+        function showGame(name) {
+            document.getElementById('screen1').classList.add('hidden');
+            document.getElementById('screen2').classList.add('hidden');
+            document.getElementById('screen3').classList.remove('hidden');
+            document.getElementById('frac-name').innerText = "Фракция: " + name;
+            document.getElementById('balance').innerText = score;
+        }
+
+        // Клик по кнопке ДОБЫЧА
+        document.getElementById('click-btn').addEventListener('click', () => {
+            score++;
+            document.getElementById('balance').innerText = score;
+            localStorage.setItem('space_score', score);
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        });
+
+        // Кнопка сброса фракции
+        function resetGame() {
+            localStorage.removeItem('space_fraction');
+            location.reload();
+        }
+    </script>
+</body>
+</html>
