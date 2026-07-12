@@ -113,37 +113,21 @@
             height: 100%;
             background: radial-gradient(circle at center, #1a1a4e 0%, #0a0a2e 70%);
             overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
-        .planet-orbit {
-            position: relative;
-            width: 300px;
-            height: 300px;
-        }
-
-        .main-planet {
+        .planet-container {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 80px;
             z-index: 2;
-            animation: rotate 20s linear infinite;
         }
-        
-        .planet-label {
-            position: absolute;
-            top: calc(50% + 50px);
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 10px;
-            color: #00ffff;
-            text-shadow: 0 0 10px #00ffff;
-            z-index: 3;
-            white-space: nowrap;
+
+        .main-planet {
+            font-size: 120px;
+            animation: rotate 20s linear infinite;
+            display: block;
+            line-height: 1;
         }
 
         .bg-object {
@@ -152,6 +136,7 @@
             z-index: 2;
             pointer-events: none;
             transition: opacity 0.3s;
+            transform: translate(-50%, -50%);
         }
         
         .bg-object[data-type="asteroid"] { filter: drop-shadow(0 0 6px rgba(139, 115, 85, 0.6)); }
@@ -163,6 +148,7 @@
             z-index: 10;
             pointer-events: none;
             filter: drop-shadow(0 0 10px rgba(0, 255, 0, 0.8));
+            transform: translate(-50%, -50%);
         }
 
         .top-panel {
@@ -230,7 +216,6 @@
 
         .dev-reset-btn:hover { background: rgba(150, 0, 0, 0.9); box-shadow: 0 0 10px rgba(255, 0, 0, 0.5); }
 
-        /* СТРОКА РЕСУРСОВ */
         .loot-feed {
             position: fixed;
             bottom: 85px;
@@ -435,9 +420,8 @@
     <div class="app-container">
         <div class="background-map" id="background-map">
             <div class="galaxy-bg" id="galaxy-bg">
-                <div class="planet-orbit" id="planet-orbit">
-                    <div class="main-planet">🪐</div>
-                    <div class="planet-label">ТАУ КИТА</div>
+                <div class="planet-container" id="planet-container">
+                    <span class="main-planet">🪐</span>
                 </div>
             </div>
         </div>
@@ -452,7 +436,6 @@
 
         <button class="dev-reset-btn hidden" id="dev-reset-btn" onclick="devReset()" title="Сброс">🔄</button>
 
-        <!-- СТРОКА ДОБЫЧИ -->
         <div class="loot-feed" id="loot-feed"></div>
 
         <div class="content-overlay" id="content-overlay">
@@ -600,7 +583,6 @@
             document.getElementById('spice-value').innerText = window.spiceData.collected;
         };
 
-        // ЗВЕЗДЫ
         function createStarLayers() {
             const container = document.getElementById('stars-layer');
             for (let i = 0; i < 200; i++) {
@@ -614,7 +596,6 @@
                 star.style.setProperty('--delay', Math.random() * 2 + 's');
                 container.appendChild(star);
             }
-            // Падающие звезды
             for (let i = 0; i < 8; i++) {
                 const shooting = document.createElement('div');
                 shooting.className = 'shooting-star';
@@ -627,26 +608,39 @@
         }
         createStarLayers();
 
-        // ОБЪЕКТЫ ПО ЗОЛОТОМУ СЕЧЕНИЮ
+        // ЦЕНТРИРОВАНИЕ ПЛАНЕТЫ И ОБЪЕКТОВ
+        function getMapCenter() {
+            const bg = document.getElementById('galaxy-bg');
+            return {
+                x: bg.offsetWidth / 2,
+                y: bg.offsetHeight / 2
+            };
+        }
+
         window.generateBackgroundObjects = function() {
-            const orbit = document.getElementById('planet-orbit');
-            orbit.querySelectorAll('.bg-object').forEach(el => el.remove());
+            const bg = document.getElementById('galaxy-bg');
+            // Удаляем старые объекты
+            bg.querySelectorAll('.bg-object').forEach(el => el.remove());
             window.galaxyObjects = [];
             
-            const phi = (1 + Math.sqrt(5)) / 2; // Золотое сечение
+            const center = getMapCenter();
+            const phi = (1 + Math.sqrt(5)) / 2;
             const types = ['asteroid', 'asteroid', 'asteroid', 'pirate', 'pirate', 'pirate'];
             const shuffled = types.sort(() => Math.random() - 0.5);
             
             shuffled.forEach((type, i) => {
                 const emojis = type === 'asteroid' ? ['🪨', '💎', '🪐', '☄️', '🌑', '🪨'] : ['🏴‍☠️', '💀', '👾', '👽', '🤖', '🐲'];
                 const angle = (i * phi * Math.PI * 2) % (Math.PI * 2);
-                const distance = 80 + (i * 20);
+                const distance = 90 + (i * 25);
+                
+                const x = center.x + Math.cos(angle) * distance;
+                const y = center.y + Math.sin(angle) * distance;
                 
                 const obj = {
                     type: type === 'asteroid' ? 'mining' : 'battle',
                     emoji: emojis[i],
-                    angle: angle,
-                    distance: distance,
+                    x: x,
+                    y: y,
                     element: null
                 };
                 
@@ -654,6 +648,8 @@
                 div.className = 'bg-object';
                 div.setAttribute('data-type', type);
                 div.innerText = obj.emoji;
+                div.style.left = x + 'px';
+                div.style.top = y + 'px';
                 div.style.pointerEvents = 'all';
                 div.style.cursor = 'pointer';
                 div.onclick = function(e) {
@@ -661,64 +657,65 @@
                     if (window.currentTab === 'map' && !window.isShipFlying) window.flyToObject(obj, div);
                 };
                 
-                orbit.appendChild(div);
+                bg.appendChild(div);
                 obj.element = div;
                 window.galaxyObjects.push(obj);
             });
-            
-            positionObjects();
         };
 
-        function positionObjects() {
-            const orbit = document.getElementById('planet-orbit');
-            const centerX = orbit.offsetWidth / 2;
-            const centerY = orbit.offsetHeight / 2;
-            
+        // Обновление позиций при ресайзе
+        window.addEventListener('resize', () => {
+            const center = getMapCenter();
+            const planetContainer = document.getElementById('planet-container');
+            if (planetContainer) {
+                planetContainer.style.left = center.x + 'px';
+                planetContainer.style.top = center.y + 'px';
+            }
             window.galaxyObjects.forEach(obj => {
-                const x = centerX + Math.cos(obj.angle) * obj.distance;
-                const y = centerY + Math.sin(obj.angle) * obj.distance;
-                obj.element.style.left = x + 'px';
-                obj.element.style.top = y + 'px';
+                const center2 = getMapCenter();
+                const phi = (1 + Math.sqrt(5)) / 2;
+                const idx = window.galaxyObjects.indexOf(obj);
+                const angle = (idx * phi * Math.PI * 2) % (Math.PI * 2);
+                const distance = 90 + (idx * 25);
+                obj.x = center2.x + Math.cos(angle) * distance;
+                obj.y = center2.y + Math.sin(angle) * distance;
+                if (obj.element) {
+                    obj.element.style.left = obj.x + 'px';
+                    obj.element.style.top = obj.y + 'px';
+                }
             });
-        }
+        });
 
-        // ПОЛЕТ КОРАБЛЯ
         window.flyToObject = function(obj, element) {
             if (window.isShipFlying) return;
             window.isShipFlying = true;
             
-            const orbit = document.getElementById('planet-orbit');
-            const centerX = orbit.offsetWidth / 2;
-            const centerY = orbit.offsetHeight / 2;
-            const targetX = centerX + Math.cos(obj.angle) * obj.distance;
-            const targetY = centerY + Math.sin(obj.angle) * obj.distance;
+            const center = getMapCenter();
+            const bg = document.getElementById('galaxy-bg');
             
             const ship = document.createElement('div');
             ship.className = 'flying-ship-anim';
             ship.innerText = window.getShipEmoji();
-            ship.style.left = centerX + 'px';
-            ship.style.top = centerY + 'px';
-            ship.style.transform = 'translate(-50%, -50%)';
-            orbit.appendChild(ship);
+            ship.style.left = center.x + 'px';
+            ship.style.top = center.y + 'px';
+            bg.appendChild(ship);
             
-            // Полет к объекту (2.5 секунды)
+            // Полет к объекту
             ship.style.transition = 'all 2.5s cubic-bezier(0.4, 0, 0.2, 1)';
             requestAnimationFrame(() => {
-                ship.style.left = targetX + 'px';
-                ship.style.top = targetY + 'px';
+                ship.style.left = obj.x + 'px';
+                ship.style.top = obj.y + 'px';
                 ship.style.transform = 'translate(-50%, -50%) scale(0.6)';
             });
             
-            // Остановка у объекта (3 секунды)
             setTimeout(() => {
                 element.style.opacity = '0';
                 const lootType = window.addLoot(window.getLoot());
                 window.showLoot(lootType);
                 
-                // Возврат (2.5 секунды)
                 setTimeout(() => {
-                    ship.style.left = centerX + 'px';
-                    ship.style.top = centerY + 'px';
+                    ship.style.left = center.x + 'px';
+                    ship.style.top = center.y + 'px';
                     ship.style.transform = 'translate(-50%, -50%) scale(1)';
                     
                     setTimeout(() => {
@@ -765,7 +762,6 @@
             document.getElementById('spice-value').innerText = window.spiceData.collected;
         };
 
-        // ДАЛЕЕ
         window.setPlayerName = function() {
             const name = document.getElementById('input-player-name').value.trim();
             if (name.length < 2) { alert('Минимум 2 символа'); return; }
@@ -809,6 +805,13 @@
             window.saveAll();
             window.showUI();
             window.showWindow('main');
+            
+            // Устанавливаем планету в центр
+            const center = getMapCenter();
+            const planetContainer = document.getElementById('planet-container');
+            planetContainer.style.left = center.x + 'px';
+            planetContainer.style.top = center.y + 'px';
+            
             window.generateBackgroundObjects();
             window.updateLeaderboard();
         };
@@ -938,6 +941,10 @@
         if (window.playerName && window.frac) {
             window.showUI();
             window.showWindow('main');
+            const center = getMapCenter();
+            const planetContainer = document.getElementById('planet-container');
+            planetContainer.style.left = center.x + 'px';
+            planetContainer.style.top = center.y + 'px';
             window.generateBackgroundObjects();
             window.updateLeaderboard();
         } else if (window.playerName) {
