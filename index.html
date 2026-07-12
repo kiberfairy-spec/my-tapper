@@ -967,4 +967,92 @@
 
         document.getElementById('main-reactor').addEventListener('click', function(e) {
             const weapon = getWeapon();
-            const luck = get
+            const luck = getLuck();
+            let damage = Math.floor(Math.random() * weapon) + 1;
+            let isCrit = false;
+            let isDodge = false;
+            
+            // Проверка на крит (шанс = удача * 3%)
+            if (Math.random() * 100 < luck * 3) {
+                damage = damage * 2;
+                isCrit = true;
+            }
+            
+            // Проверка на уклонение врага
+            if (Math.random() * 100 < 10) {
+                isDodge = true;
+                damage = 0;
+            }
+            
+            if (!isDodge) {
+                enemyHP -= damage;
+                score += damage * 10;
+                localStorage.setItem('sd_score', score);
+            }
+            
+            animateBattle(damage, isCrit, isDodge);
+            
+            // Если враг побежден
+            if (enemyHP <= 0) {
+                setTimeout(() => {
+                    score += 100;
+                    localStorage.setItem('sd_score', score);
+                    enemyHP = maxEnemyHP;
+                    maxEnemyHP = Math.floor(maxEnemyHP * 1.2);
+                    enemyHP = maxEnemyHP;
+                    updateUiDisplay();
+                    
+                    const rect = document.getElementById('enemy-ship').getBoundingClientRect();
+                    showFloatingText(rect.left, rect.top, '+100', 'crit-text');
+                }, 800);
+            }
+            
+            updateUiDisplay();
+        });
+
+        function buyUpgrade(type) {
+            let cost = getUpgradeCost(type);
+            if (score >= cost) {
+                score -= cost;
+                playBeep(660, 100);
+                setTimeout(() => playBeep(880, 100), 100);
+                
+                if (type === 1) {
+                    up1Level++;
+                    localStorage.setItem('sd_up1_lvl', up1Level);
+                } else if (type === 2) {
+                    up2Level++;
+                    localStorage.setItem('sd_up2_lvl', up2Level);
+                } else if (type === 3) {
+                    up3Level++;
+                    localStorage.setItem('sd_up3_lvl', up3Level);
+                }
+                
+                localStorage.setItem('sd_score', score);
+                updateUiDisplay();
+            }
+        }
+
+        function startPassiveIncomeTimer() {
+            if (passiveInterval) {
+                clearInterval(passiveInterval);
+            }
+            passiveInterval = setInterval(() => {
+                const passiveIncome = getLuck() * 0.5;
+                if (passiveIncome > 0) {
+                    score += passiveIncome;
+                    localStorage.setItem('sd_score', score);
+                    updateUiDisplay();
+                }
+            }, 1000);
+        }
+
+        function resetAllData() {
+            if (confirm('Сбросить весь прогресс? Данные будут удалены.')) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
