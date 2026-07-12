@@ -477,7 +477,6 @@
             </div>
         </div>
 
-        <!-- КНОПКА СБРОСА ДЛЯ РАЗРАБОТЧИКА -->
         <button class="dev-reset-btn hidden" id="dev-reset-btn" onclick="devReset()" title="Сброс прогресса">🔄</button>
 
         <div class="content-overlay" id="content-overlay">
@@ -485,7 +484,7 @@
                 <div class="title">SPACE DREAM</div>
                 <div style="text-align:center; margin:20px 0;">
                     <input type="text" class="input-field" id="input-player-name" placeholder="ИМЯ ИГРОКА" maxlength="12">
-                    <button class="btn" onclick="setPlayerName()">ДАЛЕЕ</button>
+                    <button class="btn" id="btn-set-name" onclick="setPlayerName()">ДАЛЕЕ</button>
                 </div>
             </div>
 
@@ -516,7 +515,6 @@
                 <div class="ship-display" id="hangar-ship">🚀</div>
                 <div style="font-size:10px; text-align:center; margin-bottom:5px;" id="hangar-ship-name"></div>
                 
-                <!-- МИНИ-РЕСУРСЫ -->
                 <div class="resources-mini" id="hangar-resources"></div>
                 
                 <div id="upgrades-list"></div>
@@ -557,495 +555,465 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Звезды
-            function createStars() {
-                const container = document.getElementById('stars');
-                for (let i = 0; i < 150; i++) {
-                    const star = document.createElement('div');
-                    star.className = 'star';
-                    star.style.left = Math.random() * 100 + '%';
-                    star.style.top = Math.random() * 100 + '%';
-                    star.style.width = Math.random() * 3 + 'px';
-                    star.style.height = star.style.width;
-                    star.style.animationDelay = Math.random() * 2 + 's';
-                    container.appendChild(star);
-                }
-            }
-            createStars();
+        // Все функции объявлены глобально через window
+        window.playerName = localStorage.getItem('sd_player_name') || '';
+        window.shipName = localStorage.getItem('sd_ship_name') || '';
+        window.frac = localStorage.getItem('sd_frac') || null;
+        window.fracColor = localStorage.getItem('sd_color') || '#00ff00';
+        window.fracBonus = localStorage.getItem('sd_bonus') || null;
+        window.selectedShipIndex = parseInt(localStorage.getItem('sd_ship_index')) || 0;
+        
+        window.resources = {
+            coins: parseInt(localStorage.getItem('sd_coins')) || 0,
+            shieldParts: parseInt(localStorage.getItem('sd_shield')) || 0,
+            weaponParts: parseInt(localStorage.getItem('sd_weapon')) || 0,
+            speedParts: parseInt(localStorage.getItem('sd_speed')) || 0,
+            critParts: parseInt(localStorage.getItem('sd_crit')) || 0,
+            spice: parseInt(localStorage.getItem('sd_spice')) || 0
+        };
+        
+        window.spiceData = JSON.parse(localStorage.getItem('sd_spice_data')) || { date: '', collected: 0 };
+        const today = new Date().toDateString();
+        if (window.spiceData.date !== today) {
+            window.spiceData = { date: today, collected: 0 };
+            localStorage.setItem('sd_spice_data', JSON.stringify(window.spiceData));
+        }
+        
+        window.pvpScore = parseInt(localStorage.getItem('sd_pvp_score')) || 0;
+        window.leaderboard = JSON.parse(localStorage.getItem('sd_leaderboard')) || [];
+        
+        window.upgrades = {
+            shield: parseInt(localStorage.getItem('sd_upg_shield')) || 1,
+            damage: parseInt(localStorage.getItem('sd_upg_damage')) || 0,
+            speed: parseInt(localStorage.getItem('sd_upg_speed')) || 0,
+            crit: parseInt(localStorage.getItem('sd_upg_crit')) || 0
+        };
+        
+        window.galaxyObjects = [];
+        window.isShipFlying = false;
+        window.pvpInterval = null;
+        window.pvpTimerInterval = null;
+        window.currentTab = 'map';
+        window.tempFaction = null;
+        window.tempFactionColor = null;
+        window.tempFactionBonus = null;
+        window.tempShipIndex = null;
 
-            if (window.Telegram && window.Telegram.WebApp) {
-                try { window.Telegram.WebApp.expand(); } catch(e) {}
-            }
+        const ships = {
+            'Конфедерация': [{ emoji: '🛸', name: 'СТРАЖ-1' }, { emoji: '🛰️', name: 'СТРАЖ-2' }, { emoji: '🛡️', name: 'ЗАЩИТНИК' }],
+            'Повстанцы': [{ emoji: '🚀', name: 'МСТИТЕЛЬ-1' }, { emoji: '💫', name: 'МСТИТЕЛЬ-2' }, { emoji: '⚡', name: 'РАЗРУШИТЕЛЬ' }],
+            'Торговая гильдия': [{ emoji: '🚢', name: 'ТОРГОВЕЦ-1' }, { emoji: '🛳️', name: 'ТОРГОВЕЦ-2' }, { emoji: '🏗️', name: 'МАГНАТ' }]
+        };
 
-            // ДАННЫЕ
-            let playerName = localStorage.getItem('sd_player_name') || '';
-            let shipName = localStorage.getItem('sd_ship_name') || '';
-            let frac = localStorage.getItem('sd_frac') || null;
-            let fracColor = localStorage.getItem('sd_color') || '#00ff00';
-            let fracBonus = localStorage.getItem('sd_bonus') || null;
-            let selectedShipIndex = parseInt(localStorage.getItem('sd_ship_index')) || 0;
-            
-            let resources = {
-                coins: parseInt(localStorage.getItem('sd_coins')) || 0,
-                shieldParts: parseInt(localStorage.getItem('sd_shield')) || 0,
-                weaponParts: parseInt(localStorage.getItem('sd_weapon')) || 0,
-                speedParts: parseInt(localStorage.getItem('sd_speed')) || 0,
-                critParts: parseInt(localStorage.getItem('sd_crit')) || 0,
-                spice: parseInt(localStorage.getItem('sd_spice')) || 0
+        window.saveAll = function() {
+            Object.keys(window.resources).forEach(k => localStorage.setItem('sd_' + k, window.resources[k]));
+            localStorage.setItem('sd_spice_data', JSON.stringify(window.spiceData));
+            localStorage.setItem('sd_pvp_score', window.pvpScore);
+            localStorage.setItem('sd_leaderboard', JSON.stringify(window.leaderboard));
+            localStorage.setItem('sd_player_name', window.playerName);
+            localStorage.setItem('sd_ship_name', window.shipName);
+        };
+
+        window.getShipEmoji = function() {
+            if (!window.frac || !ships[window.frac]) return '🚀';
+            return ships[window.frac][window.selectedShipIndex].emoji;
+        };
+
+        window.getStats = function() {
+            let shield = 10 + (window.upgrades.shield - 1) * 2;
+            let damage = 5 + window.upgrades.damage;
+            let attackSpeed = 1500 - window.upgrades.speed * 200;
+            let critDodge = 5 + window.upgrades.crit * 2;
+            if (window.fracBonus === 'shield') shield = Math.floor(shield * 1.5);
+            if (window.fracBonus === 'weapon') damage = Math.floor(damage * 1.5);
+            return {
+                shield: Math.max(shield, 5),
+                damage: Math.max(damage, 3),
+                attackSpeed: Math.max(attackSpeed, 500),
+                critDodge: Math.min(critDodge, 40)
             };
-            
-            let spiceData = JSON.parse(localStorage.getItem('sd_spice_data')) || { date: '', collected: 0 };
-            const today = new Date().toDateString();
-            if (spiceData.date !== today) {
-                spiceData = { date: today, collected: 0 };
-                localStorage.setItem('sd_spice_data', JSON.stringify(spiceData));
+        };
+
+        window.updateSpiceDisplay = function() {
+            document.getElementById('spice-value').innerText = window.spiceData.collected;
+        };
+
+        window.showWindow = function(id) {
+            document.querySelectorAll('.window').forEach(w => w.classList.add('hidden'));
+            const win = document.getElementById('window-' + id);
+            if (win) win.classList.remove('hidden');
+        };
+
+        window.showUI = function() {
+            document.getElementById('back-btn').classList.remove('hidden');
+            document.getElementById('spice-counter').classList.remove('hidden');
+            document.getElementById('bottom-panel').classList.remove('hidden');
+            document.getElementById('dev-reset-btn').classList.remove('hidden');
+            window.updateSpiceDisplay();
+        };
+
+        // ВАЖНО: Все функции-обработчики должны быть глобальными
+        window.setPlayerName = function() {
+            console.log('setPlayerName called');
+            const name = document.getElementById('input-player-name').value.trim();
+            if (name.length < 2) {
+                alert('Имя должно быть не менее 2 символов');
+                return;
             }
-            
-            let pvpScore = parseInt(localStorage.getItem('sd_pvp_score')) || 0;
-            let leaderboard = JSON.parse(localStorage.getItem('sd_leaderboard')) || [];
-            
-            let upgrades = {
-                shield: parseInt(localStorage.getItem('sd_upg_shield')) || 1,
-                damage: parseInt(localStorage.getItem('sd_upg_damage')) || 0,
-                speed: parseInt(localStorage.getItem('sd_upg_speed')) || 0,
-                crit: parseInt(localStorage.getItem('sd_upg_crit')) || 0
-            };
-            
-            let galaxyObjects = [];
-            let isShipFlying = false;
-            let pvpInterval = null;
-            let pvpTimerInterval = null;
-            let currentTab = 'map';
-            let tempFaction = null, tempFactionColor = null, tempFactionBonus = null;
-            let tempShipIndex = null;
+            window.playerName = name;
+            window.saveAll();
+            window.showWindow('faction');
+        };
 
-            const ships = {
-                'Конфедерация': [{ emoji: '🛸', name: 'СТРАЖ-1' }, { emoji: '🛰️', name: 'СТРАЖ-2' }, { emoji: '🛡️', name: 'ЗАЩИТНИК' }],
-                'Повстанцы': [{ emoji: '🚀', name: 'МСТИТЕЛЬ-1' }, { emoji: '💫', name: 'МСТИТЕЛЬ-2' }, { emoji: '⚡', name: 'РАЗРУШИТЕЛЬ' }],
-                'Торговая гильдия': [{ emoji: '🚢', name: 'ТОРГОВЕЦ-1' }, { emoji: '🛳️', name: 'ТОРГОВЕЦ-2' }, { emoji: '🏗️', name: 'МАГНАТ' }]
-            };
-
-            function saveAll() {
-                Object.keys(resources).forEach(k => localStorage.setItem('sd_' + k, resources[k]));
-                localStorage.setItem('sd_spice_data', JSON.stringify(spiceData));
-                localStorage.setItem('sd_pvp_score', pvpScore);
-                localStorage.setItem('sd_leaderboard', JSON.stringify(leaderboard));
-                localStorage.setItem('sd_player_name', playerName);
-                localStorage.setItem('sd_ship_name', shipName);
+        window.devReset = function() {
+            if (confirm('СБРОСИТЬ ВСЕ ДАННЫЕ И НАЧАТЬ ЗАНОВО?')) {
+                localStorage.clear();
+                location.reload();
             }
+        };
 
-            function getShipEmoji() {
-                if (!frac || !ships[frac]) return '🚀';
-                return ships[frac][selectedShipIndex].emoji;
-            }
-
-            function getStats() {
-                let shield = 10 + (upgrades.shield - 1) * 2;
-                let damage = 5 + upgrades.damage;
-                let attackSpeed = 1500 - upgrades.speed * 200;
-                let critDodge = 5 + upgrades.crit * 2;
-                if (fracBonus === 'shield') shield = Math.floor(shield * 1.5);
-                if (fracBonus === 'weapon') damage = Math.floor(damage * 1.5);
-                return {
-                    shield: Math.max(shield, 5),
-                    damage: Math.max(damage, 3),
-                    attackSpeed: Math.max(attackSpeed, 500),
-                    critDodge: Math.min(critDodge, 40)
+        window.selectFaction = function(name, color, bonus) {
+            window.tempFaction = name;
+            window.tempFactionColor = color;
+            window.tempFactionBonus = bonus;
+            window.tempShipIndex = null;
+            
+            const container = document.getElementById('ship-selection');
+            container.innerHTML = '';
+            ships[name].forEach((ship, i) => {
+                const card = document.createElement('div');
+                card.style.cssText = `font-size:40px; cursor:pointer; padding:10px; border:2px solid #00ff00; text-align:center; transition:all 0.2s;`;
+                card.innerHTML = `${ship.emoji}<br><small style="font-size:7px;">${ship.name}</small>`;
+                card.onclick = function() {
+                    window.tempShipIndex = i;
+                    container.querySelectorAll('div').forEach(d => d.style.borderColor = '#00ff00');
+                    card.style.borderColor = '#ffcc00';
+                    document.getElementById('confirm-ship-btn').disabled = false;
                 };
+                container.appendChild(card);
+            });
+            
+            document.getElementById('confirm-ship-btn').disabled = true;
+            window.showWindow('ship');
+        };
+
+        window.confirmShip = function() {
+            const name = document.getElementById('input-ship-name').value.trim();
+            if (window.tempShipIndex === null || name.length < 2) {
+                alert('Выберите корабль и введите имя (минимум 2 символа)');
+                return;
             }
+            
+            window.frac = window.tempFaction;
+            window.fracColor = window.tempFactionColor;
+            window.fracBonus = window.tempFactionBonus;
+            window.selectedShipIndex = window.tempShipIndex;
+            window.shipName = name;
+            
+            localStorage.setItem('sd_frac', window.frac);
+            localStorage.setItem('sd_color', window.fracColor);
+            localStorage.setItem('sd_bonus', window.fracBonus);
+            localStorage.setItem('sd_ship_index', window.selectedShipIndex);
+            localStorage.setItem('sd_ship_name', window.shipName);
+            window.saveAll();
+            
+            window.showUI();
+            window.showWindow('main');
+            window.generateBackgroundObjects();
+            window.updateLeaderboard();
+        };
 
-            function updateSpiceDisplay() {
-                document.getElementById('spice-value').innerText = spiceData.collected;
-            }
-
-            function showWindow(id) {
-                document.querySelectorAll('.window').forEach(w => w.classList.add('hidden'));
-                const win = document.getElementById('window-' + id);
-                if (win) win.classList.remove('hidden');
-            }
-
-            function showUI() {
-                document.getElementById('back-btn').classList.remove('hidden');
-                document.getElementById('spice-counter').classList.remove('hidden');
-                document.getElementById('bottom-panel').classList.remove('hidden');
-                document.getElementById('dev-reset-btn').classList.remove('hidden');
-                updateSpiceDisplay();
-            }
-
-            // СБРОС ПРОГРЕССА ДЛЯ РАЗРАБОТЧИКА
-            window.devReset = () => {
-                if (confirm('СБРОСИТЬ ВСЕ ДАННЫЕ И НАЧАТЬ ЗАНОВО?')) {
-                    localStorage.clear();
-                    location.reload();
-                }
-            };
-
-            // ИНИЦИАЛИЗАЦИЯ
-            if (playerName && frac) {
-                showUI();
-                showWindow('main');
-                generateBackgroundObjects();
-                updateLeaderboard();
-            } else if (playerName) {
-                showWindow('faction');
-            } else {
-                showWindow('start');
-            }
-
-            // УСТАНОВКА ИМЕНИ
-            window.setPlayerName = () => {
-                const name = document.getElementById('input-player-name').value.trim();
-                if (name.length < 2) return;
-                playerName = name;
-                saveAll();
-                showWindow('faction');
-            };
-
-            // ВЫБОР ФРАКЦИИ
-            window.selectFaction = (name, color, bonus) => {
-                tempFaction = name;
-                tempFactionColor = color;
-                tempFactionBonus = bonus;
-                tempShipIndex = null;
+        window.generateBackgroundObjects = function() {
+            const bg = document.getElementById('galaxy-bg');
+            bg.querySelectorAll('.bg-object').forEach(el => el.remove());
+            window.galaxyObjects = [];
+            
+            const types = ['asteroid', 'asteroid', 'asteroid', 'pirate', 'pirate', 'pirate'];
+            const shuffled = types.sort(() => Math.random() - 0.5);
+            
+            shuffled.forEach((type, i) => {
+                const emojis = type === 'asteroid' ? ['🪨', '💎', '🪐', '☄️', '🌑', '🪨'] : ['🏴‍☠️', '💀', '👾', '👽', '🤖', '🐲'];
+                const angle = (i / 6) * Math.PI * 2 + Math.random() * 0.5;
+                const distance = 100 + Math.random() * 40;
+                const centerX = window.innerWidth / 2;
+                const centerY = (window.innerHeight - 130) / 2;
                 
-                const container = document.getElementById('ship-selection');
-                container.innerHTML = '';
-                ships[name].forEach((ship, i) => {
-                    const card = document.createElement('div');
-                    card.style.cssText = `font-size:40px; cursor:pointer; padding:10px; border:2px solid #00ff00; text-align:center; transition:all 0.2s;`;
-                    card.innerHTML = `${ship.emoji}<br><small style="font-size:7px;">${ship.name}</small>`;
-                    card.onclick = () => {
-                        tempShipIndex = i;
-                        container.querySelectorAll('div').forEach(d => d.style.borderColor = '#00ff00');
-                        card.style.borderColor = '#ffcc00';
-                        document.getElementById('confirm-ship-btn').disabled = false;
-                    };
-                    container.appendChild(card);
-                });
+                const obj = {
+                    type: type === 'asteroid' ? 'mining' : 'battle',
+                    emoji: emojis[i],
+                    x: centerX + Math.cos(angle) * distance,
+                    y: centerY + Math.sin(angle) * distance,
+                    element: null
+                };
                 
-                document.getElementById('confirm-ship-btn').disabled = true;
-                showWindow('ship');
-            };
+                const div = document.createElement('div');
+                div.className = 'bg-object';
+                div.innerText = obj.emoji;
+                div.style.left = obj.x + 'px';
+                div.style.top = obj.y + 'px';
+                div.style.pointerEvents = 'all';
+                div.style.cursor = 'pointer';
+                div.onclick = function(e) {
+                    e.stopPropagation();
+                    if (window.currentTab === 'map') window.flyToObject(obj, div);
+                };
+                
+                bg.appendChild(div);
+                obj.element = div;
+                window.galaxyObjects.push(obj);
+            });
+        };
 
-            window.confirmShip = () => {
-                const name = document.getElementById('input-ship-name').value.trim();
-                if (tempShipIndex === null || name.length < 2) return;
+        window.flyToObject = function(obj, element) {
+            if (window.isShipFlying || window.currentTab !== 'map') return;
+            window.isShipFlying = true;
+            
+            const ship = document.createElement('div');
+            ship.style.cssText = `position:absolute; font-size:25px; z-index:10; pointer-events:none; transition:all 1.5s ease-in-out;`;
+            ship.innerText = window.getShipEmoji();
+            ship.style.left = window.innerWidth / 2 + 'px';
+            ship.style.top = (window.innerHeight - 130) / 2 + 'px';
+            ship.style.transform = 'translate(-50%, -50%)';
+            document.getElementById('galaxy-bg').appendChild(ship);
+            
+            requestAnimationFrame(() => {
+                ship.style.left = obj.x + 'px';
+                ship.style.top = obj.y + 'px';
+                ship.style.transform = 'translate(-50%, -50%) scale(0.5)';
+            });
+            
+            setTimeout(() => {
+                element.style.opacity = '0';
+                setTimeout(() => element.remove(), 300);
                 
-                frac = tempFaction;
-                fracColor = tempFactionColor;
-                fracBonus = tempFactionBonus;
-                selectedShipIndex = tempShipIndex;
-                shipName = name;
-                
-                localStorage.setItem('sd_frac', frac);
-                localStorage.setItem('sd_color', fracColor);
-                localStorage.setItem('sd_bonus', fracBonus);
-                localStorage.setItem('sd_ship_index', selectedShipIndex);
-                localStorage.setItem('sd_ship_name', shipName);
-                saveAll();
-                
-                showUI();
-                showWindow('main');
-                generateBackgroundObjects();
-                updateLeaderboard();
-            };
-
-            // ФОНОВЫЕ ОБЪЕКТЫ
-            function generateBackgroundObjects() {
-                const bg = document.getElementById('galaxy-bg');
-                bg.querySelectorAll('.bg-object').forEach(el => el.remove());
-                galaxyObjects = [];
-                
-                const types = ['asteroid', 'asteroid', 'asteroid', 'pirate', 'pirate', 'pirate'];
-                const shuffled = types.sort(() => Math.random() - 0.5);
-                
-                shuffled.forEach((type, i) => {
-                    const emojis = type === 'asteroid' ? ['🪨', '💎', '🪐', '☄️', '🌑', '🪨'] : ['🏴‍☠️', '💀', '👾', '👽', '🤖', '🐲'];
-                    const angle = (i / 6) * Math.PI * 2 + Math.random() * 0.5;
-                    const distance = 100 + Math.random() * 40;
-                    const centerX = window.innerWidth / 2;
-                    const centerY = (window.innerHeight - 130) / 2;
-                    
-                    const obj = {
-                        type: type === 'asteroid' ? 'mining' : 'battle',
-                        emoji: emojis[i],
-                        x: centerX + Math.cos(angle) * distance,
-                        y: centerY + Math.sin(angle) * distance,
-                        element: null
-                    };
-                    
-                    const div = document.createElement('div');
-                    div.className = 'bg-object';
-                    div.innerText = obj.emoji;
-                    div.style.left = obj.x + 'px';
-                    div.style.top = obj.y + 'px';
-                    div.style.pointerEvents = 'all';
-                    div.style.cursor = 'pointer';
-                    div.onclick = (e) => {
-                        e.stopPropagation();
-                        if (currentTab === 'map') flyToObject(obj, div);
-                    };
-                    
-                    bg.appendChild(div);
-                    obj.element = div;
-                    galaxyObjects.push(obj);
-                });
-            }
-
-            function flyToObject(obj, element) {
-                if (isShipFlying || currentTab !== 'map') return;
-                isShipFlying = true;
-                
-                const ship = document.createElement('div');
-                ship.style.cssText = `position:absolute; font-size:25px; z-index:10; pointer-events:none; transition:all 1.5s ease-in-out;`;
-                ship.innerText = getShipEmoji();
-                ship.style.left = window.innerWidth / 2 + 'px';
-                ship.style.top = (window.innerHeight - 130) / 2 + 'px';
-                ship.style.transform = 'translate(-50%, -50%)';
-                document.getElementById('galaxy-bg').appendChild(ship);
-                
-                requestAnimationFrame(() => {
-                    ship.style.left = obj.x + 'px';
-                    ship.style.top = obj.y + 'px';
-                    ship.style.transform = 'translate(-50%, -50%) scale(0.5)';
-                });
+                window.addLoot(window.getLoot());
                 
                 setTimeout(() => {
-                    element.style.opacity = '0';
-                    setTimeout(() => element.remove(), 300);
-                    
-                    const lootType = addLoot(getLoot());
+                    ship.style.left = window.innerWidth / 2 + 'px';
+                    ship.style.top = (window.innerHeight - 130) / 2 + 'px';
+                    ship.style.transform = 'translate(-50%, -50%) scale(1)';
                     
                     setTimeout(() => {
-                        ship.style.left = window.innerWidth / 2 + 'px';
-                        ship.style.top = (window.innerHeight - 130) / 2 + 'px';
-                        ship.style.transform = 'translate(-50%, -50%) scale(1)';
+                        ship.remove();
+                        window.isShipFlying = false;
+                        window.updateSpiceDisplay();
                         
-                        setTimeout(() => {
-                            ship.remove();
-                            isShipFlying = false;
-                            updateSpiceDisplay();
-                            
-                            const remaining = document.querySelectorAll('.bg-object');
-                            if (remaining.length === 0) {
-                                generateBackgroundObjects();
-                            }
-                        }, 1500);
-                    }, 500);
-                }, 1500);
+                        const remaining = document.querySelectorAll('.bg-object');
+                        if (remaining.length === 0) {
+                            window.generateBackgroundObjects();
+                        }
+                    }, 1500);
+                }, 500);
+            }, 1500);
+        };
+
+        window.getLoot = function() {
+            const roll = Math.random() * 100;
+            if (roll < 40) return null;
+            if (roll < 60) return 'coins';
+            if (roll < 70) return 'shieldParts';
+            if (roll < 80) return 'weaponParts';
+            if (roll < 90) return 'speedParts';
+            if (roll < 97) return 'critParts';
+            return 'spice';
+        };
+
+        window.addLoot = function(type) {
+            if (!type) return null;
+            if (type === 'spice') {
+                if (window.spiceData.collected >= 50) return null;
+                window.spiceData.collected++;
+                window.resources.spice++;
+            } else {
+                const amounts = { coins: Math.floor(Math.random() * 20) + 5, shieldParts: 1, weaponParts: 1, speedParts: 1, critParts: 1 };
+                window.resources[type] += amounts[type];
             }
+            window.saveAll();
+            return type;
+        };
 
-            function getLoot() {
-                const roll = Math.random() * 100;
-                if (roll < 40) return null;
-                if (roll < 60) return 'coins';
-                if (roll < 70) return 'shieldParts';
-                if (roll < 80) return 'weaponParts';
-                if (roll < 90) return 'speedParts';
-                if (roll < 97) return 'critParts';
-                return 'spice';
+        window.switchTab = function(tab) {
+            window.currentTab = tab;
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('nav-' + tab).classList.add('active');
+            
+            const bgObjects = document.querySelectorAll('.bg-object');
+            bgObjects.forEach(obj => {
+                obj.style.display = tab === 'map' ? 'block' : 'none';
+            });
+            
+            if (tab === 'map') {
+                window.showWindow('main');
+            } else if (tab === 'hangar') {
+                window.showWindow('hangar');
+                document.getElementById('hangar-ship').innerText = window.getShipEmoji();
+                document.getElementById('hangar-ship-name').innerText = window.shipName;
+                window.updateHangarResources();
+                window.updateHangar();
+            } else if (tab === 'pvp') {
+                window.showWindow('pvp');
+                document.getElementById('pvp-player-ship').innerText = window.getShipEmoji();
+                window.updateLeaderboard();
             }
+        };
 
-            function addLoot(type) {
-                if (!type) return null;
-                if (type === 'spice') {
-                    if (spiceData.collected >= 50) return null;
-                    spiceData.collected++;
-                    resources.spice++;
-                } else {
-                    const amounts = { coins: Math.floor(Math.random() * 20) + 5, shieldParts: 1, weaponParts: 1, speedParts: 1, critParts: 1 };
-                    resources[type] += amounts[type];
-                }
-                saveAll();
-                return type;
-            }
+        window.updateHangarResources = function() {
+            const container = document.getElementById('hangar-resources');
+            const items = [
+                { icon: '🪙', key: 'coins', label: 'МОН' },
+                { icon: '🛡️', key: 'shieldParts', label: 'ЩИТ' },
+                { icon: '⚔️', key: 'weaponParts', label: 'ОРУД' },
+                { icon: '⚡', key: 'speedParts', label: 'СКОР' },
+                { icon: '🎯', key: 'critParts', label: 'КРИТ' },
+                { icon: '💎', key: 'spice', label: 'СПС' }
+            ];
+            
+            container.innerHTML = items.map(item => `
+                <div class="resource-mini-item">
+                    <span class="mini-icon">${item.icon}</span>
+                    <span>${item.label}</span>
+                    <div class="mini-value">${window.resources[item.key]}</div>
+                </div>
+            `).join('');
+        };
 
-            // ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК
-            window.switchTab = (tab) => {
-                currentTab = tab;
-                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-                document.getElementById('nav-' + tab).classList.add('active');
-                
-                const bgObjects = document.querySelectorAll('.bg-object');
-                bgObjects.forEach(obj => {
-                    obj.style.display = tab === 'map' ? 'block' : 'none';
-                });
-                
-                if (tab === 'map') {
-                    showWindow('main');
-                } else if (tab === 'hangar') {
-                    showWindow('hangar');
-                    document.getElementById('hangar-ship').innerText = getShipEmoji();
-                    document.getElementById('hangar-ship-name').innerText = shipName;
-                    updateHangarResources();
-                    updateHangar();
-                } else if (tab === 'pvp') {
-                    showWindow('pvp');
-                    document.getElementById('pvp-player-ship').innerText = getShipEmoji();
-                    updateLeaderboard();
-                }
-            };
-
-            // ОТОБРАЖЕНИЕ РЕСУРСОВ В АНГАРЕ
-            function updateHangarResources() {
-                const container = document.getElementById('hangar-resources');
-                const items = [
-                    { icon: '🪙', key: 'coins', label: 'МОН' },
-                    { icon: '🛡️', key: 'shieldParts', label: 'ЩИТ' },
-                    { icon: '⚔️', key: 'weaponParts', label: 'ОРУД' },
-                    { icon: '⚡', key: 'speedParts', label: 'СКОР' },
-                    { icon: '🎯', key: 'critParts', label: 'КРИТ' },
-                    { icon: '💎', key: 'spice', label: 'СПС' }
-                ];
-                
-                container.innerHTML = items.map(item => `
-                    <div class="resource-mini-item">
-                        <span class="mini-icon">${item.icon}</span>
-                        <span>${item.label}</span>
-                        <div class="mini-value">${resources[item.key]}</div>
-                    </div>
-                `).join('');
-            }
-
-            // АНГАР
-            function updateHangar() {
-                const container = document.getElementById('upgrades-list');
-                const types = [
-                    { key: 'shield', name: 'ЩИТЫ', icon: '🛡️', costKey: 'shieldParts' },
-                    { key: 'damage', name: 'ОРУДИЯ', icon: '⚔️', costKey: 'weaponParts' },
-                    { key: 'speed', name: 'СКОРОСТЬ', icon: '⚡', costKey: 'speedParts' },
-                    { key: 'crit', name: 'КРИТ/ДОДЖ', icon: '🎯', costKey: 'critParts' }
-                ];
-                
-                container.innerHTML = types.map(t => {
-                    const level = upgrades[t.key];
-                    const cost = 5 * (level + 1);
-                    const canBuy = resources[t.costKey] >= cost;
-                    return `
-                        <div class="upgrade-row">
-                            <div class="upgrade-info">
-                                <div>${t.icon} ${t.name}</div>
-                                <small>УР.${level} | Цена: ${cost} ${t.icon}</small>
-                            </div>
-                            <button class="upgrade-btn" onclick="buyUpgrade('${t.key}')" ${canBuy ? '' : 'disabled'}>+</button>
+        window.updateHangar = function() {
+            const container = document.getElementById('upgrades-list');
+            const types = [
+                { key: 'shield', name: 'ЩИТЫ', icon: '🛡️', costKey: 'shieldParts' },
+                { key: 'damage', name: 'ОРУДИЯ', icon: '⚔️', costKey: 'weaponParts' },
+                { key: 'speed', name: 'СКОРОСТЬ', icon: '⚡', costKey: 'speedParts' },
+                { key: 'crit', name: 'КРИТ/ДОДЖ', icon: '🎯', costKey: 'critParts' }
+            ];
+            
+            container.innerHTML = types.map(t => {
+                const level = window.upgrades[t.key];
+                const cost = 5 * (level + 1);
+                const canBuy = window.resources[t.costKey] >= cost;
+                return `
+                    <div class="upgrade-row">
+                        <div class="upgrade-info">
+                            <div>${t.icon} ${t.name}</div>
+                            <small>УР.${level} | Цена: ${cost} ${t.icon}</small>
                         </div>
-                    `;
-                }).join('');
+                        <button class="upgrade-btn" onclick="window.buyUpgrade('${t.key}')" ${canBuy ? '' : 'disabled'}>+</button>
+                    </div>
+                `;
+            }).join('');
+        };
+
+        window.buyUpgrade = function(type) {
+            const costKeys = { shield: 'shieldParts', damage: 'weaponParts', speed: 'speedParts', crit: 'critParts' };
+            const cost = 5 * (window.upgrades[type] + 1);
+            if (window.resources[costKeys[type]] >= cost) {
+                window.resources[costKeys[type]] -= cost;
+                window.upgrades[type]++;
+                localStorage.setItem('sd_upg_' + type, window.upgrades[type]);
+                window.saveAll();
+                window.updateHangarResources();
+                window.updateHangar();
             }
+        };
 
-            window.buyUpgrade = (type) => {
-                const costKeys = { shield: 'shieldParts', damage: 'weaponParts', speed: 'speedParts', crit: 'critParts' };
-                const cost = 5 * (upgrades[type] + 1);
-                if (resources[costKeys[type]] >= cost) {
-                    resources[costKeys[type]] -= cost;
-                    upgrades[type]++;
-                    localStorage.setItem('sd_upg_' + type, upgrades[type]);
-                    saveAll();
-                    updateHangarResources();
-                    updateHangar();
-                }
-            };
-
-            // PvP
-            window.searchPvP = () => {
-                if (pvpInterval) return;
-                const stats = getStats();
-                let playerHP = stats.shield;
-                let enemyHP = 8 + Math.floor(Math.random() * 12);
-                let timeLeft = 15;
-                
-                document.getElementById('pvp-status').innerText = 'БОЙ!';
+        window.searchPvP = function() {
+            if (window.pvpInterval) return;
+            const stats = window.getStats();
+            let playerHP = stats.shield;
+            let enemyHP = 8 + Math.floor(Math.random() * 12);
+            let timeLeft = 15;
+            
+            document.getElementById('pvp-status').innerText = 'БОЙ!';
+            document.getElementById('pvp-timer').innerText = timeLeft;
+            document.getElementById('pvp-enemy-ship').innerText = ['🚀', '🛸', '💫', '⚡', '🛰️'][Math.floor(Math.random() * 5)];
+            document.getElementById('pvp-player-hp-text').innerText = 'HP: ' + playerHP;
+            document.getElementById('pvp-enemy-hp-text').innerText = 'HP: ' + enemyHP;
+            
+            window.pvpTimerInterval = setInterval(() => {
+                timeLeft--;
                 document.getElementById('pvp-timer').innerText = timeLeft;
-                document.getElementById('pvp-enemy-ship').innerText = ['🚀', '🛸', '💫', '⚡', '🛰️'][Math.floor(Math.random() * 5)];
-                document.getElementById('pvp-player-hp-text').innerText = 'HP: ' + playerHP;
-                document.getElementById('pvp-enemy-hp-text').innerText = 'HP: ' + enemyHP;
+                if (timeLeft <= 0) {
+                    window.endPvP(playerHP, enemyHP);
+                }
+            }, 1000);
+            
+            window.pvpInterval = setInterval(() => {
+                let pDmg = Math.floor(Math.random() * stats.damage) + 1;
+                if (Math.random() * 100 < stats.critDodge) pDmg *= 2;
+                enemyHP -= pDmg;
+                document.getElementById('pvp-enemy-hp-text').innerText = 'HP: ' + Math.max(0, enemyHP);
                 
-                pvpTimerInterval = setInterval(() => {
-                    timeLeft--;
-                    document.getElementById('pvp-timer').innerText = timeLeft;
-                    if (timeLeft <= 0) {
-                        endPvP(playerHP, enemyHP);
-                    }
-                }, 1000);
+                if (enemyHP <= 0) {
+                    window.endPvP(playerHP, 0);
+                    return;
+                }
                 
-                pvpInterval = setInterval(() => {
-                    let pDmg = Math.floor(Math.random() * stats.damage) + 1;
-                    if (Math.random() * 100 < stats.critDodge) pDmg *= 2;
-                    enemyHP -= pDmg;
-                    document.getElementById('pvp-enemy-hp-text').innerText = 'HP: ' + Math.max(0, enemyHP);
-                    
-                    if (enemyHP <= 0) {
-                        endPvP(playerHP, 0);
-                        return;
-                    }
-                    
-                    setTimeout(() => {
-                        if (enemyHP <= 0) return;
-                        let eDmg = Math.floor(Math.random() * 5) + 2;
-                        if (Math.random() * 100 < stats.critDodge) {
-                            document.getElementById('pvp-status').innerText = 'ДОДЖ!';
-                        } else {
-                            playerHP -= eDmg;
-                            document.getElementById('pvp-player-hp-text').innerText = 'HP: ' + Math.max(0, playerHP);
-                        }
-                        
-                        if (playerHP <= 0) {
-                            endPvP(0, enemyHP);
-                        }
-                    }, 500);
-                }, stats.attackSpeed);
-            };
-
-            function endPvP(playerHP, enemyHP) {
-                clearInterval(pvpInterval);
-                clearInterval(pvpTimerInterval);
-                pvpInterval = null;
-                pvpTimerInterval = null;
-                
-                let result = '';
-                if (playerHP <= 0 && enemyHP <= 0) {
-                    result = 'НИЧЬЯ! +2 очка';
-                    pvpScore += 2;
-                } else if (enemyHP <= 0) {
-                    result = 'ПОБЕДА! +15 очков';
-                    pvpScore += 15;
-                } else if (playerHP <= 0) {
-                    result = 'ПОРАЖЕНИЕ... -12 очков';
-                    pvpScore = Math.max(0, pvpScore - 12);
-                } else {
-                    const pvpPlayerHPPercent = playerHP / getStats().shield;
-                    const pvpEnemyHPPercent = enemyHP / 10;
-                    if (pvpPlayerHPPercent > pvpEnemyHPPercent) {
-                        result = 'ПОБЕДА ПО ОЧКАМ! +15';
-                        pvpScore += 15;
+                setTimeout(() => {
+                    if (enemyHP <= 0) return;
+                    let eDmg = Math.floor(Math.random() * 5) + 2;
+                    if (Math.random() * 100 < stats.critDodge) {
+                        document.getElementById('pvp-status').innerText = 'ДОДЖ!';
                     } else {
-                        result = 'НИЧЬЯ! +2 очка';
-                        pvpScore += 2;
+                        playerHP -= eDmg;
+                        document.getElementById('pvp-player-hp-text').innerText = 'HP: ' + Math.max(0, playerHP);
                     }
-                }
-                
-                document.getElementById('pvp-status').innerText = result;
-                document.getElementById('pvp-timer').innerText = '0';
-                
-                updateLeaderboard();
-                saveAll();
-            }
+                    
+                    if (playerHP <= 0) {
+                        window.endPvP(0, enemyHP);
+                    }
+                }, 500);
+            }, stats.attackSpeed);
+        };
 
-            function updateLeaderboard() {
-                const existingIndex = leaderboard.findIndex(p => p.name === playerName);
-                if (existingIndex >= 0) {
-                    leaderboard[existingIndex].score = pvpScore;
-                } else if (playerName) {
-                    leaderboard.push({ name: playerName, score: pvpScore });
+        window.endPvP = function(playerHP, enemyHP) {
+            clearInterval(window.pvpInterval);
+            clearInterval(window.pvpTimerInterval);
+            window.pvpInterval = null;
+            window.pvpTimerInterval = null;
+            
+            let result = '';
+            if (playerHP <= 0 && enemyHP <= 0) {
+                result = 'НИЧЬЯ! +2 очка';
+                window.pvpScore += 2;
+            } else if (enemyHP <= 0) {
+                result = 'ПОБЕДА! +15 очков';
+                window.pvpScore += 15;
+            } else if (playerHP <= 0) {
+                result = 'ПОРАЖЕНИЕ... -12 очков';
+                window.pvpScore = Math.max(0, window.pvpScore - 12);
+            } else {
+                const pvpPlayerHPPercent = playerHP / window.getStats().shield;
+                const pvpEnemyHPPercent = enemyHP / 10;
+                if (pvpPlayerHPPercent > pvpEnemyHPPercent) {
+                    result = 'ПОБЕДА ПО ОЧКАМ! +15';
+                    window.pvpScore += 15;
+                } else {
+                    result = 'НИЧЬЯ! +2 очка';
+                    window.pvpScore += 2;
                 }
-                leaderboard.sort((a, b) => b.score - a.score);
-                leaderboard = leaderboard.slice(0, 15);
-                saveAll();
-                
-                const container = document.getElementById('leaderboard');
+            }
+            
+            document.getElementById('pvp-status').innerText = result;
+            document.getElementById('pvp-timer').innerText = '0';
+            
+            window.updateLeaderboard();
+            window.saveAll();
+        };
+
+        window.updateLeaderboard = function() {
+            const existingIndex = window.leaderboard.findIndex(p => p.name === window.playerName);
+            if (existingIndex >= 0) {
+                window.leaderboard[existingIndex].score = window.pvpScore;
+            } else if (window.playerName) {
+                window.leaderboard.push({ name: window.playerName, score: window.pvpScore });
+            }
+            window.leaderboard.sort((a, b) => b.score - a.score);
+            window.leaderboard = window.leaderboard.slice(0, 15);
+            window.saveAll();
+            
+            const container = document.getElementById('leaderboard');
+            if (container) {
                 container.innerHTML = '<div style="color:#ffcc00; margin-bottom:5px;">ТОП 15 ИГРОКОВ</div>' +
-                    leaderboard.map((p, i) => `
+                    window.leaderboard.map((p, i) => `
                         <div class="leaderboard-item">
                             <span class="rank">#${i + 1}</span>
                             <span class="name">${p.name}</span>
@@ -1053,15 +1021,46 @@
                         </div>
                     `).join('');
             }
+        };
 
-            window.goBack = () => {
-                if (currentTab !== 'map') {
-                    switchTab('map');
-                }
-            };
+        window.goBack = function() {
+            if (window.currentTab !== 'map') {
+                window.switchTab('map');
+            }
+        };
 
-            updateLeaderboard();
-        });
+        // Инициализация при загрузке
+        function init() {
+            // Создаем звезды
+            const starsContainer = document.getElementById('stars');
+            for (let i = 0; i < 150; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = Math.random() * 3 + 'px';
+                star.style.height = star.style.width;
+                star.style.animationDelay = Math.random() * 2 + 's';
+                starsContainer.appendChild(star);
+            }
+
+            if (window.Telegram && window.Telegram.WebApp) {
+                try { window.Telegram.WebApp.expand(); } catch(e) {}
+            }
+
+            if (window.playerName && window.frac) {
+                window.showUI();
+                window.showWindow('main');
+                window.generateBackgroundObjects();
+                window.updateLeaderboard();
+            } else if (window.playerName) {
+                window.showWindow('faction');
+            } else {
+                window.showWindow('start');
+            }
+        }
+
+        init();
     </script>
 </body>
 </html>
