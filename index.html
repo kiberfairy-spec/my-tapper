@@ -101,6 +101,39 @@
             margin: 0 auto;
         }
         
+        /* Кнопка НАЗАД */
+        .back-arrow {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 40px;
+            height: 40px;
+            background: #003300;
+            border: 3px solid #00ff00;
+            color: #00ff00;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            padding: 0;
+            font-family: 'Press Start 2P', monospace;
+        }
+        
+        .back-arrow:hover {
+            background: #004400;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+            transform: scale(1.1);
+        }
+        
+        .back-arrow:active {
+            transform: scale(0.9);
+            animation: shake 0.3s;
+        }
+        
         /* 8-BIT РАМКА */
         .pixel-border {
             border: 4px solid #00ff00;
@@ -176,32 +209,12 @@
         }
         
         /* ЭКРАН 2: ВЫБОР ФРАКЦИИ */
-        .back-btn {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: #003300;
-            border: 3px solid #00ff00;
-            color: #00ff00;
-            padding: 8px 12px;
-            font-family: 'Press Start 2P', monospace;
-            font-size: 10px;
-            cursor: pointer;
-            z-index: 10;
-            transition: all 0.2s;
-        }
-        
-        .back-btn:hover {
-            background: #004400;
-            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
-        }
-        
         .title-screen { 
             font-size: 16px; 
             font-weight: bold; 
             margin-bottom: 30px; 
             color: #00ff00; 
-            margin-top: 60px;
+            margin-top: 80px;
             text-shadow: 2px 2px 0 #003300;
         }
         
@@ -275,6 +288,7 @@
             padding: 12px; 
             border: 3px solid #00ff00;
             margin-bottom: 20px;
+            margin-top: 70px;
             font-size: 8px;
         }
         
@@ -449,6 +463,7 @@
             justify-content: center; 
             gap: 10px; 
             flex-wrap: wrap;
+            margin-bottom: 30px;
         }
         
         .tech-btn { 
@@ -479,78 +494,80 @@
     <div class="container">
         <!-- ЭКРАН 1: ДОБРО ПОЖАЛОВАТЬ -->
         <div id="screen1">
-            <div class="game-logo">SPACE DREAM</div>
-            <div class="game-subtitle">8-BIT ODYSSEY v2.0</div>
+            <div class="game-logo">КОСМОС МЕЧТЫ</div>
+            <div class="game-subtitle">8-БИТ ОДИССЕЯ v2.0</div>
             <div class="start-btn pixel-border" id="start-btn">
-                ▶ START
+                ▶ СТАРТ
             </div>
         </div>
 
         <!-- ЭКРАН 2: ВЫБОР СТОРОНЫ -->
         <div id="screen2" class="hidden">
-            <button class="back-btn" onclick="goBackToStart()">◄ BACK</button>
-            <div class="title-screen">SELECT FACTION</div>
+            <button class="back-arrow" onclick="goBackToStart()">←</button>
+            <div class="title-screen">ВЫБЕРИ ФРАКЦИЮ</div>
             
             <div class="frac-card confed" onclick="selectFrac('Конфедерация', '#0066ff')">
-                <div class="frac-name">CONFEDERATION <span class="frac-bonus">-15%</span></div>
-                <div class="frac-desc">Order and discipline. Resource optimization for ship modules.</div>
+                <div class="frac-name">КОНФЕДЕРАЦИЯ <span class="frac-bonus">-15%</span></div>
+                <div class="frac-desc">Порядок и дисциплина. Экономия ресурсов при модернизации.</div>
             </div>
             
             <div class="frac-card rebels" onclick="selectFrac('Повстанцы', '#ff6600')">
-                <div class="frac-name">REBELS <span class="frac-bonus">CRIT x2</span></div>
-                <div class="frac-desc">Freedom alliance. High-tech critical collection systems.</div>
+                <div class="frac-name">ПОВСТАНЦЫ <span class="frac-bonus">КРИТ x2</span></div>
+                <div class="frac-desc">Альянс свободы. Шанс критического сбора ресурсов.</div>
             </div>
             
             <div class="frac-card guild" onclick="selectFrac('Торговая гильдия', '#ffcc00')">
-                <div class="frac-name">TRADE GUILD <span class="frac-bonus">+30%</span></div>
-                <div class="frac-desc">Alien commerce. Optimized auto-generators for profit.</div>
+                <div class="frac-name">ТОРГОВАЯ ГИЛЬДИЯ <span class="frac-bonus">+30%</span></div>
+                <div class="frac-desc">Коммерция пришельцев. Улучшенные авто-генераторы.</div>
             </div>
         </div>
 
         <!-- ЭКРАН 3: ГЛАВНЫЙ ИГРОВОЙ МОСТИК -->
         <div id="screen3" class="hidden">
+            <button class="back-arrow" onclick="changeFaction()">←</button>
+            
             <div class="header-panel pixel-border">
-                <div class="panel-item">SHIP<div class="panel-val" id="hud-frac">—</div></div>
-                <div class="panel-item">CLICK<div class="panel-val" id="hud-click">1</div></div>
-                <div class="panel-item">AUTO<div class="panel-val" id="hud-passive">0/s</div></div>
+                <div class="panel-item">КОРАБЛЬ<div class="panel-val" id="hud-frac">—</div></div>
+                <div class="panel-item">КЛИК<div class="panel-val" id="hud-click">1</div></div>
+                <div class="panel-item">АВТО<div class="panel-val" id="hud-passive">0/с</div></div>
             </div>
 
             <div class="resource-section">
-                <div id="res-type">LOADING...</div>
+                <div id="res-type">ЗАГРУЗКА...</div>
                 <div class="balance-digits" id="balance">0</div>
-                <div class="pushed-income" id="passive-income-display">+0/s</div>
+                <div class="pushed-income" id="passive-income-display">+0/с</div>
             </div>
             
             <!-- Кнопка Корабля / Реактора -->
             <div id="main-reactor" class="pixel-border">
-                <span>MINE</span>
-                <span class="reactor-sub" id="reactor-action-text">CLICK</span>
+                <span>ДОБЫЧА</span>
+                <span class="reactor-sub" id="reactor-action-text">КЛИК</span>
             </div>
 
             <!-- МАГАЗИН УЛУЧШЕНИЙ -->
             <div class="upgrade-section">
-                <div class="section-label">► UPGRADES</div>
+                <div class="section-label">► УЛУЧШЕНИЯ</div>
                 
                 <div class="up-card">
                     <div class="up-info">
-                        <div class="up-title">LASER CANNON</div>
-                        <div class="up-desc" id="up1-desc">LVL.1 (+1 click)</div>
+                        <div class="up-title">ЛАЗЕРНАЯ ПУШКА</div>
+                        <div class="up-desc" id="up1-desc">УР.1 (+1 клик)</div>
                     </div>
                     <button class="up-btn" id="up1-btn" onclick="buyUpgrade(1)">0</button>
                 </div>
 
                 <div class="up-card">
                     <div class="up-info">
-                        <div class="up-title">AUTO-GENERATOR</div>
-                        <div class="up-desc" id="up2-desc">LVL.0 (+2/s)</div>
+                        <div class="up-title">АВТО-ГЕНЕРАТОР</div>
+                        <div class="up-desc" id="up2-desc">УР.0 (+2/с)</div>
                     </div>
                     <button class="up-btn" id="up2-btn" onclick="buyUpgrade(2)">0</button>
                 </div>
             </div>
 
             <div class="system-footer">
-                <button class="tech-btn" onclick="changeFaction()">FACTION</button>
-                <button class="tech-btn" onclick="resetAllData()">RESET</button>
+                <button class="tech-btn" onclick="changeFaction()">ФРАКЦИЯ</button>
+                <button class="tech-btn" onclick="resetAllData()">СБРОС</button>
             </div>
         </div>
     </div>
@@ -579,7 +596,7 @@
             try { 
                 tg.expand(); 
             } catch(e) {
-                console.log('Telegram WebApp not available');
+                console.log('Telegram WebApp не доступен');
             }
         }
 
@@ -654,7 +671,7 @@
         }
 
         function changeFaction() {
-            if (confirm('Change faction? Progress saved.')) {
+            if (confirm('Сменить фракцию? Прогресс сохранен.')) {
                 playBeep(330, 100);
                 document.getElementById('screen3').classList.add('hidden');
                 document.getElementById('screen2').classList.remove('hidden');
@@ -693,14 +710,14 @@
             const actionText = document.getElementById('reactor-action-text');
             
             if (frac === 'Торговая гильдия') {
-                resType.innerText = 'GALACTIC CREDITS';
-                actionText.innerText = 'DEAL';
+                resType.innerText = 'ГАЛАКТИЧЕСКИЕ КРЕДИТЫ';
+                actionText.innerText = 'СДЕЛКА';
             } else if (frac === 'Повстанцы') {
-                resType.innerText = 'RESISTANCE DATA';
-                actionText.innerText = 'HACK';
+                resType.innerText = 'ДАННЫЕ СОПРОТИВЛЕНИЯ';
+                actionText.innerText = 'ВЗЛОМ';
             } else {
-                resType.innerText = 'ENERGY BLOCKS';
-                actionText.innerText = 'SYNTH';
+                resType.innerText = 'ЭНЕРГОБЛОКИ ИМПЕРИИ';
+                actionText.innerText = 'СИНТЕЗ';
             }
             
             updateUiDisplay();
@@ -738,18 +755,18 @@
             let passiveIncome = getPassiveIncome();
             
             document.getElementById('hud-click').innerText = clickPower;
-            document.getElementById('hud-passive').innerText = passiveIncome.toFixed(1) + '/s';
-            document.getElementById('passive-income-display').innerText = '+' + passiveIncome.toFixed(1) + '/s';
+            document.getElementById('hud-passive').innerText = passiveIncome.toFixed(1) + '/с';
+            document.getElementById('passive-income-display').innerText = '+' + passiveIncome.toFixed(1) + '/с';
             
             let cost1 = getUpgradeCost(1);
             let cost2 = getUpgradeCost(2);
             
-            document.getElementById('up1-desc').innerText = `LVL.${up1Level} (+1 click)`;
+            document.getElementById('up1-desc').innerText = `УР.${up1Level} (+1 клик)`;
             const btn1 = document.getElementById('up1-btn');
             btn1.innerText = cost1;
             btn1.disabled = (score < cost1);
             
-            document.getElementById('up2-desc').innerText = `LVL.${up2Level} (+2/s)`;
+            document.getElementById('up2-desc').innerText = `УР.${up2Level} (+2/с)`;
             const btn2 = document.getElementById('up2-btn');
             btn2.innerText = cost2;
             btn2.disabled = (score < cost2);
@@ -827,7 +844,7 @@
         }
 
         function resetAllData() {
-            if (confirm('RESET ALL PROGRESS? [Y/N]')) {
+            if (confirm('СБРОСИТЬ ВЕСЬ ПРОГРЕСС? [ДА/НЕТ]')) {
                 localStorage.clear();
                 location.reload();
             }
