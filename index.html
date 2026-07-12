@@ -27,7 +27,7 @@
             position: fixed;
         }
         
-        .stars {
+        .stars-layer {
             position: fixed;
             top: 0;
             left: 0;
@@ -40,22 +40,36 @@
         .star {
             position: absolute;
             background: #fff;
-            animation: twinkle 2s infinite;
+            border-radius: 50%;
+            animation: twinkle var(--duration) infinite;
+            animation-delay: var(--delay);
+        }
+        
+        .shooting-star {
+            position: absolute;
+            width: 2px;
+            height: 80px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.8), transparent);
+            animation: shoot var(--travel) linear infinite;
+            animation-delay: var(--sdelay);
+            opacity: 0;
         }
         
         @keyframes twinkle {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
+            0%, 100% { opacity: 0.2; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.5); }
+        }
+        
+        @keyframes shoot {
+            0% { transform: translate(0, 0) rotate(-45deg); opacity: 0; }
+            5% { opacity: 1; }
+            15% { opacity: 0; transform: translate(-300px, 300px) rotate(-45deg); }
+            100% { opacity: 0; transform: translate(-300px, 300px) rotate(-45deg); }
         }
         
         @keyframes float {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+            50% { transform: translateY(-8px); }
         }
         
         @keyframes rotate {
@@ -64,13 +78,15 @@
         }
         
         @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
         
-        @keyframes collectEffect {
-            0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(2); opacity: 0; }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(10px); }
+            20% { opacity: 1; transform: translateY(0); }
+            80% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-10px); }
         }
 
         .app-container {
@@ -97,6 +113,15 @@
             height: 100%;
             background: radial-gradient(circle at center, #1a1a4e 0%, #0a0a2e 70%);
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .planet-orbit {
+            position: relative;
+            width: 300px;
+            height: 300px;
         }
 
         .main-planet {
@@ -126,6 +151,18 @@
             font-size: 25px;
             z-index: 2;
             pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        
+        .bg-object[data-type="asteroid"] { filter: drop-shadow(0 0 6px rgba(139, 115, 85, 0.6)); }
+        .bg-object[data-type="pirate"] { filter: drop-shadow(0 0 6px rgba(255, 68, 68, 0.6)); }
+
+        .flying-ship-anim {
+            position: absolute;
+            font-size: 28px;
+            z-index: 10;
+            pointer-events: none;
+            filter: drop-shadow(0 0 10px rgba(0, 255, 0, 0.8));
         }
 
         .top-panel {
@@ -158,10 +195,7 @@
             transition: all 0.2s;
         }
 
-        .back-btn:hover {
-            background: rgba(0, 68, 0, 0.9);
-            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
-        }
+        .back-btn:hover { background: rgba(0, 68, 0, 0.9); box-shadow: 0 0 15px rgba(0, 255, 0, 0.5); }
 
         .spice-counter {
             background: rgba(0, 0, 0, 0.8);
@@ -194,9 +228,41 @@
             transition: all 0.2s;
         }
 
-        .dev-reset-btn:hover {
-            background: rgba(150, 0, 0, 0.9);
-            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        .dev-reset-btn:hover { background: rgba(150, 0, 0, 0.9); box-shadow: 0 0 10px rgba(255, 0, 0, 0.5); }
+
+        /* СТРОКА РЕСУРСОВ */
+        .loot-feed {
+            position: fixed;
+            bottom: 85px;
+            left: 10px;
+            right: 10px;
+            z-index: 90;
+            pointer-events: none;
+            text-align: center;
+            min-height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .loot-item {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 9px;
+            color: #ffcc00;
+            text-shadow: 0 0 8px rgba(255, 204, 0, 0.6);
+            animation: fadeInOut 3s ease-in-out forwards;
+            background: rgba(0,0,0,0.5);
+            padding: 4px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        
+        .loot-item.spice-loot {
+            color: #ff66ff;
+            text-shadow: 0 0 12px rgba(255, 102, 255, 0.8);
+            font-size: 11px;
         }
 
         .content-overlay {
@@ -210,12 +276,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow-y: auto;
         }
 
-        .content-overlay > * {
-            pointer-events: all;
-        }
+        .content-overlay > * { pointer-events: all; }
 
         .bottom-panel {
             position: fixed;
@@ -247,30 +310,17 @@
             max-width: 100px;
         }
 
-        .nav-btn:hover {
-            background: #004400;
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
-        }
-
-        .nav-btn.active {
-            background: #006600;
-            border-color: #ffcc00;
-            box-shadow: 0 0 20px rgba(255, 204, 0, 0.5);
-        }
-
-        .nav-btn .nav-icon {
-            font-size: 20px;
-            display: block;
-            margin-bottom: 3px;
-        }
+        .nav-btn:hover { background: #004400; box-shadow: 0 0 10px rgba(0, 255, 0, 0.5); }
+        .nav-btn.active { background: #006600; border-color: #ffcc00; box-shadow: 0 0 20px rgba(255, 204, 0, 0.5); }
+        .nav-btn .nav-icon { font-size: 20px; display: block; margin-bottom: 3px; }
 
         .window {
-            background: rgba(10, 10, 46, 0.95);
+            background: rgba(10, 10, 46, 0.92);
             border: 2px solid #00ff00;
             padding: 20px;
             max-width: 350px;
             width: 90%;
-            max-height: 70vh;
+            max-height: 60vh;
             overflow-y: auto;
             animation: slideUp 0.3s ease-out;
         }
@@ -300,17 +350,8 @@
             transition: all 0.2s;
         }
 
-        .btn:hover {
-            background: #004400;
-            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
-        }
-
-        .btn:disabled {
-            background: #1a1a1a;
-            color: #333;
-            border-color: #333;
-            cursor: not-allowed;
-        }
+        .btn:hover { background: #004400; box-shadow: 0 0 15px rgba(0, 255, 0, 0.5); }
+        .btn:disabled { background: #1a1a1a; color: #333; border-color: #333; cursor: not-allowed; }
 
         .title {
             font-size: 14px;
@@ -320,79 +361,37 @@
             text-shadow: 2px 2px 0 #003300;
         }
 
-        .pvp-container {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
         .pvp-arena-mini {
             background: rgba(0, 0, 0, 0.5);
             border: 2px solid #ff4444;
             padding: 15px;
-            height: 150px;
+            height: 130px;
             position: relative;
             display: flex;
             align-items: center;
             justify-content: space-around;
         }
 
-        .pvp-ship {
-            font-size: 40px;
-            transition: all 0.3s;
-        }
-
-        .pvp-vs {
-            font-size: 14px;
-            color: #ff4444;
-        }
-
-        .pvp-hp {
-            font-size: 8px;
-            color: #ff4444;
-            position: absolute;
-            top: 5px;
-        }
+        .pvp-ship { font-size: 35px; transition: all 0.3s; }
+        .pvp-vs { font-size: 14px; color: #ff4444; }
+        .pvp-hp { font-size: 8px; color: #ff4444; position: absolute; top: 5px; }
 
         .leaderboard {
             background: rgba(0, 0, 0, 0.3);
             border: 1px solid #00ff00;
             padding: 10px;
-            max-height: 200px;
+            max-height: 180px;
             overflow-y: auto;
             font-size: 8px;
             text-align: left;
         }
 
-        .leaderboard-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 4px 0;
-            border-bottom: 1px solid rgba(0, 255, 0, 0.2);
-        }
+        .leaderboard-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(0, 255, 0, 0.2); }
+        .leaderboard-item .rank { color: #ffcc00; width: 30px; }
+        .leaderboard-item .name { flex: 1; color: #00ff00; }
+        .leaderboard-item .score { color: #00ffff; width: 50px; text-align: right; }
 
-        .leaderboard-item .rank {
-            color: #ffcc00;
-            width: 30px;
-        }
-
-        .leaderboard-item .name {
-            flex: 1;
-            color: #00ff00;
-        }
-
-        .leaderboard-item .score {
-            color: #00ffff;
-            width: 50px;
-            text-align: right;
-        }
-
-        .ship-display {
-            font-size: 60px;
-            text-align: center;
-            margin: 10px 0;
-            animation: float 3s ease-in-out infinite;
-        }
+        .ship-display { font-size: 55px; text-align: center; margin: 10px 0; animation: float 3s ease-in-out infinite; }
 
         .resources-mini {
             display: flex;
@@ -405,21 +404,9 @@
             border: 1px solid #00ff00;
         }
 
-        .resource-mini-item {
-            text-align: center;
-            font-size: 7px;
-            color: #00cc00;
-        }
-
-        .resource-mini-item .mini-icon {
-            font-size: 16px;
-            display: block;
-        }
-
-        .resource-mini-item .mini-value {
-            color: #ffcc00;
-            font-size: 8px;
-        }
+        .resource-mini-item { text-align: center; font-size: 7px; color: #00cc00; }
+        .resource-mini-item .mini-icon { font-size: 16px; display: block; }
+        .resource-mini-item .mini-value { color: #ffcc00; font-size: 8px; }
 
         .upgrade-row {
             display: flex;
@@ -431,41 +418,27 @@
             border: 1px solid #00ff00;
         }
 
-        .upgrade-info {
-            font-size: 8px;
-            text-align: left;
-        }
-
+        .upgrade-info { font-size: 8px; text-align: left; }
         .upgrade-btn {
-            background: #003300;
-            color: #00ff00;
-            border: 1px solid #00ff00;
-            padding: 5px 10px;
-            font-family: 'Press Start 2P', monospace;
-            font-size: 7px;
-            cursor: pointer;
+            background: #003300; color: #00ff00; border: 1px solid #00ff00;
+            padding: 5px 10px; font-family: 'Press Start 2P', monospace;
+            font-size: 7px; cursor: pointer;
         }
+        .upgrade-btn:disabled { background: #1a1a1a; color: #333; border-color: #333; cursor: not-allowed; }
 
-        .upgrade-btn:disabled {
-            background: #1a1a1a;
-            color: #333;
-            border-color: #333;
-            cursor: not-allowed;
-        }
-
-        .hidden {
-            display: none !important;
-        }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
-    <div class="stars" id="stars"></div>
+    <div class="stars-layer" id="stars-layer"></div>
 
     <div class="app-container">
         <div class="background-map" id="background-map">
             <div class="galaxy-bg" id="galaxy-bg">
-                <div class="main-planet">🪐</div>
-                <div class="planet-label">ТАУ КИТА</div>
+                <div class="planet-orbit" id="planet-orbit">
+                    <div class="main-planet">🪐</div>
+                    <div class="planet-label">ТАУ КИТА</div>
+                </div>
             </div>
         </div>
 
@@ -477,28 +450,23 @@
             </div>
         </div>
 
-        <button class="dev-reset-btn hidden" id="dev-reset-btn" onclick="devReset()" title="Сброс прогресса">🔄</button>
+        <button class="dev-reset-btn hidden" id="dev-reset-btn" onclick="devReset()" title="Сброс">🔄</button>
+
+        <!-- СТРОКА ДОБЫЧИ -->
+        <div class="loot-feed" id="loot-feed"></div>
 
         <div class="content-overlay" id="content-overlay">
             <div class="window" id="window-start">
                 <div class="title">SPACE DREAM</div>
-                <div style="text-align:center; margin:20px 0;">
-                    <input type="text" class="input-field" id="input-player-name" placeholder="ИМЯ ИГРОКА" maxlength="12">
-                    <button class="btn" id="btn-set-name" onclick="setPlayerName()">ДАЛЕЕ</button>
-                </div>
+                <input type="text" class="input-field" id="input-player-name" placeholder="ИМЯ ИГРОКА" maxlength="12">
+                <button class="btn" onclick="setPlayerName()">ДАЛЕЕ</button>
             </div>
 
             <div class="window hidden" id="window-faction">
                 <div class="title">ВЫБЕРИ ФРАКЦИЮ</div>
-                <div class="btn" style="border-color:#0066ff; color:#0066ff;" onclick="selectFaction('Конфедерация', '#0066ff', 'shield')">
-                    🛡️ КОНФЕДЕРАЦИЯ<br><small>Щит +50%</small>
-                </div>
-                <div class="btn" style="border-color:#ff6600; color:#ff6600;" onclick="selectFaction('Повстанцы', '#ff6600', 'weapon')">
-                    ⚔️ ПОВСТАНЦЫ<br><small>Урон +50%</small>
-                </div>
-                <div class="btn" style="border-color:#ffcc00; color:#ffcc00;" onclick="selectFaction('Торговая гильдия', '#ffcc00', 'mining')">
-                    💎 ТОРГОВАЯ ГИЛЬДИЯ<br><small>Добыча +50%</small>
-                </div>
+                <div class="btn" style="border-color:#0066ff; color:#0066ff;" onclick="selectFaction('Конфедерация', '#0066ff', 'shield')">🛡️ КОНФЕДЕРАЦИЯ<br><small>Щит +50%</small></div>
+                <div class="btn" style="border-color:#ff6600; color:#ff6600;" onclick="selectFaction('Повстанцы', '#ff6600', 'weapon')">⚔️ ПОВСТАНЦЫ<br><small>Урон +50%</small></div>
+                <div class="btn" style="border-color:#ffcc00; color:#ffcc00;" onclick="selectFaction('Торговая гильдия', '#ffcc00', 'mining')">💎 ТОРГОВАЯ ГИЛЬДИЯ<br><small>Добыча +50%</small></div>
             </div>
 
             <div class="window hidden" id="window-ship">
@@ -514,48 +482,35 @@
                 <div class="title">АНГАР</div>
                 <div class="ship-display" id="hangar-ship">🚀</div>
                 <div style="font-size:10px; text-align:center; margin-bottom:5px;" id="hangar-ship-name"></div>
-                
                 <div class="resources-mini" id="hangar-resources"></div>
-                
                 <div id="upgrades-list"></div>
             </div>
 
             <div class="window hidden" id="window-pvp">
                 <div class="title">PvP АРЕНА</div>
-                <div class="pvp-container">
-                    <div class="pvp-arena-mini">
-                        <span class="pvp-ship" id="pvp-player-ship">🚀</span>
-                        <span class="pvp-vs">VS</span>
-                        <span class="pvp-ship" id="pvp-enemy-ship">👾</span>
-                        <span class="pvp-hp" style="left:10px;" id="pvp-player-hp-text">HP: 100</span>
-                        <span class="pvp-hp" style="right:10px;" id="pvp-enemy-hp-text">HP: 100</span>
-                    </div>
-                    <div style="text-align:center; font-size:10px; color:#ffcc00;" id="pvp-timer">15</div>
-                    <div style="text-align:center; font-size:8px;" id="pvp-status">Нажмите НАЙТИ БОЙ</div>
-                    <button class="btn" onclick="searchPvP()">🔍 НАЙТИ БОЙ</button>
-                    
-                    <div class="leaderboard" id="leaderboard">
-                        <div style="color:#ffcc00; margin-bottom:5px;">ТОП 15 ИГРОКОВ</div>
-                    </div>
+                <div class="pvp-arena-mini">
+                    <span class="pvp-ship" id="pvp-player-ship">🚀</span>
+                    <span class="pvp-vs">VS</span>
+                    <span class="pvp-ship" id="pvp-enemy-ship">👾</span>
+                    <span class="pvp-hp" style="left:10px;" id="pvp-player-hp-text">HP:100</span>
+                    <span class="pvp-hp" style="right:10px;" id="pvp-enemy-hp-text">HP:100</span>
                 </div>
+                <div style="text-align:center; font-size:10px; color:#ffcc00;" id="pvp-timer">15</div>
+                <div style="text-align:center; font-size:8px;" id="pvp-status">Нажмите НАЙТИ БОЙ</div>
+                <button class="btn" onclick="searchPvP()">🔍 НАЙТИ БОЙ</button>
+                <div class="leaderboard" id="leaderboard"><div style="color:#ffcc00; margin-bottom:5px;">ТОП 15</div></div>
             </div>
         </div>
 
         <div class="bottom-panel hidden" id="bottom-panel">
-            <button class="nav-btn active" id="nav-map" onclick="switchTab('map')">
-                <span class="nav-icon">🌌</span>КАРТА
-            </button>
-            <button class="nav-btn" id="nav-hangar" onclick="switchTab('hangar')">
-                <span class="nav-icon">🚀</span>АНГАР
-            </button>
-            <button class="nav-btn" id="nav-pvp" onclick="switchTab('pvp')">
-                <span class="nav-icon">⚔️</span>PvP
-            </button>
+            <button class="nav-btn active" id="nav-map" onclick="switchTab('map')"><span class="nav-icon">🌌</span>КАРТА</button>
+            <button class="nav-btn" id="nav-hangar" onclick="switchTab('hangar')"><span class="nav-icon">🚀</span>АНГАР</button>
+            <button class="nav-btn" id="nav-pvp" onclick="switchTab('pvp')"><span class="nav-icon">⚔️</span>PvP</button>
         </div>
     </div>
 
     <script>
-        // Все функции объявлены глобально через window
+        // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
         window.playerName = localStorage.getItem('sd_player_name') || '';
         window.shipName = localStorage.getItem('sd_ship_name') || '';
         window.frac = localStorage.getItem('sd_frac') || null;
@@ -605,6 +560,8 @@
             'Торговая гильдия': [{ emoji: '🚢', name: 'ТОРГОВЕЦ-1' }, { emoji: '🛳️', name: 'ТОРГОВЕЦ-2' }, { emoji: '🏗️', name: 'МАГНАТ' }]
         };
 
+        const lootNames = { coins: '🪙 МОН', shieldParts: '🛡️ ЩИТ', weaponParts: '⚔️ ОРУД', speedParts: '⚡ СКОР', critParts: '🎯 КРИТ', spice: '💎 СПАЙС' };
+
         window.saveAll = function() {
             Object.keys(window.resources).forEach(k => localStorage.setItem('sd_' + k, window.resources[k]));
             localStorage.setItem('sd_spice_data', JSON.stringify(window.spiceData));
@@ -619,23 +576,14 @@
             return ships[window.frac][window.selectedShipIndex].emoji;
         };
 
-        window.getStats = function() {
-            let shield = 10 + (window.upgrades.shield - 1) * 2;
-            let damage = 5 + window.upgrades.damage;
-            let attackSpeed = 1500 - window.upgrades.speed * 200;
-            let critDodge = 5 + window.upgrades.crit * 2;
-            if (window.fracBonus === 'shield') shield = Math.floor(shield * 1.5);
-            if (window.fracBonus === 'weapon') damage = Math.floor(damage * 1.5);
-            return {
-                shield: Math.max(shield, 5),
-                damage: Math.max(damage, 3),
-                attackSpeed: Math.max(attackSpeed, 500),
-                critDodge: Math.min(critDodge, 40)
-            };
-        };
-
-        window.updateSpiceDisplay = function() {
-            document.getElementById('spice-value').innerText = window.spiceData.collected;
+        window.showLoot = function(type) {
+            if (!type) return;
+            const feed = document.getElementById('loot-feed');
+            const item = document.createElement('span');
+            item.className = 'loot-item' + (type === 'spice' ? ' spice-loot' : '');
+            item.innerText = '+' + lootNames[type];
+            feed.appendChild(item);
+            setTimeout(() => item.remove(), 3000);
         };
 
         window.showWindow = function(id) {
@@ -649,162 +597,143 @@
             document.getElementById('spice-counter').classList.remove('hidden');
             document.getElementById('bottom-panel').classList.remove('hidden');
             document.getElementById('dev-reset-btn').classList.remove('hidden');
-            window.updateSpiceDisplay();
+            document.getElementById('spice-value').innerText = window.spiceData.collected;
         };
 
-        // ВАЖНО: Все функции-обработчики должны быть глобальными
-        window.setPlayerName = function() {
-            console.log('setPlayerName called');
-            const name = document.getElementById('input-player-name').value.trim();
-            if (name.length < 2) {
-                alert('Имя должно быть не менее 2 символов');
-                return;
+        // ЗВЕЗДЫ
+        function createStarLayers() {
+            const container = document.getElementById('stars-layer');
+            for (let i = 0; i < 200; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = (Math.random() * 3 + 1) + 'px';
+                star.style.height = star.style.width;
+                star.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
+                star.style.setProperty('--delay', Math.random() * 2 + 's');
+                container.appendChild(star);
             }
-            window.playerName = name;
-            window.saveAll();
-            window.showWindow('faction');
-        };
-
-        window.devReset = function() {
-            if (confirm('СБРОСИТЬ ВСЕ ДАННЫЕ И НАЧАТЬ ЗАНОВО?')) {
-                localStorage.clear();
-                location.reload();
+            // Падающие звезды
+            for (let i = 0; i < 8; i++) {
+                const shooting = document.createElement('div');
+                shooting.className = 'shooting-star';
+                shooting.style.left = Math.random() * 80 + '%';
+                shooting.style.top = Math.random() * 50 + '%';
+                shooting.style.setProperty('--travel', (Math.random() * 4 + 4) + 's');
+                shooting.style.setProperty('--sdelay', (Math.random() * 6) + 's');
+                container.appendChild(shooting);
             }
-        };
+        }
+        createStarLayers();
 
-        window.selectFaction = function(name, color, bonus) {
-            window.tempFaction = name;
-            window.tempFactionColor = color;
-            window.tempFactionBonus = bonus;
-            window.tempShipIndex = null;
-            
-            const container = document.getElementById('ship-selection');
-            container.innerHTML = '';
-            ships[name].forEach((ship, i) => {
-                const card = document.createElement('div');
-                card.style.cssText = `font-size:40px; cursor:pointer; padding:10px; border:2px solid #00ff00; text-align:center; transition:all 0.2s;`;
-                card.innerHTML = `${ship.emoji}<br><small style="font-size:7px;">${ship.name}</small>`;
-                card.onclick = function() {
-                    window.tempShipIndex = i;
-                    container.querySelectorAll('div').forEach(d => d.style.borderColor = '#00ff00');
-                    card.style.borderColor = '#ffcc00';
-                    document.getElementById('confirm-ship-btn').disabled = false;
-                };
-                container.appendChild(card);
-            });
-            
-            document.getElementById('confirm-ship-btn').disabled = true;
-            window.showWindow('ship');
-        };
-
-        window.confirmShip = function() {
-            const name = document.getElementById('input-ship-name').value.trim();
-            if (window.tempShipIndex === null || name.length < 2) {
-                alert('Выберите корабль и введите имя (минимум 2 символа)');
-                return;
-            }
-            
-            window.frac = window.tempFaction;
-            window.fracColor = window.tempFactionColor;
-            window.fracBonus = window.tempFactionBonus;
-            window.selectedShipIndex = window.tempShipIndex;
-            window.shipName = name;
-            
-            localStorage.setItem('sd_frac', window.frac);
-            localStorage.setItem('sd_color', window.fracColor);
-            localStorage.setItem('sd_bonus', window.fracBonus);
-            localStorage.setItem('sd_ship_index', window.selectedShipIndex);
-            localStorage.setItem('sd_ship_name', window.shipName);
-            window.saveAll();
-            
-            window.showUI();
-            window.showWindow('main');
-            window.generateBackgroundObjects();
-            window.updateLeaderboard();
-        };
-
+        // ОБЪЕКТЫ ПО ЗОЛОТОМУ СЕЧЕНИЮ
         window.generateBackgroundObjects = function() {
-            const bg = document.getElementById('galaxy-bg');
-            bg.querySelectorAll('.bg-object').forEach(el => el.remove());
+            const orbit = document.getElementById('planet-orbit');
+            orbit.querySelectorAll('.bg-object').forEach(el => el.remove());
             window.galaxyObjects = [];
             
+            const phi = (1 + Math.sqrt(5)) / 2; // Золотое сечение
             const types = ['asteroid', 'asteroid', 'asteroid', 'pirate', 'pirate', 'pirate'];
             const shuffled = types.sort(() => Math.random() - 0.5);
             
             shuffled.forEach((type, i) => {
                 const emojis = type === 'asteroid' ? ['🪨', '💎', '🪐', '☄️', '🌑', '🪨'] : ['🏴‍☠️', '💀', '👾', '👽', '🤖', '🐲'];
-                const angle = (i / 6) * Math.PI * 2 + Math.random() * 0.5;
-                const distance = 100 + Math.random() * 40;
-                const centerX = window.innerWidth / 2;
-                const centerY = (window.innerHeight - 130) / 2;
+                const angle = (i * phi * Math.PI * 2) % (Math.PI * 2);
+                const distance = 80 + (i * 20);
                 
                 const obj = {
                     type: type === 'asteroid' ? 'mining' : 'battle',
                     emoji: emojis[i],
-                    x: centerX + Math.cos(angle) * distance,
-                    y: centerY + Math.sin(angle) * distance,
+                    angle: angle,
+                    distance: distance,
                     element: null
                 };
                 
                 const div = document.createElement('div');
                 div.className = 'bg-object';
+                div.setAttribute('data-type', type);
                 div.innerText = obj.emoji;
-                div.style.left = obj.x + 'px';
-                div.style.top = obj.y + 'px';
                 div.style.pointerEvents = 'all';
                 div.style.cursor = 'pointer';
                 div.onclick = function(e) {
                     e.stopPropagation();
-                    if (window.currentTab === 'map') window.flyToObject(obj, div);
+                    if (window.currentTab === 'map' && !window.isShipFlying) window.flyToObject(obj, div);
                 };
                 
-                bg.appendChild(div);
+                orbit.appendChild(div);
                 obj.element = div;
                 window.galaxyObjects.push(obj);
             });
+            
+            positionObjects();
         };
 
+        function positionObjects() {
+            const orbit = document.getElementById('planet-orbit');
+            const centerX = orbit.offsetWidth / 2;
+            const centerY = orbit.offsetHeight / 2;
+            
+            window.galaxyObjects.forEach(obj => {
+                const x = centerX + Math.cos(obj.angle) * obj.distance;
+                const y = centerY + Math.sin(obj.angle) * obj.distance;
+                obj.element.style.left = x + 'px';
+                obj.element.style.top = y + 'px';
+            });
+        }
+
+        // ПОЛЕТ КОРАБЛЯ
         window.flyToObject = function(obj, element) {
-            if (window.isShipFlying || window.currentTab !== 'map') return;
+            if (window.isShipFlying) return;
             window.isShipFlying = true;
             
-            const ship = document.createElement('div');
-            ship.style.cssText = `position:absolute; font-size:25px; z-index:10; pointer-events:none; transition:all 1.5s ease-in-out;`;
-            ship.innerText = window.getShipEmoji();
-            ship.style.left = window.innerWidth / 2 + 'px';
-            ship.style.top = (window.innerHeight - 130) / 2 + 'px';
-            ship.style.transform = 'translate(-50%, -50%)';
-            document.getElementById('galaxy-bg').appendChild(ship);
+            const orbit = document.getElementById('planet-orbit');
+            const centerX = orbit.offsetWidth / 2;
+            const centerY = orbit.offsetHeight / 2;
+            const targetX = centerX + Math.cos(obj.angle) * obj.distance;
+            const targetY = centerY + Math.sin(obj.angle) * obj.distance;
             
+            const ship = document.createElement('div');
+            ship.className = 'flying-ship-anim';
+            ship.innerText = window.getShipEmoji();
+            ship.style.left = centerX + 'px';
+            ship.style.top = centerY + 'px';
+            ship.style.transform = 'translate(-50%, -50%)';
+            orbit.appendChild(ship);
+            
+            // Полет к объекту (2.5 секунды)
+            ship.style.transition = 'all 2.5s cubic-bezier(0.4, 0, 0.2, 1)';
             requestAnimationFrame(() => {
-                ship.style.left = obj.x + 'px';
-                ship.style.top = obj.y + 'px';
-                ship.style.transform = 'translate(-50%, -50%) scale(0.5)';
+                ship.style.left = targetX + 'px';
+                ship.style.top = targetY + 'px';
+                ship.style.transform = 'translate(-50%, -50%) scale(0.6)';
             });
             
+            // Остановка у объекта (3 секунды)
             setTimeout(() => {
                 element.style.opacity = '0';
-                setTimeout(() => element.remove(), 300);
+                const lootType = window.addLoot(window.getLoot());
+                window.showLoot(lootType);
                 
-                window.addLoot(window.getLoot());
-                
+                // Возврат (2.5 секунды)
                 setTimeout(() => {
-                    ship.style.left = window.innerWidth / 2 + 'px';
-                    ship.style.top = (window.innerHeight - 130) / 2 + 'px';
+                    ship.style.left = centerX + 'px';
+                    ship.style.top = centerY + 'px';
                     ship.style.transform = 'translate(-50%, -50%) scale(1)';
                     
                     setTimeout(() => {
                         ship.remove();
+                        element.remove();
+                        window.galaxyObjects = window.galaxyObjects.filter(o => o !== obj);
                         window.isShipFlying = false;
                         window.updateSpiceDisplay();
                         
-                        const remaining = document.querySelectorAll('.bg-object');
-                        if (remaining.length === 0) {
+                        if (document.querySelectorAll('.bg-object').length === 0) {
                             window.generateBackgroundObjects();
                         }
-                    }, 1500);
-                }, 500);
-            }, 1500);
+                    }, 2500);
+                }, 3000);
+            }, 2500);
         };
 
         window.getLoot = function() {
@@ -832,15 +761,68 @@
             return type;
         };
 
+        window.updateSpiceDisplay = function() {
+            document.getElementById('spice-value').innerText = window.spiceData.collected;
+        };
+
+        // ДАЛЕЕ
+        window.setPlayerName = function() {
+            const name = document.getElementById('input-player-name').value.trim();
+            if (name.length < 2) { alert('Минимум 2 символа'); return; }
+            window.playerName = name;
+            window.saveAll();
+            window.showWindow('faction');
+        };
+
+        window.devReset = function() {
+            if (confirm('СБРОСИТЬ ВСЕ ДАННЫЕ?')) { localStorage.clear(); location.reload(); }
+        };
+
+        window.selectFaction = function(name, color, bonus) {
+            window.tempFaction = name; window.tempFactionColor = color; window.tempFactionBonus = bonus;
+            window.tempShipIndex = null;
+            const container = document.getElementById('ship-selection');
+            container.innerHTML = '';
+            ships[name].forEach((ship, i) => {
+                const card = document.createElement('div');
+                card.style.cssText = 'font-size:40px; cursor:pointer; padding:10px; border:2px solid #00ff00; text-align:center;';
+                card.innerHTML = `${ship.emoji}<br><small style="font-size:7px;">${ship.name}</small>`;
+                card.onclick = () => {
+                    window.tempShipIndex = i;
+                    container.querySelectorAll('div').forEach(d => d.style.borderColor = '#00ff00');
+                    card.style.borderColor = '#ffcc00';
+                    document.getElementById('confirm-ship-btn').disabled = false;
+                };
+                container.appendChild(card);
+            });
+            document.getElementById('confirm-ship-btn').disabled = true;
+            window.showWindow('ship');
+        };
+
+        window.confirmShip = function() {
+            const name = document.getElementById('input-ship-name').value.trim();
+            if (window.tempShipIndex === null || name.length < 2) { alert('Выберите корабль и введите имя'); return; }
+            window.frac = window.tempFaction; window.fracColor = window.tempFactionColor;
+            window.fracBonus = window.tempFactionBonus; window.selectedShipIndex = window.tempShipIndex;
+            window.shipName = name;
+            ['sd_frac','sd_color','sd_bonus','sd_ship_index','sd_ship_name'].forEach(k => localStorage.setItem(k, window[k.replace('sd_','')]));
+            window.saveAll();
+            window.showUI();
+            window.showWindow('main');
+            window.generateBackgroundObjects();
+            window.updateLeaderboard();
+        };
+
         window.switchTab = function(tab) {
             window.currentTab = tab;
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('nav-' + tab).classList.add('active');
             
             const bgObjects = document.querySelectorAll('.bg-object');
-            bgObjects.forEach(obj => {
-                obj.style.display = tab === 'map' ? 'block' : 'none';
-            });
+            bgObjects.forEach(obj => obj.style.display = tab === 'map' ? 'block' : 'none');
+            
+            const lootFeed = document.getElementById('loot-feed');
+            lootFeed.style.display = tab === 'map' ? 'flex' : 'none';
             
             if (tab === 'map') {
                 window.showWindow('main');
@@ -848,8 +830,8 @@
                 window.showWindow('hangar');
                 document.getElementById('hangar-ship').innerText = window.getShipEmoji();
                 document.getElementById('hangar-ship-name').innerText = window.shipName;
-                window.updateHangarResources();
-                window.updateHangar();
+                updateHangarResources();
+                updateHangar();
             } else if (tab === 'pvp') {
                 window.showWindow('pvp');
                 document.getElementById('pvp-player-ship').innerText = window.getShipEmoji();
@@ -857,8 +839,7 @@
             }
         };
 
-        window.updateHangarResources = function() {
-            const container = document.getElementById('hangar-resources');
+        function updateHangarResources() {
             const items = [
                 { icon: '🪙', key: 'coins', label: 'МОН' },
                 { icon: '🛡️', key: 'shieldParts', label: 'ЩИТ' },
@@ -867,40 +848,23 @@
                 { icon: '🎯', key: 'critParts', label: 'КРИТ' },
                 { icon: '💎', key: 'spice', label: 'СПС' }
             ];
-            
-            container.innerHTML = items.map(item => `
-                <div class="resource-mini-item">
-                    <span class="mini-icon">${item.icon}</span>
-                    <span>${item.label}</span>
-                    <div class="mini-value">${window.resources[item.key]}</div>
-                </div>
+            document.getElementById('hangar-resources').innerHTML = items.map(item => `
+                <div class="resource-mini-item"><span class="mini-icon">${item.icon}</span><span>${item.label}</span><div class="mini-value">${window.resources[item.key]}</div></div>
             `).join('');
-        };
+        }
 
-        window.updateHangar = function() {
-            const container = document.getElementById('upgrades-list');
+        function updateHangar() {
             const types = [
                 { key: 'shield', name: 'ЩИТЫ', icon: '🛡️', costKey: 'shieldParts' },
                 { key: 'damage', name: 'ОРУДИЯ', icon: '⚔️', costKey: 'weaponParts' },
                 { key: 'speed', name: 'СКОРОСТЬ', icon: '⚡', costKey: 'speedParts' },
                 { key: 'crit', name: 'КРИТ/ДОДЖ', icon: '🎯', costKey: 'critParts' }
             ];
-            
-            container.innerHTML = types.map(t => {
-                const level = window.upgrades[t.key];
-                const cost = 5 * (level + 1);
-                const canBuy = window.resources[t.costKey] >= cost;
-                return `
-                    <div class="upgrade-row">
-                        <div class="upgrade-info">
-                            <div>${t.icon} ${t.name}</div>
-                            <small>УР.${level} | Цена: ${cost} ${t.icon}</small>
-                        </div>
-                        <button class="upgrade-btn" onclick="window.buyUpgrade('${t.key}')" ${canBuy ? '' : 'disabled'}>+</button>
-                    </div>
-                `;
+            document.getElementById('upgrades-list').innerHTML = types.map(t => {
+                const cost = 5 * (window.upgrades[t.key] + 1);
+                return `<div class="upgrade-row"><div class="upgrade-info"><div>${t.icon} ${t.name}</div><small>УР.${window.upgrades[t.key]} | ${cost} ${t.icon}</small></div><button class="upgrade-btn" onclick="window.buyUpgrade('${t.key}')" ${window.resources[t.costKey] >= cost ? '' : 'disabled'}>+</button></div>`;
             }).join('');
-        };
+        }
 
         window.buyUpgrade = function(type) {
             const costKeys = { shield: 'shieldParts', damage: 'weaponParts', speed: 'speedParts', crit: 'critParts' };
@@ -910,157 +874,77 @@
                 window.upgrades[type]++;
                 localStorage.setItem('sd_upg_' + type, window.upgrades[type]);
                 window.saveAll();
-                window.updateHangarResources();
-                window.updateHangar();
+                updateHangarResources();
+                updateHangar();
             }
         };
 
         window.searchPvP = function() {
             if (window.pvpInterval) return;
-            const stats = window.getStats();
-            let playerHP = stats.shield;
-            let enemyHP = 8 + Math.floor(Math.random() * 12);
-            let timeLeft = 15;
+            const stats = { shield: 10 + window.upgrades.shield * 2, damage: 5 + window.upgrades.damage, attackSpeed: 1500 - window.upgrades.speed * 200, critDodge: 5 + window.upgrades.crit * 2 };
+            if (window.fracBonus === 'shield') stats.shield = Math.floor(stats.shield * 1.5);
+            if (window.fracBonus === 'weapon') stats.damage = Math.floor(stats.damage * 1.5);
             
-            document.getElementById('pvp-status').innerText = 'БОЙ!';
+            let pHP = stats.shield, eHP = 8 + Math.floor(Math.random() * 12), timeLeft = 15;
             document.getElementById('pvp-timer').innerText = timeLeft;
-            document.getElementById('pvp-enemy-ship').innerText = ['🚀', '🛸', '💫', '⚡', '🛰️'][Math.floor(Math.random() * 5)];
-            document.getElementById('pvp-player-hp-text').innerText = 'HP: ' + playerHP;
-            document.getElementById('pvp-enemy-hp-text').innerText = 'HP: ' + enemyHP;
+            document.getElementById('pvp-enemy-ship').innerText = ['🚀','🛸','💫','⚡','🛰️'][Math.floor(Math.random()*5)];
             
-            window.pvpTimerInterval = setInterval(() => {
-                timeLeft--;
-                document.getElementById('pvp-timer').innerText = timeLeft;
-                if (timeLeft <= 0) {
-                    window.endPvP(playerHP, enemyHP);
-                }
-            }, 1000);
-            
+            window.pvpTimerInterval = setInterval(() => { timeLeft--; document.getElementById('pvp-timer').innerText = timeLeft; if(timeLeft<=0) endPvP(pHP,eHP); }, 1000);
             window.pvpInterval = setInterval(() => {
-                let pDmg = Math.floor(Math.random() * stats.damage) + 1;
-                if (Math.random() * 100 < stats.critDodge) pDmg *= 2;
-                enemyHP -= pDmg;
-                document.getElementById('pvp-enemy-hp-text').innerText = 'HP: ' + Math.max(0, enemyHP);
-                
-                if (enemyHP <= 0) {
-                    window.endPvP(playerHP, 0);
-                    return;
-                }
-                
+                let dmg = Math.floor(Math.random()*stats.damage)+1;
+                if(Math.random()*100 < stats.critDodge) dmg *= 2;
+                eHP -= dmg;
+                document.getElementById('pvp-enemy-hp-text').innerText = 'HP:'+Math.max(0,eHP);
+                if(eHP<=0) { endPvP(pHP,0); return; }
                 setTimeout(() => {
-                    if (enemyHP <= 0) return;
-                    let eDmg = Math.floor(Math.random() * 5) + 2;
-                    if (Math.random() * 100 < stats.critDodge) {
-                        document.getElementById('pvp-status').innerText = 'ДОДЖ!';
-                    } else {
-                        playerHP -= eDmg;
-                        document.getElementById('pvp-player-hp-text').innerText = 'HP: ' + Math.max(0, playerHP);
-                    }
-                    
-                    if (playerHP <= 0) {
-                        window.endPvP(0, enemyHP);
-                    }
+                    if(eHP<=0) return;
+                    let eDmg = Math.floor(Math.random()*5)+2;
+                    if(Math.random()*100 < stats.critDodge) document.getElementById('pvp-status').innerText = 'ДОДЖ!';
+                    else { pHP -= eDmg; document.getElementById('pvp-player-hp-text').innerText = 'HP:'+Math.max(0,pHP); }
+                    if(pHP<=0) endPvP(0,eHP);
                 }, 500);
-            }, stats.attackSpeed);
+            }, Math.max(stats.attackSpeed, 500));
         };
 
-        window.endPvP = function(playerHP, enemyHP) {
-            clearInterval(window.pvpInterval);
-            clearInterval(window.pvpTimerInterval);
-            window.pvpInterval = null;
-            window.pvpTimerInterval = null;
-            
-            let result = '';
-            if (playerHP <= 0 && enemyHP <= 0) {
-                result = 'НИЧЬЯ! +2 очка';
-                window.pvpScore += 2;
-            } else if (enemyHP <= 0) {
-                result = 'ПОБЕДА! +15 очков';
-                window.pvpScore += 15;
-            } else if (playerHP <= 0) {
-                result = 'ПОРАЖЕНИЕ... -12 очков';
-                window.pvpScore = Math.max(0, window.pvpScore - 12);
-            } else {
-                const pvpPlayerHPPercent = playerHP / window.getStats().shield;
-                const pvpEnemyHPPercent = enemyHP / 10;
-                if (pvpPlayerHPPercent > pvpEnemyHPPercent) {
-                    result = 'ПОБЕДА ПО ОЧКАМ! +15';
-                    window.pvpScore += 15;
-                } else {
-                    result = 'НИЧЬЯ! +2 очка';
-                    window.pvpScore += 2;
-                }
-            }
-            
+        function endPvP(pHP, eHP) {
+            clearInterval(window.pvpInterval); clearInterval(window.pvpTimerInterval);
+            window.pvpInterval = null; window.pvpTimerInterval = null;
+            let result;
+            if(pHP<=0 && eHP<=0) { result = 'НИЧЬЯ! +2'; window.pvpScore += 2; }
+            else if(eHP<=0) { result = 'ПОБЕДА! +15'; window.pvpScore += 15; }
+            else if(pHP<=0) { result = 'ПОРАЖЕНИЕ... -12'; window.pvpScore = Math.max(0, window.pvpScore-12); }
+            else { result = 'НИЧЬЯ! +2'; window.pvpScore += 2; }
             document.getElementById('pvp-status').innerText = result;
             document.getElementById('pvp-timer').innerText = '0';
-            
             window.updateLeaderboard();
             window.saveAll();
-        };
-
-        window.updateLeaderboard = function() {
-            const existingIndex = window.leaderboard.findIndex(p => p.name === window.playerName);
-            if (existingIndex >= 0) {
-                window.leaderboard[existingIndex].score = window.pvpScore;
-            } else if (window.playerName) {
-                window.leaderboard.push({ name: window.playerName, score: window.pvpScore });
-            }
-            window.leaderboard.sort((a, b) => b.score - a.score);
-            window.leaderboard = window.leaderboard.slice(0, 15);
-            window.saveAll();
-            
-            const container = document.getElementById('leaderboard');
-            if (container) {
-                container.innerHTML = '<div style="color:#ffcc00; margin-bottom:5px;">ТОП 15 ИГРОКОВ</div>' +
-                    window.leaderboard.map((p, i) => `
-                        <div class="leaderboard-item">
-                            <span class="rank">#${i + 1}</span>
-                            <span class="name">${p.name}</span>
-                            <span class="score">${p.score}</span>
-                        </div>
-                    `).join('');
-            }
-        };
-
-        window.goBack = function() {
-            if (window.currentTab !== 'map') {
-                window.switchTab('map');
-            }
-        };
-
-        // Инициализация при загрузке
-        function init() {
-            // Создаем звезды
-            const starsContainer = document.getElementById('stars');
-            for (let i = 0; i < 150; i++) {
-                const star = document.createElement('div');
-                star.className = 'star';
-                star.style.left = Math.random() * 100 + '%';
-                star.style.top = Math.random() * 100 + '%';
-                star.style.width = Math.random() * 3 + 'px';
-                star.style.height = star.style.width;
-                star.style.animationDelay = Math.random() * 2 + 's';
-                starsContainer.appendChild(star);
-            }
-
-            if (window.Telegram && window.Telegram.WebApp) {
-                try { window.Telegram.WebApp.expand(); } catch(e) {}
-            }
-
-            if (window.playerName && window.frac) {
-                window.showUI();
-                window.showWindow('main');
-                window.generateBackgroundObjects();
-                window.updateLeaderboard();
-            } else if (window.playerName) {
-                window.showWindow('faction');
-            } else {
-                window.showWindow('start');
-            }
         }
 
-        init();
+        window.updateLeaderboard = function() {
+            const idx = window.leaderboard.findIndex(p => p.name === window.playerName);
+            if(idx >= 0) window.leaderboard[idx].score = window.pvpScore;
+            else if(window.playerName) window.leaderboard.push({ name: window.playerName, score: window.pvpScore });
+            window.leaderboard.sort((a,b) => b.score - a.score);
+            window.leaderboard = window.leaderboard.slice(0, 15);
+            document.getElementById('leaderboard').innerHTML = '<div style="color:#ffcc00; margin-bottom:5px;">ТОП 15</div>' + window.leaderboard.map((p,i) => `<div class="leaderboard-item"><span class="rank">#${i+1}</span><span class="name">${p.name}</span><span class="score">${p.score}</span></div>`).join('');
+            window.saveAll();
+        };
+
+        window.goBack = function() { if(window.currentTab !== 'map') window.switchTab('map'); };
+
+        // ИНИЦИАЛИЗАЦИЯ
+        if (window.Telegram?.WebApp) { try { window.Telegram.WebApp.expand(); } catch(e) {} }
+
+        if (window.playerName && window.frac) {
+            window.showUI();
+            window.showWindow('main');
+            window.generateBackgroundObjects();
+            window.updateLeaderboard();
+        } else if (window.playerName) {
+            window.showWindow('faction');
+        } else {
+            window.showWindow('start');
+        }
     </script>
 </body>
 </html>
