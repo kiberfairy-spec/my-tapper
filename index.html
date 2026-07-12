@@ -16,7 +16,7 @@
         }
         
         body { 
-            background: #0a0a2e;
+            background: #050510;
             color: #00ff00; 
             font-family: 'Press Start 2P', monospace; 
             user-select: none; 
@@ -47,28 +47,36 @@
         .shooting-star {
             position: absolute;
             width: 2px;
-            height: 80px;
-            background: linear-gradient(to bottom, rgba(255,255,255,0.8), transparent);
+            height: 100px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.9), transparent);
             animation: shoot var(--travel) linear infinite;
             animation-delay: var(--sdelay);
             opacity: 0;
         }
         
+        .nebula {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(30px);
+            opacity: 0.15;
+            pointer-events: none;
+        }
+        
         @keyframes twinkle {
-            0%, 100% { opacity: 0.2; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.5); }
+            0%, 100% { opacity: 0.1; transform: scale(1); }
+            50% { opacity: 0.9; transform: scale(2); }
         }
         
         @keyframes shoot {
-            0% { transform: translate(0, 0) rotate(-45deg); opacity: 0; }
-            5% { opacity: 1; }
-            15% { opacity: 0; transform: translate(-300px, 300px) rotate(-45deg); }
-            100% { opacity: 0; transform: translate(-300px, 300px) rotate(-45deg); }
+            0% { transform: translate(0, 0) rotate(-35deg); opacity: 0; }
+            3% { opacity: 1; }
+            12% { opacity: 0; transform: translate(-400px, 400px) rotate(-35deg); }
+            100% { opacity: 0; transform: translate(-400px, 400px) rotate(-35deg); }
         }
         
         @keyframes float {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
+            50% { transform: translateY(-6px); }
         }
         
         @keyframes rotate {
@@ -76,16 +84,30 @@
             to { transform: rotate(360deg); }
         }
         
+        @keyframes orbitAnim {
+            from { transform: rotate(0deg) translateX(140px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(140px) rotate(-360deg); }
+        }
+        
         @keyframes slideUp {
             from { transform: translateY(100%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
         
-        @keyframes fadeInOut {
-            0% { opacity: 0; transform: translateY(10px); }
-            20% { opacity: 1; transform: translateY(0); }
-            80% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-10px); }
+        @keyframes lootPopup {
+            0% { opacity: 0; transform: translate(-50%, 0) scale(0.5); }
+            20% { opacity: 1; transform: translate(-50%, -20px) scale(1.2); }
+            100% { opacity: 0; transform: translate(-50%, -60px) scale(0.8); }
+        }
+        
+        @keyframes laserPulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+        
+        @keyframes engineGlow {
+            from { filter: drop-shadow(0 0 3px #ff8800); }
+            to { filter: drop-shadow(0 0 8px #ffaa00); }
         }
 
         .app-container {
@@ -110,23 +132,8 @@
             position: relative;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at center, #0d1b3e 0%, #060c1a 70%);
+            background: radial-gradient(ellipse at 50% 50%, #0a1040 0%, #06081a 50%, #020408 100%);
             overflow: hidden;
-        }
-        
-        /* ПИКСЕЛЬНАЯ СЕТКА ФОНА */
-        .galaxy-bg::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 16px 16px;
-            z-index: 0;
         }
 
         .planet-container {
@@ -137,23 +144,25 @@
             z-index: 2;
         }
 
-        /* ПИКСЕЛЬНАЯ ПЛАНЕТА */
+        /* ПЛАНЕТА 160px */
         .pixel-planet {
-            width: 100px;
-            height: 100px;
+            width: 160px;
+            height: 160px;
             position: relative;
-            animation: rotate 20s linear infinite;
+            animation: rotate 30s linear infinite;
         }
         
         .pixel-planet-inner {
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            background: radial-gradient(circle at 40% 40%, #4a9eff 0%, #1a4a8a 40%, #0a2a4a 70%, #051525 100%);
+            background: 
+                radial-gradient(circle at 35% 35%, #6ab4ff 0%, #3a7bd5 15%, #1a4a8a 35%, #0d2d5a 55%, #061830 75%, #020810 100%);
             box-shadow: 
-                0 0 30px rgba(74, 158, 255, 0.4),
-                0 0 60px rgba(74, 158, 255, 0.2),
-                inset 0 -10px 20px rgba(0, 0, 0, 0.5);
+                0 0 40px rgba(74, 158, 255, 0.5),
+                0 0 80px rgba(74, 158, 255, 0.3),
+                0 0 120px rgba(74, 158, 255, 0.15),
+                inset 0 -20px 40px rgba(0, 0, 0, 0.6);
             border: 3px solid #2a6abf;
             position: relative;
             overflow: hidden;
@@ -162,37 +171,230 @@
         .pixel-planet-inner::before {
             content: '';
             position: absolute;
-            top: 10%;
-            left: 20%;
-            width: 30%;
-            height: 20%;
-            background: rgba(255, 255, 255, 0.15);
+            top: 8%;
+            left: 25%;
+            width: 35%;
+            height: 18%;
+            background: rgba(255, 255, 255, 0.12);
             border-radius: 50%;
-            transform: rotate(-20deg);
+            transform: rotate(-15deg);
         }
         
         .pixel-planet-inner::after {
             content: '';
             position: absolute;
-            bottom: 15%;
-            right: 25%;
-            width: 25%;
-            height: 15%;
-            background: rgba(0, 0, 0, 0.3);
+            bottom: 12%;
+            right: 20%;
+            width: 28%;
+            height: 12%;
+            background: rgba(0, 0, 0, 0.4);
             border-radius: 50%;
         }
         
         .pixel-ring {
             position: absolute;
-            top: -15px;
-            left: -15px;
-            width: 130px;
-            height: 130px;
-            border: 4px solid rgba(100, 180, 255, 0.3);
+            top: -25px;
+            left: -25px;
+            width: 210px;
+            height: 210px;
+            border: 5px solid rgba(100, 180, 255, 0.25);
             border-radius: 50%;
             border-top-color: transparent;
             border-right-color: transparent;
-            animation: rotate 10s linear infinite reverse;
+            animation: rotate 8s linear infinite reverse;
+        }
+        
+        .pixel-ring::after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            width: 170px;
+            height: 170px;
+            border: 2px solid rgba(100, 180, 255, 0.15);
+            border-radius: 50%;
+            border-bottom-color: transparent;
+            border-left-color: transparent;
+        }
+
+        /* ОРБИТА КОРАБЛЯ */
+        .player-orbit {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 5;
+            pointer-events: none;
+        }
+        
+        .player-on-orbit {
+            position: absolute;
+            animation: orbitAnim 15s linear infinite;
+        }
+
+        /* КОРАБЛЬ ИГРОКА */
+        .pixel-player-ship {
+            width: 44px;
+            height: 52px;
+            position: relative;
+            filter: drop-shadow(0 0 12px rgba(0, 200, 100, 0.7));
+            animation: engineGlow 0.8s infinite alternate;
+        }
+        
+        .pixel-ship-body {
+            width: 55%;
+            height: 65%;
+            background: linear-gradient(180deg, #33dd66 0%, #22aa44 50%, #117733 100%);
+            position: absolute;
+            top: 12%;
+            left: 22%;
+            clip-path: polygon(25% 0%, 75% 0%, 100% 35%, 85% 100%, 15% 100%, 0% 35%);
+            border: 2px solid #0d5522;
+        }
+        
+        .pixel-ship-body::after {
+            content: '';
+            position: absolute;
+            top: 15%;
+            left: 20%;
+            width: 60%;
+            height: 30%;
+            background: rgba(100, 255, 150, 0.3);
+            clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%);
+        }
+        
+        .pixel-ship-wing-left {
+            position: absolute;
+            top: 28%;
+            left: 0;
+            width: 28%;
+            height: 35%;
+            background: linear-gradient(180deg, #44ee77, #228833);
+            clip-path: polygon(100% 0%, 100% 100%, 30% 85%, 0% 50%, 30% 15%);
+            border: 1px solid #0d5522;
+        }
+        
+        .pixel-ship-wing-right {
+            position: absolute;
+            top: 28%;
+            right: 0;
+            width: 28%;
+            height: 35%;
+            background: linear-gradient(180deg, #44ee77, #228833);
+            clip-path: polygon(0% 0%, 0% 100%, 70% 85%, 100% 50%, 70% 15%);
+            border: 1px solid #0d5522;
+        }
+        
+        .pixel-ship-cockpit {
+            position: absolute;
+            top: 20%;
+            left: 35%;
+            width: 30%;
+            height: 20%;
+            background: #88eeff;
+            clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
+            border: 1px solid #44aacc;
+        }
+        
+        .pixel-ship-engine {
+            position: absolute;
+            bottom: -4px;
+            left: 32%;
+            width: 36%;
+            height: 16%;
+            background: #ff9922;
+            clip-path: polygon(10% 0%, 90% 0%, 70% 100%, 30% 100%);
+            border: 1px solid #cc6600;
+        }
+        
+        .pixel-ship-engine-glow {
+            position: absolute;
+            bottom: -8px;
+            left: 35%;
+            width: 30%;
+            height: 10px;
+            background: #ffcc44;
+            border-radius: 50%;
+            filter: blur(3px);
+        }
+
+        /* АСТЕРОИДЫ */
+        .pixel-asteroid {
+            position: relative;
+            filter: drop-shadow(0 0 8px rgba(139, 115, 85, 0.5));
+        }
+        
+        .pixel-asteroid.type1 .ast-body {
+            width: 40px;
+            height: 36px;
+            background: linear-gradient(135deg, #9B8565 0%, #7B6545 30%, #5A4530 60%, #3B2A1E 100%);
+            clip-path: polygon(15% 5%, 70% 0%, 95% 30%, 85% 75%, 55% 95%, 10% 80%, 0% 35%);
+            border: 2px solid #4A3728;
+        }
+        
+        .pixel-asteroid.type2 .ast-body {
+            width: 34px;
+            height: 40px;
+            background: linear-gradient(135deg, #8B7565 0%, #6B5545 30%, #4B3528 60%, #2B1A12 100%);
+            clip-path: polygon(30% 0%, 80% 10%, 100% 45%, 85% 85%, 40% 100%, 5% 70%, 0% 25%);
+            border: 2px solid #3A2718;
+        }
+        
+        .pixel-asteroid.type3 .ast-body {
+            width: 38px;
+            height: 34px;
+            background: linear-gradient(135deg, #A09070 0%, #807050 30%, #605030 60%, #403020 100%);
+            clip-path: polygon(10% 10%, 60% 0%, 95% 25%, 90% 70%, 50% 95%, 5% 75%, 0% 40%);
+            border: 2px solid #504030;
+        }
+        
+        .ast-crater {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 50%;
+        }
+
+        /* КОРАБЛИ ПИРАТОВ */
+        .pixel-pirate {
+            position: relative;
+            filter: drop-shadow(0 0 10px rgba(255, 60, 60, 0.6));
+        }
+        
+        .pixel-pirate.type1 .pir-body {
+            width: 44px;
+            height: 32px;
+            background: linear-gradient(180deg, #dd3333, #991111);
+            clip-path: polygon(10% 0%, 90% 0%, 100% 40%, 85% 100%, 15% 100%, 0% 40%);
+            border: 2px solid #660000;
+        }
+        
+        .pixel-pirate.type2 .pir-body {
+            width: 38px;
+            height: 36px;
+            background: linear-gradient(180deg, #cc4444, #882222);
+            clip-path: polygon(20% 0%, 80% 0%, 95% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 5% 30%);
+            border: 2px solid #551111;
+        }
+        
+        .pixel-pirate.type3 .pir-body {
+            width: 42px;
+            height: 34px;
+            background: linear-gradient(180deg, #ee2222, #aa0000);
+            clip-path: polygon(0% 15%, 40% 0%, 100% 10%, 95% 50%, 100% 90%, 50% 100%, 5% 85%, 0% 50%);
+            border: 2px solid #660000;
+        }
+        
+        .pir-cockpit {
+            position: absolute;
+            background: #44ccff;
+            clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
+            border: 1px solid #2288bb;
+        }
+        
+        .pir-gun {
+            position: absolute;
+            background: #ff4444;
+            border: 1px solid #cc0000;
         }
 
         .bg-object {
@@ -201,138 +403,6 @@
             pointer-events: none;
             transition: opacity 0.3s;
             transform: translate(-50%, -50%);
-            image-rendering: pixelated;
-        }
-
-        /* ПИКСЕЛЬНЫЙ АСТЕРОИД */
-        .pixel-asteroid {
-            width: 32px;
-            height: 32px;
-            position: relative;
-            filter: drop-shadow(0 0 6px rgba(139, 115, 85, 0.6));
-        }
-        
-        .pixel-asteroid-inner {
-            width: 100%;
-            height: 100%;
-            background: 
-                linear-gradient(135deg, #8B7355 0%, #6B5340 30%, #4A3728 60%, #3B2A1E 100%);
-            clip-path: polygon(20% 0%, 80% 10%, 100% 40%, 90% 80%, 50% 100%, 10% 80%, 0% 30%);
-            position: relative;
-            border: 2px solid #5a4535;
-        }
-        
-        .pixel-asteroid-inner::after {
-            content: '';
-            position: absolute;
-            top: 20%;
-            left: 25%;
-            width: 30%;
-            height: 25%;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 30%;
-        }
-        
-        .pixel-asteroid-small {
-            width: 24px;
-            height: 24px;
-        }
-
-        /* ПИКСЕЛЬНЫЙ ПИРАТ */
-        .pixel-pirate {
-            width: 36px;
-            height: 36px;
-            position: relative;
-            filter: drop-shadow(0 0 8px rgba(255, 68, 68, 0.6));
-        }
-        
-        .pixel-pirate-body {
-            width: 70%;
-            height: 60%;
-            background: #cc3333;
-            position: absolute;
-            bottom: 10%;
-            left: 15%;
-            clip-path: polygon(0% 20%, 30% 0%, 70% 0%, 100% 20%, 90% 100%, 10% 100%);
-            border: 2px solid #991111;
-        }
-        
-        .pixel-pirate-cockpit {
-            width: 40%;
-            height: 25%;
-            background: #44ccff;
-            position: absolute;
-            top: 15%;
-            left: 30%;
-            clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
-            border: 1px solid #2288bb;
-        }
-        
-        .pixel-pirate-gun {
-            position: absolute;
-            bottom: -5px;
-            left: 25%;
-            width: 8px;
-            height: 10px;
-            background: #ff4444;
-            border: 1px solid #cc0000;
-        }
-
-        /* ПИКСЕЛЬНЫЙ КОРАБЛЬ ИГРОКА */
-        .pixel-player-ship {
-            width: 36px;
-            height: 44px;
-            position: relative;
-            filter: drop-shadow(0 0 10px rgba(0, 255, 100, 0.6));
-        }
-        
-        .pixel-ship-body {
-            width: 60%;
-            height: 70%;
-            background: #22cc55;
-            position: absolute;
-            top: 10%;
-            left: 20%;
-            clip-path: polygon(30% 0%, 70% 0%, 100% 40%, 80% 100%, 20% 100%, 0% 40%);
-            border: 2px solid #118833;
-        }
-        
-        .pixel-ship-wing-left {
-            position: absolute;
-            top: 30%;
-            left: 5%;
-            width: 20%;
-            height: 30%;
-            background: #33dd66;
-            clip-path: polygon(100% 0%, 100% 100%, 0% 80%);
-            border: 1px solid #118833;
-        }
-        
-        .pixel-ship-wing-right {
-            position: absolute;
-            top: 30%;
-            right: 5%;
-            width: 20%;
-            height: 30%;
-            background: #33dd66;
-            clip-path: polygon(0% 0%, 0% 100%, 100% 80%);
-            border: 1px solid #118833;
-        }
-        
-        .pixel-ship-engine {
-            position: absolute;
-            bottom: 0;
-            left: 35%;
-            width: 30%;
-            height: 15%;
-            background: #ffaa00;
-            border: 1px solid #cc8800;
-            animation: engineGlow 0.5s infinite alternate;
-        }
-        
-        @keyframes engineGlow {
-            from { background: #ffaa00; box-shadow: 0 0 5px #ff8800; }
-            to { background: #ffcc44; box-shadow: 0 0 10px #ffaa00; }
         }
 
         .flying-ship-anim {
@@ -340,6 +410,38 @@
             z-index: 10;
             pointer-events: none;
             transform: translate(-50%, -50%);
+        }
+
+        /* ЛАЗЕР */
+        .laser-line {
+            position: absolute;
+            height: 3px;
+            transform-origin: left center;
+            z-index: 8;
+            pointer-events: none;
+            animation: laserPulse 0.3s infinite;
+        }
+        
+        .laser-green {
+            background: #00ff44;
+            box-shadow: 0 0 10px #00ff44, 0 0 20px #00ff44;
+        }
+        
+        .laser-red {
+            background: #ff2222;
+            box-shadow: 0 0 10px #ff2222, 0 0 20px #ff2222;
+        }
+
+        /* ЛУТ */
+        .loot-popup {
+            position: absolute;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 9px;
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 15;
+            animation: lootPopup 2s ease-out forwards;
+            white-space: nowrap;
         }
 
         .top-panel {
@@ -359,10 +461,10 @@
         .back-btn {
             width: 40px;
             height: 40px;
-            background: rgba(0, 51, 0, 0.9);
+            background: rgba(0, 40, 0, 0.9);
             border: 2px solid #00ff00;
             color: #00ff00;
-            font-size: 20px;
+            font-size: 18px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -372,10 +474,10 @@
             transition: all 0.2s;
         }
 
-        .back-btn:hover { background: rgba(0, 68, 0, 0.9); box-shadow: 0 0 15px rgba(0, 255, 0, 0.5); }
+        .back-btn:hover { background: rgba(0, 60, 0, 0.9); box-shadow: 0 0 15px rgba(0, 255, 0, 0.5); }
 
         .spice-counter {
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85);
             border: 2px solid #ffcc00;
             color: #ffcc00;
             padding: 8px 12px;
@@ -388,12 +490,12 @@
             position: fixed;
             bottom: 90px;
             right: 10px;
-            width: 30px;
-            height: 30px;
-            background: rgba(100, 0, 0, 0.7);
+            width: 28px;
+            height: 28px;
+            background: rgba(80, 0, 0, 0.7);
             border: 1px solid #ff4444;
             color: #ff4444;
-            font-size: 12px;
+            font-size: 11px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -405,7 +507,7 @@
             transition: all 0.2s;
         }
 
-        .dev-reset-btn:hover { background: rgba(150, 0, 0, 0.9); box-shadow: 0 0 10px rgba(255, 0, 0, 0.5); }
+        .dev-reset-btn:hover { background: rgba(120, 0, 0, 0.9); box-shadow: 0 0 10px rgba(255, 0, 0, 0.5); }
 
         .loot-feed {
             position: fixed;
@@ -435,10 +537,11 @@
             white-space: nowrap;
         }
         
-        .loot-item.spice-loot {
-            color: #ff66ff;
-            text-shadow: 0 0 12px rgba(255, 102, 255, 0.8);
-            font-size: 11px;
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(10px); }
+            20% { opacity: 1; transform: translateY(0); }
+            80% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-10px); }
         }
 
         .content-overlay {
@@ -453,7 +556,6 @@
             align-items: center;
             justify-content: center;
         }
-
         .content-overlay > * { pointer-events: all; }
 
         .bottom-panel {
@@ -462,7 +564,7 @@
             left: 0;
             right: 0;
             height: 80px;
-            background: rgba(10, 10, 26, 0.95);
+            background: rgba(8, 8, 22, 0.96);
             border-top: 2px solid #00ff00;
             display: flex;
             justify-content: space-around;
@@ -470,14 +572,13 @@
             z-index: 100;
             padding: 5px;
         }
-
         .nav-btn {
             background: #0a1a0a;
             border: 2px solid #00aa00;
             color: #00ff00;
             padding: 8px 12px;
             font-family: 'Press Start 2P', monospace;
-            font-size: 8px;
+            font-size: 7px;
             cursor: pointer;
             transition: all 0.2s;
             text-align: center;
@@ -485,13 +586,12 @@
             margin: 0 3px;
             max-width: 100px;
         }
-
         .nav-btn:hover { background: #0a2a0a; box-shadow: 0 0 10px rgba(0, 255, 0, 0.5); }
         .nav-btn.active { background: #0a3a0a; border-color: #ffcc00; box-shadow: 0 0 20px rgba(255, 204, 0, 0.5); }
-        .nav-btn .nav-icon { font-size: 20px; display: block; margin-bottom: 3px; }
+        .nav-btn .nav-icon { font-size: 18px; display: block; margin-bottom: 3px; }
 
         .window {
-            background: rgba(8, 8, 30, 0.94);
+            background: rgba(8, 8, 28, 0.94);
             border: 2px solid #00ff00;
             padding: 20px;
             max-width: 350px;
@@ -500,7 +600,6 @@
             overflow-y: auto;
             animation: slideUp 0.3s ease-out;
         }
-
         .input-field {
             width: 100%;
             padding: 12px;
@@ -512,7 +611,6 @@
             font-size: 10px;
             text-align: center;
         }
-
         .btn {
             width: 100%;
             padding: 12px;
@@ -525,10 +623,8 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-
         .btn:hover { background: #0a2a0a; box-shadow: 0 0 15px rgba(0, 255, 0, 0.5); }
         .btn:disabled { background: #1a1a1a; color: #333; border-color: #333; cursor: not-allowed; }
-
         .title {
             font-size: 14px;
             color: #00ff00;
@@ -536,7 +632,6 @@
             text-align: center;
             text-shadow: 2px 2px 0 #002200;
         }
-
         .pvp-arena-mini {
             background: rgba(0, 0, 0, 0.5);
             border: 2px solid #ff4444;
@@ -547,11 +642,8 @@
             align-items: center;
             justify-content: space-around;
         }
-
-        .pvp-ship { font-size: 35px; transition: all 0.3s; }
         .pvp-vs { font-size: 14px; color: #ff4444; }
         .pvp-hp { font-size: 8px; color: #ff4444; position: absolute; top: 5px; }
-
         .leaderboard {
             background: rgba(0, 0, 0, 0.3);
             border: 1px solid #00ff00;
@@ -561,14 +653,10 @@
             font-size: 8px;
             text-align: left;
         }
-
         .leaderboard-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(0, 255, 0, 0.2); }
         .leaderboard-item .rank { color: #ffcc00; width: 30px; }
         .leaderboard-item .name { flex: 1; color: #00ff00; }
         .leaderboard-item .score { color: #00ffff; width: 50px; text-align: right; }
-
-        .ship-display { text-align: center; margin: 10px 0; animation: float 3s ease-in-out infinite; }
-
         .resources-mini {
             display: flex;
             justify-content: space-around;
@@ -579,11 +667,9 @@
             background: rgba(0, 0, 0, 0.3);
             border: 1px solid #00ff00;
         }
-
         .resource-mini-item { text-align: center; font-size: 7px; color: #00cc00; }
-        .resource-mini-item .mini-icon { font-size: 16px; display: block; }
+        .resource-mini-item .mini-icon { font-size: 14px; display: block; }
         .resource-mini-item .mini-value { color: #ffcc00; font-size: 8px; }
-
         .upgrade-row {
             display: flex;
             justify-content: space-between;
@@ -593,7 +679,6 @@
             background: rgba(0, 0, 0, 0.3);
             border: 1px solid #00ff00;
         }
-
         .upgrade-info { font-size: 8px; text-align: left; }
         .upgrade-btn {
             background: #0a1a0a; color: #00ff00; border: 1px solid #00ff00;
@@ -601,13 +686,11 @@
             font-size: 7px; cursor: pointer;
         }
         .upgrade-btn:disabled { background: #1a1a1a; color: #333; border-color: #333; cursor: not-allowed; }
-
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
     <div class="stars-layer" id="stars-layer"></div>
-
     <div class="app-container">
         <div class="background-map" id="background-map">
             <div class="galaxy-bg" id="galaxy-bg">
@@ -617,562 +700,160 @@
                         <div class="pixel-planet-inner"></div>
                     </div>
                 </div>
+                <div class="player-orbit" id="player-orbit">
+                    <div class="player-on-orbit" id="player-on-orbit"></div>
+                </div>
             </div>
         </div>
-
         <div class="top-panel">
             <button class="back-btn hidden" id="back-btn" onclick="goBack()">←</button>
             <div></div>
-            <div class="spice-counter hidden" id="spice-counter">
-                💎 СПАЙС<br><span id="spice-value">0</span>/50
-            </div>
+            <div class="spice-counter hidden" id="spice-counter">💎 СПАЙС<br><span id="spice-value">0</span>/50</div>
         </div>
-
-        <button class="dev-reset-btn hidden" id="dev-reset-btn" onclick="devReset()" title="Сброс">⟳</button>
-
+        <button class="dev-reset-btn hidden" id="dev-reset-btn" onclick="devReset()">⟳</button>
         <div class="loot-feed" id="loot-feed"></div>
-
         <div class="content-overlay" id="content-overlay">
             <div class="window" id="window-start">
                 <div class="title">SPACE DREAM</div>
                 <input type="text" class="input-field" id="input-player-name" placeholder="ИМЯ ИГРОКА" maxlength="12">
                 <button class="btn" onclick="setPlayerName()">ДАЛЕЕ</button>
             </div>
-
             <div class="window hidden" id="window-faction">
                 <div class="title">ВЫБЕРИ ФРАКЦИЮ</div>
-                <div class="btn" style="border-color:#4488ff; color:#4488ff;" onclick="selectFaction('Конфедерация', '#4488ff', 'shield')">
-                    ◆ КОНФЕДЕРАЦИЯ<br><small>Щит +50%</small>
-                </div>
-                <div class="btn" style="border-color:#ff6622; color:#ff6622;" onclick="selectFaction('Повстанцы', '#ff6622', 'weapon')">
-                    ◆ ПОВСТАНЦЫ<br><small>Урон +50%</small>
-                </div>
-                <div class="btn" style="border-color:#ffbb33; color:#ffbb33;" onclick="selectFaction('Торговая гильдия', '#ffbb33', 'mining')">
-                    ◆ ТОРГОВАЯ ГИЛЬДИЯ<br><small>Добыча +50%</small>
-                </div>
+                <div class="btn" style="border-color:#4488ff;color:#4488ff" onclick="selectFaction('Конфедерация','#4488ff','shield')">◆ КОНФЕДЕРАЦИЯ<br><small>Щит +50%</small></div>
+                <div class="btn" style="border-color:#ff6622;color:#ff6622" onclick="selectFaction('Повстанцы','#ff6622','weapon')">◆ ПОВСТАНЦЫ<br><small>Урон +50%</small></div>
+                <div class="btn" style="border-color:#ffbb33;color:#ffbb33" onclick="selectFaction('Торговая гильдия','#ffbb33','mining')">◆ ТОРГОВАЯ ГИЛЬДИЯ<br><small>Добыча +50%</small></div>
             </div>
-
             <div class="window hidden" id="window-ship">
                 <div class="title">ВЫБЕРИ КОРАБЛЬ</div>
-                <div id="ship-selection" style="display:flex; gap:10px; justify-content:center; margin:15px 0;"></div>
+                <div id="ship-selection" style="display:flex;gap:12px;justify-content:center;margin:15px 0"></div>
                 <input type="text" class="input-field" id="input-ship-name" placeholder="ИМЯ КОРАБЛЯ" maxlength="14">
                 <button class="btn" id="confirm-ship-btn" onclick="confirmShip()">ПОДТВЕРДИТЬ</button>
             </div>
-
             <div class="window hidden" id="window-hangar">
                 <div class="title">АНГАР</div>
-                <div class="ship-display" id="hangar-ship"></div>
-                <div style="font-size:10px; text-align:center; margin-bottom:5px;" id="hangar-ship-name"></div>
+                <div id="hangar-ship" style="text-align:center;margin:10px 0;animation:float 3s ease-in-out infinite"></div>
+                <div style="font-size:10px;text-align:center;margin-bottom:5px" id="hangar-ship-name"></div>
                 <div class="resources-mini" id="hangar-resources"></div>
                 <div id="upgrades-list"></div>
             </div>
-
             <div class="window hidden" id="window-pvp">
                 <div class="title">PvP АРЕНА</div>
                 <div class="pvp-arena-mini">
-                    <span class="pvp-ship" id="pvp-player-ship"></span>
+                    <span id="pvp-player-ship"></span>
                     <span class="pvp-vs">VS</span>
-                    <span class="pvp-ship" id="pvp-enemy-ship"></span>
-                    <span class="pvp-hp" style="left:10px;" id="pvp-player-hp-text">HP:100</span>
-                    <span class="pvp-hp" style="right:10px;" id="pvp-enemy-hp-text">HP:100</span>
+                    <span id="pvp-enemy-ship"></span>
+                    <span class="pvp-hp" style="left:10px" id="pvp-player-hp-text">HP:100</span>
+                    <span class="pvp-hp" style="right:10px" id="pvp-enemy-hp-text">HP:100</span>
                 </div>
-                <div style="text-align:center; font-size:10px; color:#ffcc00;" id="pvp-timer">15</div>
-                <div style="text-align:center; font-size:8px;" id="pvp-status">Нажмите НАЙТИ БОЙ</div>
+                <div style="text-align:center;font-size:10px;color:#ffcc00" id="pvp-timer">15</div>
+                <div style="text-align:center;font-size:8px" id="pvp-status">Нажмите НАЙТИ БОЙ</div>
                 <button class="btn" onclick="searchPvP()">🔍 НАЙТИ БОЙ</button>
-                <div class="leaderboard" id="leaderboard"><div style="color:#ffcc00; margin-bottom:5px;">ТОП 15</div></div>
+                <div class="leaderboard" id="leaderboard"><div style="color:#ffcc00;margin-bottom:5px">ТОП 15</div></div>
             </div>
         </div>
-
         <div class="bottom-panel hidden" id="bottom-panel">
-            <button class="nav-btn active" id="nav-map" onclick="switchTab('map')">
-                <span class="nav-icon">◈</span>КАРТА
-            </button>
-            <button class="nav-btn" id="nav-hangar" onclick="switchTab('hangar')">
-                <span class="nav-icon">▣</span>АНГАР
-            </button>
-            <button class="nav-btn" id="nav-pvp" onclick="switchTab('pvp')">
-                <span class="nav-icon">◉</span>PvP
-            </button>
+            <button class="nav-btn active" id="nav-map" onclick="switchTab('map')"><span class="nav-icon">◈</span>КАРТА</button>
+            <button class="nav-btn" id="nav-hangar" onclick="switchTab('hangar')"><span class="nav-icon">▣</span>АНГАР</button>
+            <button class="nav-btn" id="nav-pvp" onclick="switchTab('pvp')"><span class="nav-icon">◉</span>PvP</button>
         </div>
     </div>
-
     <script>
-        window.playerName = localStorage.getItem('sd_player_name') || '';
-        window.shipName = localStorage.getItem('sd_ship_name') || '';
-        window.frac = localStorage.getItem('sd_frac') || null;
-        window.fracColor = localStorage.getItem('sd_color') || '#00ff00';
-        window.fracBonus = localStorage.getItem('sd_bonus') || null;
-        window.selectedShipIndex = parseInt(localStorage.getItem('sd_ship_index')) || 0;
+        // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
+        window.playerName=localStorage.getItem('sd_player_name')||'';
+        window.shipName=localStorage.getItem('sd_ship_name')||'';
+        window.frac=localStorage.getItem('sd_frac')||null;
+        window.fracColor=localStorage.getItem('sd_color')||'#00ff00';
+        window.fracBonus=localStorage.getItem('sd_bonus')||null;
+        window.selectedShipIndex=parseInt(localStorage.getItem('sd_ship_index'))||0;
+        window.resources={coins:parseInt(localStorage.getItem('sd_coins'))||0,shieldParts:parseInt(localStorage.getItem('sd_shield'))||0,weaponParts:parseInt(localStorage.getItem('sd_weapon'))||0,speedParts:parseInt(localStorage.getItem('sd_speed'))||0,critParts:parseInt(localStorage.getItem('sd_crit'))||0,spice:parseInt(localStorage.getItem('sd_spice'))||0};
+        window.spiceData=JSON.parse(localStorage.getItem('sd_spice_data'))||{date:'',collected:0};
+        const today=new Date().toDateString();
+        if(window.spiceData.date!==today){window.spiceData={date:today,collected:0};localStorage.setItem('sd_spice_data',JSON.stringify(window.spiceData))}
+        window.pvpScore=parseInt(localStorage.getItem('sd_pvp_score'))||0;
+        window.leaderboard=JSON.parse(localStorage.getItem('sd_leaderboard'))||[];
+        window.upgrades={shield:parseInt(localStorage.getItem('sd_upg_shield'))||1,damage:parseInt(localStorage.getItem('sd_upg_damage'))||0,speed:parseInt(localStorage.getItem('sd_upg_speed'))||0,crit:parseInt(localStorage.getItem('sd_upg_crit'))||0};
+        window.galaxyObjects=[];window.isShipFlying=false;window.pvpInterval=null;window.pvpTimerInterval=null;window.currentTab='map';
+        window.tempFaction=null;window.tempFactionColor=null;window.tempFactionBonus=null;window.tempShipIndex=null;
+        const shipStyles=[{body:'#33dd66',wing:'#44ee77',engine:'#ff9922'},{body:'#4488ff',wing:'#55aaff',engine:'#ff6644'},{body:'#ff8833',wing:'#ffaa55',engine:'#44ddff'}];
+        const lootNames={coins:'◆ МОН',shieldParts:'◈ ЩИТ',weaponParts:'▣ ОРУД',speedParts:'◉ СКОР',critParts:'◎ КРИТ',spice:'✦ СПС'};
+        window.saveAll=function(){Object.keys(window.resources).forEach(k=>localStorage.setItem('sd_'+k,window.resources[k]));localStorage.setItem('sd_spice_data',JSON.stringify(window.spiceData));localStorage.setItem('sd_pvp_score',window.pvpScore);localStorage.setItem('sd_leaderboard',JSON.stringify(window.leaderboard));localStorage.setItem('sd_player_name',window.playerName);localStorage.setItem('sd_ship_name',window.shipName)};
         
-        window.resources = {
-            coins: parseInt(localStorage.getItem('sd_coins')) || 0,
-            shieldParts: parseInt(localStorage.getItem('sd_shield')) || 0,
-            weaponParts: parseInt(localStorage.getItem('sd_weapon')) || 0,
-            speedParts: parseInt(localStorage.getItem('sd_speed')) || 0,
-            critParts: parseInt(localStorage.getItem('sd_crit')) || 0,
-            spice: parseInt(localStorage.getItem('sd_spice')) || 0
-        };
+        function createPixelShip(style,scale=1){const c=document.createElement('div');c.className='pixel-player-ship';c.style.transform=`scale(${scale})`;c.innerHTML=`<div class="pixel-ship-body" style="background:linear-gradient(180deg,${style.body} 0%,${style.body.replace('ff','aa').replace('dd','99').replace('33','22')} 50%,${style.body.replace('ff','77').replace('dd','55').replace('33','11')} 100%);border-color:${style.body.replace('ff','55').replace('dd','33').replace('33','0d')}"></div><div class="pixel-ship-wing-left" style="background:linear-gradient(180deg,${style.wing},${style.wing.replace('ff','88').replace('ee','66').replace('77','33')});border-color:${style.body.replace('ff','55').replace('dd','33').replace('33','0d')}"></div><div class="pixel-ship-wing-right" style="background:linear-gradient(180deg,${style.wing},${style.wing.replace('ff','88').replace('ee','66').replace('77','33')});border-color:${style.body.replace('ff','55').replace('dd','33').replace('33','0d')}"></div><div class="pixel-ship-cockpit"></div><div class="pixel-ship-engine" style="background:${style.engine};border-color:${style.engine.replace('ff','cc').replace('99','66')}"></div><div class="pixel-ship-engine-glow"></div>`;return c}
         
-        window.spiceData = JSON.parse(localStorage.getItem('sd_spice_data')) || { date: '', collected: 0 };
-        const today = new Date().toDateString();
-        if (window.spiceData.date !== today) {
-            window.spiceData = { date: today, collected: 0 };
-            localStorage.setItem('sd_spice_data', JSON.stringify(window.spiceData));
-        }
+        function createAsteroid(type){const c=document.createElement('div');c.className='pixel-asteroid type'+type;c.innerHTML=`<div class="ast-body"></div><div class="ast-crater" style="width:${6+type*2}px;height:${5+type*2}px;top:${20+type*5}%;left:${25+type*8}%"></div>`;return c}
         
-        window.pvpScore = parseInt(localStorage.getItem('sd_pvp_score')) || 0;
-        window.leaderboard = JSON.parse(localStorage.getItem('sd_leaderboard')) || [];
+        function createPirate(type){const c=document.createElement('div');c.className='pixel-pirate type'+type;c.innerHTML=`<div class="pir-body"></div><div class="pir-cockpit" style="width:${14+type*2}px;height:${8+type}px;top:${15+type*2}%;left:${28-type*3}%"></div><div class="pir-gun" style="width:6px;height:8px;bottom:-4px;left:40%"></div>`;return c}
+
+        window.getShipStyle=function(){return shipStyles[window.selectedShipIndex]||shipStyles[0]};
+        window.showLoot=function(type){if(!type)return;const f=document.getElementById('loot-feed');const i=document.createElement('span');i.className='loot-item';i.innerText='+'+lootNames[type];f.appendChild(i);setTimeout(()=>i.remove(),3000)};
+        window.showWindow=function(id){document.querySelectorAll('.window').forEach(w=>w.classList.add('hidden'));const w=document.getElementById('window-'+id);if(w)w.classList.remove('hidden')};
+        window.showUI=function(){document.getElementById('back-btn').classList.remove('hidden');document.getElementById('spice-counter').classList.remove('hidden');document.getElementById('bottom-panel').classList.remove('hidden');document.getElementById('dev-reset-btn').classList.remove('hidden');document.getElementById('spice-value').innerText=window.spiceData.collected};
+
+        // ЗВЕЗДЫ И ТУМАННОСТИ
+        function createBackground(){const c=document.getElementById('stars-layer');
+            for(let i=0;i<250;i++){const s=document.createElement('div');s.className='star';s.style.left=Math.random()*100+'%';s.style.top=Math.random()*100+'%';const sz=Math.random()<0.15?3:(Math.random()<0.4?2:1);s.style.width=sz+'px';s.style.height=sz+'px';s.style.setProperty('--duration',(Math.random()*4+2)+'s');s.style.setProperty('--delay',Math.random()*3+'s');c.appendChild(s)}
+            for(let i=0;i<8;i++){const s=document.createElement('div');s.className='shooting-star';s.style.left=Math.random()*90+'%';s.style.top=Math.random()*60+'%';s.style.setProperty('--travel',(Math.random()*5+5)+'s');s.style.setProperty('--sdelay',(Math.random()*8)+'s');c.appendChild(s)}
+            const colors=['#4422aa','#224488','#882244','#4444aa'];
+            for(let i=0;i<4;i++){const n=document.createElement('div');n.className='nebula';n.style.width=(120+Math.random()*150)+'px';n.style.height=(80+Math.random()*120)+'px';n.style.left=(10+Math.random()*70)+'%';n.style.top=(10+Math.random()*70)+'%';n.style.background=colors[i];document.getElementById('galaxy-bg').appendChild(n)}
+        }
+        createBackground();
+
+        function getMapCenter(){const bg=document.getElementById('galaxy-bg');return{x:bg.offsetWidth/2,y:bg.offsetHeight/2}}
+
+        // СОЗДАНИЕ КОРАБЛЯ НА ОРБИТЕ
+        function createOrbitShip(){const orbit=document.getElementById('player-on-orbit');orbit.innerHTML='';orbit.appendChild(createPixelShip(window.getShipStyle(),0.7));orbit.style.display='block'}
         
-        window.upgrades = {
-            shield: parseInt(localStorage.getItem('sd_upg_shield')) || 1,
-            damage: parseInt(localStorage.getItem('sd_upg_damage')) || 0,
-            speed: parseInt(localStorage.getItem('sd_upg_speed')) || 0,
-            crit: parseInt(localStorage.getItem('sd_upg_crit')) || 0
-        };
-        
-        window.galaxyObjects = [];
-        window.isShipFlying = false;
-        window.pvpInterval = null;
-        window.pvpTimerInterval = null;
-        window.currentTab = 'map';
-        window.tempFaction = null;
-        window.tempFactionColor = null;
-        window.tempFactionBonus = null;
-        window.tempShipIndex = null;
+        window.generateBackgroundObjects=function(){const bg=document.getElementById('galaxy-bg');bg.querySelectorAll('.bg-object').forEach(e=>e.remove());window.galaxyObjects=[];const center=getMapCenter();const phi=(1+Math.sqrt(5))/2;const types=['asteroid','asteroid','asteroid','pirate','pirate','pirate'];const shuffled=types.sort(()=>Math.random()-0.5);
+            shuffled.forEach((type,i)=>{const angle=(i*phi*Math.PI*2)%(Math.PI*2);const distance=110+(i*30);const x=center.x+Math.cos(angle)*distance;const y=center.y+Math.sin(angle)*distance;const obj={type:type==='asteroid'?'mining':'battle',x,y,element:null,subtype:Math.floor(Math.random()*3)+1};const div=document.createElement('div');div.className='bg-object';div.style.left=x+'px';div.style.top=y+'px';div.style.pointerEvents='all';div.style.cursor='pointer';
+                if(type==='asteroid'){div.appendChild(createAsteroid(obj.subtype))}else{div.appendChild(createPirate(obj.subtype))}
+                div.onclick=function(e){e.stopPropagation();if(window.currentTab==='map'&&!window.isShipFlying)window.flyToObject(obj,div)};bg.appendChild(div);obj.element=div;window.galaxyObjects.push(obj)})};
 
-        const shipStyles = [
-            { body: '#22cc55', wing: '#33dd66', engine: '#ffaa00' },
-            { body: '#4488ff', wing: '#55aaff', engine: '#ff6644' },
-            { body: '#ff8833', wing: '#ffaa55', engine: '#44ddff' }
-        ];
+        window.addEventListener('resize',()=>{const c=getMapCenter();document.getElementById('planet-container').style.left=c.x+'px';document.getElementById('planet-container').style.top=c.y+'px';window.galaxyObjects.forEach((o,i)=>{const phi=(1+Math.sqrt(5))/2;const a=(i*phi*Math.PI*2)%(Math.PI*2);const d=110+(i*30);o.x=c.x+Math.cos(a)*d;o.y=c.y+Math.sin(a)*d;if(o.element){o.element.style.left=o.x+'px';o.element.style.top=o.y+'px'}})});
 
-        const lootNames = { coins: '◆ МОН', shieldParts: '◈ ЩИТ', weaponParts: '▣ ОРУД', speedParts: '◉ СКОР', critParts: '◎ КРИТ', spice: '✦ СПАЙС' };
-
-        window.saveAll = function() {
-            Object.keys(window.resources).forEach(k => localStorage.setItem('sd_' + k, window.resources[k]));
-            localStorage.setItem('sd_spice_data', JSON.stringify(window.spiceData));
-            localStorage.setItem('sd_pvp_score', window.pvpScore);
-            localStorage.setItem('sd_leaderboard', JSON.stringify(window.leaderboard));
-            localStorage.setItem('sd_player_name', window.playerName);
-            localStorage.setItem('sd_ship_name', window.shipName);
-        };
-
-        function createPixelShip(style, scale = 1) {
-            const container = document.createElement('div');
-            container.className = 'pixel-player-ship';
-            container.style.transform = `scale(${scale})`;
-            container.innerHTML = `
-                <div class="pixel-ship-body" style="background:${style.body}; border-color:${style.body.replace('ff','99').replace('cc','88').replace('22','11')};"></div>
-                <div class="pixel-ship-wing-left" style="background:${style.wing};"></div>
-                <div class="pixel-ship-wing-right" style="background:${style.wing};"></div>
-                <div class="pixel-ship-engine" style="background:${style.engine};"></div>
-            `;
-            return container;
-        }
-
-        function createPixelAsteroid(scale = 1) {
-            const container = document.createElement('div');
-            container.className = 'pixel-asteroid';
-            container.style.transform = `scale(${scale})`;
-            container.innerHTML = '<div class="pixel-asteroid-inner"></div>';
-            return container;
-        }
-
-        function createPixelPirate(scale = 1) {
-            const container = document.createElement('div');
-            container.className = 'pixel-pirate';
-            container.style.transform = `scale(${scale})`;
-            container.innerHTML = `
-                <div class="pixel-pirate-body"></div>
-                <div class="pixel-pirate-cockpit"></div>
-                <div class="pixel-pirate-gun"></div>
-            `;
-            return container;
-        }
-
-        window.getShipStyle = function() {
-            return shipStyles[window.selectedShipIndex] || shipStyles[0];
-        };
-
-        window.showLoot = function(type) {
-            if (!type) return;
-            const feed = document.getElementById('loot-feed');
-            const item = document.createElement('span');
-            item.className = 'loot-item' + (type === 'spice' ? ' spice-loot' : '');
-            item.innerText = '+' + lootNames[type];
-            feed.appendChild(item);
-            setTimeout(() => item.remove(), 3000);
-        };
-
-        window.showWindow = function(id) {
-            document.querySelectorAll('.window').forEach(w => w.classList.add('hidden'));
-            const win = document.getElementById('window-' + id);
-            if (win) win.classList.remove('hidden');
-        };
-
-        window.showUI = function() {
-            document.getElementById('back-btn').classList.remove('hidden');
-            document.getElementById('spice-counter').classList.remove('hidden');
-            document.getElementById('bottom-panel').classList.remove('hidden');
-            document.getElementById('dev-reset-btn').classList.remove('hidden');
-            document.getElementById('spice-value').innerText = window.spiceData.collected;
-        };
-
-        function createStarLayers() {
-            const container = document.getElementById('stars-layer');
-            for (let i = 0; i < 200; i++) {
-                const star = document.createElement('div');
-                star.className = 'star';
-                star.style.left = Math.random() * 100 + '%';
-                star.style.top = Math.random() * 100 + '%';
-                const size = Math.random() < 0.2 ? 3 : (Math.random() < 0.5 ? 2 : 1);
-                star.style.width = size + 'px';
-                star.style.height = size + 'px';
-                star.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
-                star.style.setProperty('--delay', Math.random() * 2 + 's');
-                container.appendChild(star);
-            }
-            for (let i = 0; i < 6; i++) {
-                const shooting = document.createElement('div');
-                shooting.className = 'shooting-star';
-                shooting.style.left = Math.random() * 80 + '%';
-                shooting.style.top = Math.random() * 50 + '%';
-                shooting.style.setProperty('--travel', (Math.random() * 4 + 4) + 's');
-                shooting.style.setProperty('--sdelay', (Math.random() * 6) + 's');
-                container.appendChild(shooting);
-            }
-        }
-        createStarLayers();
-
-        function getMapCenter() {
-            const bg = document.getElementById('galaxy-bg');
-            return { x: bg.offsetWidth / 2, y: bg.offsetHeight / 2 };
-        }
-
-        window.generateBackgroundObjects = function() {
-            const bg = document.getElementById('galaxy-bg');
-            bg.querySelectorAll('.bg-object').forEach(el => el.remove());
-            window.galaxyObjects = [];
-            
-            const center = getMapCenter();
-            const phi = (1 + Math.sqrt(5)) / 2;
-            const types = ['asteroid', 'asteroid', 'asteroid', 'pirate', 'pirate', 'pirate'];
-            const shuffled = types.sort(() => Math.random() - 0.5);
-            
-            shuffled.forEach((type, i) => {
-                const angle = (i * phi * Math.PI * 2) % (Math.PI * 2);
-                const distance = 90 + (i * 25);
-                const x = center.x + Math.cos(angle) * distance;
-                const y = center.y + Math.sin(angle) * distance;
-                
-                const obj = { type: type === 'asteroid' ? 'mining' : 'battle', x, y, element: null };
-                
-                const div = document.createElement('div');
-                div.className = 'bg-object';
-                div.style.left = x + 'px';
-                div.style.top = y + 'px';
-                div.style.pointerEvents = 'all';
-                div.style.cursor = 'pointer';
-                
-                if (type === 'asteroid') {
-                    div.appendChild(createPixelAsteroid(0.8));
-                } else {
-                    div.appendChild(createPixelPirate(0.8));
-                }
-                
-                div.onclick = function(e) {
-                    e.stopPropagation();
-                    if (window.currentTab === 'map' && !window.isShipFlying) window.flyToObject(obj, div);
-                };
-                
-                bg.appendChild(div);
-                obj.element = div;
-                window.galaxyObjects.push(obj);
-            });
-        };
-
-        window.addEventListener('resize', () => {
-            const center = getMapCenter();
-            document.getElementById('planet-container').style.left = center.x + 'px';
-            document.getElementById('planet-container').style.top = center.y + 'px';
-            window.galaxyObjects.forEach((obj, i) => {
-                const phi = (1 + Math.sqrt(5)) / 2;
-                const angle = (i * phi * Math.PI * 2) % (Math.PI * 2);
-                const distance = 90 + (i * 25);
-                obj.x = center.x + Math.cos(angle) * distance;
-                obj.y = center.y + Math.sin(angle) * distance;
-                if (obj.element) {
-                    obj.element.style.left = obj.x + 'px';
-                    obj.element.style.top = obj.y + 'px';
-                }
-            });
-        });
-
-        window.flyToObject = function(obj, element) {
-            if (window.isShipFlying) return;
-            window.isShipFlying = true;
-            
-            const center = getMapCenter();
-            const bg = document.getElementById('galaxy-bg');
-            
-            const shipWrapper = document.createElement('div');
-            shipWrapper.className = 'flying-ship-anim';
-            shipWrapper.style.left = center.x + 'px';
-            shipWrapper.style.top = center.y + 'px';
-            shipWrapper.appendChild(createPixelShip(window.getShipStyle(), 0.7));
-            bg.appendChild(shipWrapper);
-            
-            shipWrapper.style.transition = 'all 2.5s cubic-bezier(0.4, 0, 0.2, 1)';
-            requestAnimationFrame(() => {
-                shipWrapper.style.left = obj.x + 'px';
-                shipWrapper.style.top = obj.y + 'px';
-                shipWrapper.style.transform = 'translate(-50%, -50%) scale(0.5)';
-            });
-            
-            setTimeout(() => {
-                element.style.opacity = '0';
-                const lootType = window.addLoot(window.getLoot());
+        // ПОЛЕТ К ОБЪЕКТУ
+        window.flyToObject=function(obj,element){if(window.isShipFlying)return;window.isShipFlying=true;
+            const center=getMapCenter();const bg=document.getElementById('galaxy-bg');
+            document.getElementById('player-on-orbit').style.display='none';
+            const shipW=document.createElement('div');shipW.className='flying-ship-anim';shipW.style.left=center.x+'px';shipW.style.top=center.y+'px';shipW.appendChild(createPixelShip(window.getShipStyle(),0.7));bg.appendChild(shipW);
+            // Лазер
+            const laser=document.createElement('div');laser.className='laser-line '+(obj.type==='mining'?'laser-green':'laser-red');laser.style.top=center.y+'px';laser.style.left=center.x+'px';const dx=obj.x-center.x;const dy=obj.y-center.y;const dist=Math.sqrt(dx*dx+dy*dy);laser.style.width=dist+'px';laser.style.transform=`rotate(${Math.atan2(dy,dx)}rad)`;bg.appendChild(laser);
+            // Полет 4с
+            shipW.style.transition='all 4s cubic-bezier(0.25,0.1,0.25,1)';
+            requestAnimationFrame(()=>{shipW.style.left=obj.x+'px';shipW.style.top=obj.y+'px';shipW.style.transform='translate(-50%,-50%) scale(0.5)';laser.style.opacity='1'});
+            setTimeout(()=>{
+                laser.remove();
+                // Добыча/бой 5с
+                const lootType=window.addLoot(window.getLoot());
+                // Поп-ап лут на месте объекта
+                if(lootType){const popup=document.createElement('div');popup.className='loot-popup';popup.style.left=obj.x+'px';popup.style.top=(obj.y-20)+'px';popup.style.color='#ffcc00';popup.innerText='+'+lootNames[lootType];bg.appendChild(popup);setTimeout(()=>popup.remove(),2000)}
                 window.showLoot(lootType);
-                
-                setTimeout(() => {
-                    shipWrapper.style.left = center.x + 'px';
-                    shipWrapper.style.top = center.y + 'px';
-                    shipWrapper.style.transform = 'translate(-50%, -50%) scale(1)';
-                    
-                    setTimeout(() => {
-                        shipWrapper.remove();
-                        element.remove();
-                        window.galaxyObjects = window.galaxyObjects.filter(o => o !== obj);
-                        window.isShipFlying = false;
-                        window.updateSpiceDisplay();
-                        if (document.querySelectorAll('.bg-object').length === 0) window.generateBackgroundObjects();
-                    }, 2500);
-                }, 3000);
-            }, 2500);
+                element.style.opacity='0';
+                setTimeout(()=>{
+                    // Возврат 4с
+                    shipW.style.left=center.x+'px';shipW.style.top=center.y+'px';shipW.style.transform='translate(-50%,-50%) scale(1)';
+                    setTimeout(()=>{shipW.remove();element.remove();window.galaxyObjects=window.galaxyObjects.filter(o=>o!==obj);window.isShipFlying=false;window.updateSpiceDisplay();createOrbitShip();if(document.querySelectorAll('.bg-object').length===0)window.generateBackgroundObjects()},4000)
+                },5000)
+            },4000)
         };
 
-        window.getLoot = function() {
-            const roll = Math.random() * 100;
-            if (roll < 40) return null;
-            if (roll < 60) return 'coins';
-            if (roll < 70) return 'shieldParts';
-            if (roll < 80) return 'weaponParts';
-            if (roll < 90) return 'speedParts';
-            if (roll < 97) return 'critParts';
-            return 'spice';
-        };
-
-        window.addLoot = function(type) {
-            if (!type) return null;
-            if (type === 'spice') {
-                if (window.spiceData.collected >= 50) return null;
-                window.spiceData.collected++;
-                window.resources.spice++;
-            } else {
-                const amounts = { coins: Math.floor(Math.random() * 20) + 5, shieldParts: 1, weaponParts: 1, speedParts: 1, critParts: 1 };
-                window.resources[type] += amounts[type];
-            }
-            window.saveAll();
-            return type;
-        };
-
-        window.updateSpiceDisplay = function() {
-            document.getElementById('spice-value').innerText = window.spiceData.collected;
-        };
-
-        window.setPlayerName = function() {
-            const name = document.getElementById('input-player-name').value.trim();
-            if (name.length < 2) { alert('Минимум 2 символа'); return; }
-            window.playerName = name;
-            window.saveAll();
-            window.showWindow('faction');
-        };
-
-        window.devReset = function() {
-            if (confirm('СБРОСИТЬ ВСЕ ДАННЫЕ?')) { localStorage.clear(); location.reload(); }
-        };
-
-        window.selectFaction = function(name, color, bonus) {
-            window.tempFaction = name; window.tempFactionColor = color; window.tempFactionBonus = bonus;
-            window.tempShipIndex = null;
-            const container = document.getElementById('ship-selection');
-            container.innerHTML = '';
-            shipStyles.forEach((style, i) => {
-                const card = document.createElement('div');
-                card.style.cssText = 'cursor:pointer; padding:10px; border:2px solid #00ff00; text-align:center; display:flex; align-items:center; justify-content:center;';
-                const shipEl = createPixelShip(style, 1.2);
-                card.appendChild(shipEl);
-                card.onclick = () => {
-                    window.tempShipIndex = i;
-                    container.querySelectorAll('div').forEach(d => d.style.borderColor = '#00ff00');
-                    card.style.borderColor = '#ffcc00';
-                    document.getElementById('confirm-ship-btn').disabled = false;
-                };
-                container.appendChild(card);
-            });
-            document.getElementById('confirm-ship-btn').disabled = true;
-            window.showWindow('ship');
-        };
-
-        window.confirmShip = function() {
-            const name = document.getElementById('input-ship-name').value.trim();
-            if (window.tempShipIndex === null || name.length < 2) { alert('Выберите корабль и введите имя'); return; }
-            window.frac = window.tempFaction; window.fracColor = window.tempFactionColor;
-            window.fracBonus = window.tempFactionBonus; window.selectedShipIndex = window.tempShipIndex;
-            window.shipName = name;
-            ['sd_frac','sd_color','sd_bonus','sd_ship_index','sd_ship_name'].forEach(k => localStorage.setItem(k, window[k.replace('sd_','')]));
-            window.saveAll();
-            window.showUI();
-            window.showWindow('main');
-            
-            const center = getMapCenter();
-            document.getElementById('planet-container').style.left = center.x + 'px';
-            document.getElementById('planet-container').style.top = center.y + 'px';
-            
-            window.generateBackgroundObjects();
-            window.updateLeaderboard();
-        };
-
-        window.switchTab = function(tab) {
-            window.currentTab = tab;
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('nav-' + tab).classList.add('active');
-            
-            document.querySelectorAll('.bg-object').forEach(obj => obj.style.display = tab === 'map' ? 'block' : 'none');
-            document.getElementById('loot-feed').style.display = tab === 'map' ? 'flex' : 'none';
-            
-            if (tab === 'map') {
-                document.getElementById('content-overlay').style.display = 'none';
-            } else {
-                document.getElementById('content-overlay').style.display = 'flex';
-                if (tab === 'hangar') {
-                    window.showWindow('hangar');
-                    const hangarShip = document.getElementById('hangar-ship');
-                    hangarShip.innerHTML = '';
-                    hangarShip.appendChild(createPixelShip(window.getShipStyle(), 1.5));
-                    document.getElementById('hangar-ship-name').innerText = window.shipName;
-                    updateHangarResources();
-                    updateHangar();
-                } else if (tab === 'pvp') {
-                    window.showWindow('pvp');
-                    const pvpShip = document.getElementById('pvp-player-ship');
-                    pvpShip.innerHTML = '';
-                    pvpShip.appendChild(createPixelShip(window.getShipStyle(), 1));
-                    window.updateLeaderboard();
-                }
-            }
-        };
-
-        function updateHangarResources() {
-            const items = [
-                { icon: '◆', key: 'coins', label: 'МОН' },
-                { icon: '◈', key: 'shieldParts', label: 'ЩИТ' },
-                { icon: '▣', key: 'weaponParts', label: 'ОРУД' },
-                { icon: '◉', key: 'speedParts', label: 'СКОР' },
-                { icon: '◎', key: 'critParts', label: 'КРИТ' },
-                { icon: '✦', key: 'spice', label: 'СПС' }
-            ];
-            document.getElementById('hangar-resources').innerHTML = items.map(item => `
-                <div class="resource-mini-item"><span class="mini-icon">${item.icon}</span><span>${item.label}</span><div class="mini-value">${window.resources[item.key]}</div></div>
-            `).join('');
-        }
-
-        function updateHangar() {
-            const types = [
-                { key: 'shield', name: 'ЩИТЫ', icon: '◈', costKey: 'shieldParts' },
-                { key: 'damage', name: 'ОРУДИЯ', icon: '▣', costKey: 'weaponParts' },
-                { key: 'speed', name: 'СКОРОСТЬ', icon: '◉', costKey: 'speedParts' },
-                { key: 'crit', name: 'КРИТ/ДОДЖ', icon: '◎', costKey: 'critParts' }
-            ];
-            document.getElementById('upgrades-list').innerHTML = types.map(t => {
-                const cost = 5 * (window.upgrades[t.key] + 1);
-                return `<div class="upgrade-row"><div class="upgrade-info"><div>${t.icon} ${t.name}</div><small>УР.${window.upgrades[t.key]} | ${cost} ${t.icon}</small></div><button class="upgrade-btn" onclick="window.buyUpgrade('${t.key}')" ${window.resources[t.costKey] >= cost ? '' : 'disabled'}>+</button></div>`;
-            }).join('');
-        }
-
-        window.buyUpgrade = function(type) {
-            const costKeys = { shield: 'shieldParts', damage: 'weaponParts', speed: 'speedParts', crit: 'critParts' };
-            const cost = 5 * (window.upgrades[type] + 1);
-            if (window.resources[costKeys[type]] >= cost) {
-                window.resources[costKeys[type]] -= cost;
-                window.upgrades[type]++;
-                localStorage.setItem('sd_upg_' + type, window.upgrades[type]);
-                window.saveAll();
-                updateHangarResources();
-                updateHangar();
-            }
-        };
-
-        window.searchPvP = function() {
-            if (window.pvpInterval) return;
-            const stats = { shield: 10 + window.upgrades.shield * 2, damage: 5 + window.upgrades.damage, attackSpeed: 1500 - window.upgrades.speed * 200, critDodge: 5 + window.upgrades.crit * 2 };
-            if (window.fracBonus === 'shield') stats.shield = Math.floor(stats.shield * 1.5);
-            if (window.fracBonus === 'weapon') stats.damage = Math.floor(stats.damage * 1.5);
-            
-            let pHP = stats.shield, eHP = 8 + Math.floor(Math.random() * 12), timeLeft = 15;
-            document.getElementById('pvp-timer').innerText = timeLeft;
-            const enemyShip = document.getElementById('pvp-enemy-ship');
-            enemyShip.innerHTML = '';
-            enemyShip.appendChild(createPixelPirate(1));
-            
-            window.pvpTimerInterval = setInterval(() => { timeLeft--; document.getElementById('pvp-timer').innerText = timeLeft; if(timeLeft<=0) endPvP(pHP,eHP); }, 1000);
-            window.pvpInterval = setInterval(() => {
-                let dmg = Math.floor(Math.random()*stats.damage)+1;
-                if(Math.random()*100 < stats.critDodge) dmg *= 2;
-                eHP -= dmg;
-                document.getElementById('pvp-enemy-hp-text').innerText = 'HP:'+Math.max(0,eHP);
-                if(eHP<=0) { endPvP(pHP,0); return; }
-                setTimeout(() => {
-                    if(eHP<=0) return;
-                    let eDmg = Math.floor(Math.random()*5)+2;
-                    if(Math.random()*100 < stats.critDodge) document.getElementById('pvp-status').innerText = 'УКЛОН!';
-                    else { pHP -= eDmg; document.getElementById('pvp-player-hp-text').innerText = 'HP:'+Math.max(0,pHP); }
-                    if(pHP<=0) endPvP(0,eHP);
-                }, 500);
-            }, Math.max(stats.attackSpeed, 500));
-        };
-
-        function endPvP(pHP, eHP) {
-            clearInterval(window.pvpInterval); clearInterval(window.pvpTimerInterval);
-            window.pvpInterval = null; window.pvpTimerInterval = null;
-            let result;
-            if(pHP<=0 && eHP<=0) { result = 'НИЧЬЯ! +2'; window.pvpScore += 2; }
-            else if(eHP<=0) { result = 'ПОБЕДА! +15'; window.pvpScore += 15; }
-            else if(pHP<=0) { result = 'ПОРАЖЕНИЕ... -12'; window.pvpScore = Math.max(0, window.pvpScore-12); }
-            else { result = 'НИЧЬЯ! +2'; window.pvpScore += 2; }
-            document.getElementById('pvp-status').innerText = result;
-            document.getElementById('pvp-timer').innerText = '0';
-            window.updateLeaderboard();
-            window.saveAll();
-        }
-
-        window.updateLeaderboard = function() {
-            const idx = window.leaderboard.findIndex(p => p.name === window.playerName);
-            if(idx >= 0) window.leaderboard[idx].score = window.pvpScore;
-            else if(window.playerName) window.leaderboard.push({ name: window.playerName, score: window.pvpScore });
-            window.leaderboard.sort((a,b) => b.score - a.score);
-            window.leaderboard = window.leaderboard.slice(0, 15);
-            document.getElementById('leaderboard').innerHTML = '<div style="color:#ffcc00; margin-bottom:5px;">ТОП 15</div>' + window.leaderboard.map((p,i) => `<div class="leaderboard-item"><span class="rank">#${i+1}</span><span class="name">${p.name}</span><span class="score">${p.score}</span></div>`).join('');
-            window.saveAll();
-        };
-
-        window.goBack = function() { if(window.currentTab !== 'map') window.switchTab('map'); };
-
-        if (window.Telegram?.WebApp) { try { window.Telegram.WebApp.expand(); } catch(e) {} }
-
-        if (window.playerName && window.frac) {
-            window.showUI();
-            document.getElementById('content-overlay').style.display = 'none';
-            const center = getMapCenter();
-            document.getElementById('planet-container').style.left = center.x + 'px';
-            document.getElementById('planet-container').style.top = center.y + 'px';
-            window.generateBackgroundObjects();
-            window.updateLeaderboard();
-        } else if (window.playerName) {
-            window.showWindow('faction');
-        } else {
-            window.showWindow('start');
-        }
+        window.getLoot=function(){const r=Math.random()*100;if(r<40)return null;if(r<60)return'coins';if(r<70)return'shieldParts';if(r<80)return'weaponParts';if(r<90)return'speedParts';if(r<97)return'critParts';return'spice'};
+        window.addLoot=function(type){if(!type)return null;if(type==='spice'){if(window.spiceData.collected>=50)return null;window.spiceData.collected++;window.resources.spice++}else{const a={coins:Math.floor(Math.random()*20)+5,shieldParts:1,weaponParts:1,speedParts:1,critParts:1};window.resources[type]+=a[type]}window.saveAll();return type};
+        window.updateSpiceDisplay=function(){document.getElementById('spice-value').innerText=window.spiceData.collected};
+        window.setPlayerName=function(){const n=document.getElementById('input-player-name').value.trim();if(n.length<2){alert('Минимум 2 символа');return}window.playerName=n;window.saveAll();window.showWindow('faction')};
+        window.devReset=function(){if(confirm('СБРОСИТЬ ВСЕ ДАННЫЕ?')){localStorage.clear();location.reload()}};
+        window.selectFaction=function(name,color,bonus){window.tempFaction=name;window.tempFactionColor=color;window.tempFactionBonus=bonus;window.tempShipIndex=null;const c=document.getElementById('ship-selection');c.innerHTML='';shipStyles.forEach((s,i)=>{const card=document.createElement('div');card.style.cssText='cursor:pointer;padding:10px;border:2px solid #00ff00;text-align:center;';card.appendChild(createPixelShip(s,1));card.onclick=()=>{window.tempShipIndex=i;c.querySelectorAll('div').forEach(d=>d.style.borderColor='#00ff00');card.style.borderColor='#ffcc00';document.getElementById('confirm-ship-btn').disabled=false};c.appendChild(card)});document.getElementById('confirm-ship-btn').disabled=true;window.showWindow('ship')};
+        window.confirmShip=function(){const n=document.getElementById('input-ship-name').value.trim();if(window.tempShipIndex===null||n.length<2){alert('Выберите корабль и введите имя');return}window.frac=window.tempFaction;window.fracColor=window.tempFactionColor;window.fracBonus=window.tempFactionBonus;window.selectedShipIndex=window.tempShipIndex;window.shipName=n;['sd_frac','sd_color','sd_bonus','sd_ship_index','sd_ship_name'].forEach(k=>localStorage.setItem(k,window[k.replace('sd_','')]));window.saveAll();window.showUI();document.getElementById('content-overlay').style.display='none';const center=getMapCenter();document.getElementById('planet-container').style.left=center.x+'px';document.getElementById('planet-container').style.top=center.y+'px';createOrbitShip();window.generateBackgroundObjects();window.updateLeaderboard()};
+        window.switchTab=function(tab){window.currentTab=tab;document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));document.getElementById('nav-'+tab).classList.add('active');document.querySelectorAll('.bg-object').forEach(o=>o.style.display=tab==='map'?'block':'none');document.getElementById('loot-feed').style.display=tab==='map'?'flex':'none';if(tab==='map'){document.getElementById('content-overlay').style.display='none'}else{document.getElementById('content-overlay').style.display='flex';if(tab==='hangar'){window.showWindow('hangar');const h=document.getElementById('hangar-ship');h.innerHTML='';h.appendChild(createPixelShip(window.getShipStyle(),1.3));document.getElementById('hangar-ship-name').innerText=window.shipName;updateHangarResources();updateHangar()}else if(tab==='pvp'){window.showWindow('pvp');const p=document.getElementById('pvp-player-ship');p.innerHTML='';p.appendChild(createPixelShip(window.getShipStyle(),0.9));window.updateLeaderboard()}}};
+        function updateHangarResources(){const i=[{icon:'◆',key:'coins',label:'МОН'},{icon:'◈',key:'shieldParts',label:'ЩИТ'},{icon:'▣',key:'weaponParts',label:'ОРУД'},{icon:'◉',key:'speedParts',label:'СКОР'},{icon:'◎',key:'critParts',label:'КРИТ'},{icon:'✦',key:'spice',label:'СПС'}];document.getElementById('hangar-resources').innerHTML=i.map(t=>`<div class="resource-mini-item"><span class="mini-icon">${t.icon}</span><span>${t.label}</span><div class="mini-value">${window.resources[t.key]}</div></div>`).join('')}
+        function updateHangar(){const t=[{key:'shield',name:'ЩИТЫ',icon:'◈',costKey:'shieldParts'},{key:'damage',name:'ОРУДИЯ',icon:'▣',costKey:'weaponParts'},{key:'speed',name:'СКОРОСТЬ',icon:'◉',costKey:'speedParts'},{key:'crit',name:'КРИТ/ДОДЖ',icon:'◎',costKey:'critParts'}];document.getElementById('upgrades-list').innerHTML=t.map(u=>{const c=5*(window.upgrades[u.key]+1);return`<div class="upgrade-row"><div class="upgrade-info"><div>${u.icon} ${u.name}</div><small>УР.${window.upgrades[u.key]} | ${c} ${u.icon}</small></div><button class="upgrade-btn" onclick="window.buyUpgrade('${u.key}')" ${window.resources[u.costKey]>=c?'':'disabled'}>+</button></div>`}).join('')}
+        window.buyUpgrade=function(type){const ck={shield:'shieldParts',damage:'weaponParts',speed:'speedParts',crit:'critParts'};const c=5*(window.upgrades[type]+1);if(window.resources[ck[type]]>=c){window.resources[ck[type]]-=c;window.upgrades[type]++;localStorage.setItem('sd_upg_'+type,window.upgrades[type]);window.saveAll();updateHangarResources();updateHangar()}};
+        window.searchPvP=function(){if(window.pvpInterval)return;const s={shield:10+window.upgrades.shield*2,damage:5+window.upgrades.damage,attackSpeed:1500-window.upgrades.speed*200,critDodge:5+window.upgrades.crit*2};if(window.fracBonus==='shield')s.shield=Math.floor(s.shield*1.5);if(window.fracBonus==='weapon')s.damage=Math.floor(s.damage*1.5);let pHP=s.shield,eHP=8+Math.floor(Math.random()*12),tL=15;document.getElementById('pvp-timer').innerText=tL;const eS=document.getElementById('pvp-enemy-ship');eS.innerHTML='';eS.appendChild(createPirate(Math.floor(Math.random()*3)+1));window.pvpTimerInterval=setInterval(()=>{tL--;document.getElementById('pvp-timer').innerText=tL;if(tL<=0)endPvP(pHP,eHP)},1000);window.pvpInterval=setInterval(()=>{let d=Math.floor(Math.random()*s.damage)+1;if(Math.random()*100<s.critDodge)d*=2;eHP-=d;document.getElementById('pvp-enemy-hp-text').innerText='HP:'+Math.max(0,eHP);if(eHP<=0){endPvP(pHP,0);return}setTimeout(()=>{if(eHP<=0)return;let eD=Math.floor(Math.random()*5)+2;if(Math.random()*100<s.critDodge)document.getElementById('pvp-status').innerText='УКЛОН!';else{pHP-=eD;document.getElementById('pvp-player-hp-text').innerText='HP:'+Math.max(0,pHP)}if(pHP<=0)endPvP(0,eHP)},500)},Math.max(s.attackSpeed,500))};
+        function endPvP(pHP,eHP){clearInterval(window.pvpInterval);clearInterval(window.pvpTimerInterval);window.pvpInterval=null;window.pvpTimerInterval=null;let r;if(pHP<=0&&eHP<=0){r='НИЧЬЯ! +2';window.pvpScore+=2}else if(eHP<=0){r='ПОБЕДА! +15';window.pvpScore+=15}else if(pHP<=0){r='ПОРАЖЕНИЕ... -12';window.pvpScore=Math.max(0,window.pvpScore-12)}else{r='НИЧЬЯ! +2';window.pvpScore+=2}document.getElementById('pvp-status').innerText=r;document.getElementById('pvp-timer').innerText='0';window.updateLeaderboard();window.saveAll()}
+        window.updateLeaderboard=function(){const i=window.leaderboard.findIndex(p=>p.name===window.playerName);if(i>=0)window.leaderboard[i].score=window.pvpScore;else if(window.playerName)window.leaderboard.push({name:window.playerName,score:window.pvpScore});window.leaderboard.sort((a,b)=>b.score-a.score);window.leaderboard=window.leaderboard.slice(0,15);document.getElementById('leaderboard').innerHTML='<div style="color:#ffcc00;margin-bottom:5px">ТОП 15</div>'+window.leaderboard.map((p,i)=>`<div class="leaderboard-item"><span class="rank">#${i+1}</span><span class="name">${p.name}</span><span class="score">${p.score}</span></div>`).join('');window.saveAll()};
+        window.goBack=function(){if(window.currentTab!=='map')window.switchTab('map')};
+        if(window.Telegram?.WebApp){try{window.Telegram.WebApp.expand()}catch(e){}}
+        if(window.playerName&&window.frac){window.showUI();document.getElementById('content-overlay').style.display='none';const c=getMapCenter();document.getElementById('planet-container').style.left=c.x+'px';document.getElementById('planet-container').style.top=c.y+'px';createOrbitShip();window.generateBackgroundObjects();window.updateLeaderboard()}else if(window.playerName){window.showWindow('faction')}else{window.showWindow('start')}
     </script>
 </body>
 </html>
