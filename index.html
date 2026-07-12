@@ -2,29 +2,33 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Space Dream</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         
         * {
-            image-rendering: pixelated;
+            image-rendering: auto;
             -ms-interpolation-mode: nearest-neighbor;
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
         
-        body { 
-            background: #000005;
+        html, body { 
+            background: #000000;
             color: #00ff00; 
             font-family: 'Press Start 2P', monospace; 
             user-select: none; 
             -webkit-user-select: none;
             overflow: hidden;
             height: 100vh;
+            height: 100dvh;
             width: 100vw;
+            width: 100dvw;
             position: fixed;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
         
         .stars-layer {
@@ -39,15 +43,24 @@
         
         .star {
             position: absolute;
-            background: #fff;
+            background: #ffffff;
             border-radius: 50%;
             animation: twinkle var(--duration) infinite;
             animation-delay: var(--delay);
         }
         
+        .star.bright {
+            background: #aaccff;
+            box-shadow: 0 0 2px #aaccff;
+        }
+        
+        .star.dim {
+            background: #667788;
+        }
+        
         @keyframes twinkle {
-            0%, 100% { opacity: 0.15; }
-            50% { opacity: 0.85; }
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 0.9; }
         }
         
         @keyframes rotate {
@@ -56,8 +69,8 @@
         }
         
         @keyframes orbitAnim {
-            from { transform: rotate(0deg) translateX(130px) rotate(0deg); }
-            to { transform: rotate(360deg) translateX(130px) rotate(-360deg); }
+            from { transform: rotate(0deg) translateX(95px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(95px) rotate(-360deg); }
         }
         
         @keyframes slideUp {
@@ -67,34 +80,25 @@
         
         @keyframes lootPopup {
             0% { opacity: 0; transform: translate(-50%, 0); }
-            15% { opacity: 1; transform: translate(-50%, -25px); }
-            100% { opacity: 0; transform: translate(-50%, -70px); }
+            15% { opacity: 1; transform: translate(-50%, -30px); }
+            100% { opacity: 0; transform: translate(-50%, -80px); }
         }
         
         @keyframes laserPulse {
-            0%, 100% { opacity: 0.5; }
+            0%, 100% { opacity: 0.7; }
             50% { opacity: 1; }
         }
         
         @keyframes engineGlow {
-            from { filter: drop-shadow(0 0 4px #4488ff); }
-            to { filter: drop-shadow(0 0 10px #66aaff); }
-        }
-        
-        @keyframes miningBeam {
-            0%, 100% { opacity: 0.6; }
-            50% { opacity: 1; }
-        }
-        
-        @keyframes battleFlash {
-            0%, 100% { opacity: 0.7; }
-            50% { opacity: 1; filter: brightness(1.5); }
+            from { filter: drop-shadow(0 0 3px #4488cc); }
+            to { filter: drop-shadow(0 0 8px #6699dd); }
         }
 
         .app-container {
             position: relative;
             width: 100%;
             height: 100vh;
+            height: 100dvh;
             display: flex;
             flex-direction: column;
         }
@@ -105,6 +109,7 @@
             left: 0;
             width: 100%;
             height: calc(100% - 80px);
+            height: calc(100dvh - 80px);
             z-index: 1;
             pointer-events: none;
         }
@@ -113,7 +118,7 @@
             position: relative;
             width: 100%;
             height: 100%;
-            background: radial-gradient(ellipse at 50% 50%, #020815 0%, #010310 60%, #000008 100%);
+            background: radial-gradient(ellipse at 50% 50%, #010310 0%, #000008 60%, #000000 100%);
             overflow: hidden;
         }
 
@@ -125,12 +130,12 @@
             z-index: 2;
         }
 
-        /* ПЛАНЕТА 140px - РЕАЛИСТИЧНЫЙ СТИЛЬ */
+        /* ПЛАНЕТА */
         .pixel-planet {
-            width: 140px;
-            height: 140px;
+            width: 120px;
+            height: 120px;
             position: relative;
-            animation: rotate 40s linear infinite;
+            animation: rotate 50s linear infinite;
         }
         
         .pixel-planet-inner {
@@ -138,12 +143,12 @@
             height: 100%;
             border-radius: 50%;
             background: 
-                radial-gradient(circle at 30% 30%, #8899aa 0%, #556677 8%, #334455 20%, #1a2a38 40%, #0d1520 60%, #050a10 80%, #020408 100%);
+                radial-gradient(circle at 30% 30%, #667788 0%, #445566 10%, #223344 25%, #111a28 45%, #080d15 65%, #030508 85%, #010203 100%);
             box-shadow: 
-                0 0 30px rgba(100, 140, 180, 0.3),
-                0 0 60px rgba(80, 120, 160, 0.15),
-                inset 0 -15px 30px rgba(0, 0, 0, 0.7);
-            border: 2px solid #2a3a4a;
+                0 0 20px rgba(80, 100, 130, 0.2),
+                0 0 40px rgba(60, 80, 110, 0.1),
+                inset 0 -10px 20px rgba(0, 0, 0, 0.7);
+            border: 1px solid #1a2530;
             position: relative;
             overflow: hidden;
         }
@@ -152,46 +157,46 @@
             content: '';
             position: absolute;
             top: 5%;
-            left: 20%;
-            width: 40%;
-            height: 20%;
-            background: rgba(180, 200, 220, 0.08);
+            left: 18%;
+            width: 38%;
+            height: 18%;
+            background: rgba(160, 180, 200, 0.06);
             border-radius: 50%;
-            transform: rotate(-10deg);
+            transform: rotate(-8deg);
         }
         
         .pixel-planet-inner::after {
             content: '';
             position: absolute;
-            bottom: 10%;
-            right: 15%;
-            width: 30%;
-            height: 15%;
+            bottom: 8%;
+            right: 12%;
+            width: 28%;
+            height: 12%;
             background: rgba(0, 0, 0, 0.5);
             border-radius: 50%;
         }
         
         .planet-atmosphere {
             position: absolute;
-            top: -8px;
-            left: -8px;
-            width: 156px;
-            height: 156px;
+            top: -6px;
+            left: -6px;
+            width: 132px;
+            height: 132px;
             border-radius: 50%;
-            border: 3px solid rgba(100, 140, 180, 0.15);
+            border: 2px solid rgba(80, 100, 130, 0.1);
         }
         
         .pixel-ring {
             position: absolute;
-            top: -20px;
-            left: -20px;
-            width: 180px;
-            height: 180px;
-            border: 4px solid rgba(120, 150, 180, 0.2);
+            top: -15px;
+            left: -15px;
+            width: 150px;
+            height: 150px;
+            border: 3px solid rgba(90, 110, 140, 0.15);
             border-radius: 50%;
             border-top-color: transparent;
             border-right-color: transparent;
-            animation: rotate 12s linear infinite reverse;
+            animation: rotate 15s linear infinite reverse;
         }
 
         .player-orbit {
@@ -205,183 +210,175 @@
         
         .player-on-orbit {
             position: absolute;
-            animation: orbitAnim 25s linear infinite;
+            animation: orbitAnim 20s linear infinite;
         }
 
-        /* КОРАБЛЬ ИГРОКА - РЕАЛИСТИЧНЫЙ */
+        /* КОРАБЛЬ ИГРОКА */
         .pixel-player-ship {
-            width: 40px;
-            height: 48px;
+            width: 32px;
+            height: 38px;
             position: relative;
-            filter: drop-shadow(0 0 8px rgba(80, 140, 255, 0.5));
-            animation: engineGlow 1.5s infinite alternate;
+            animation: engineGlow 2s infinite alternate;
         }
         
         .ship-hull {
-            width: 50%;
-            height: 60%;
-            background: linear-gradient(180deg, #8899aa 0%, #556678 30%, #334455 60%, #1a2a35 100%);
+            width: 46%;
+            height: 58%;
+            background: linear-gradient(180deg, #778899 0%, #556678 35%, #334455 65%, #1a2a35 100%);
             position: absolute;
-            top: 15%;
-            left: 25%;
-            clip-path: polygon(20% 0%, 80% 0%, 100% 30%, 90% 100%, 10% 100%, 0% 30%);
-            border: 1.5px solid #445566;
+            top: 16%;
+            left: 27%;
+            clip-path: polygon(22% 0%, 78% 0%, 100% 28%, 88% 100%, 12% 100%, 0% 28%);
+            border: 1px solid #3a4a5a;
         }
         
         .ship-hull::after {
             content: '';
             position: absolute;
-            top: 10%;
-            left: 15%;
-            width: 70%;
-            height: 35%;
-            background: rgba(150, 180, 210, 0.2);
-            clip-path: polygon(15% 0%, 85% 0%, 100% 100%, 0% 100%);
+            top: 8%;
+            left: 12%;
+            width: 76%;
+            height: 32%;
+            background: rgba(140, 160, 190, 0.15);
+            clip-path: polygon(18% 0%, 82% 0%, 100% 100%, 0% 100%);
         }
         
         .ship-wing-l {
             position: absolute;
-            top: 25%;
-            left: 5%;
-            width: 24%;
-            height: 32%;
-            background: linear-gradient(180deg, #778899, #445566);
-            clip-path: polygon(100% 0%, 100% 100%, 40% 90%, 0% 50%, 40% 10%);
-            border: 1px solid #334455;
+            top: 26%;
+            left: 8%;
+            width: 22%;
+            height: 30%;
+            background: linear-gradient(180deg, #667788, #3a4a5a);
+            clip-path: polygon(100% 0%, 100% 100%, 45% 92%, 0% 50%, 45% 8%);
+            border: 1px solid #2a3a4a;
         }
         
         .ship-wing-r {
             position: absolute;
-            top: 25%;
-            right: 5%;
-            width: 24%;
-            height: 32%;
-            background: linear-gradient(180deg, #778899, #445566);
-            clip-path: polygon(0% 0%, 0% 100%, 60% 90%, 100% 50%, 60% 10%);
-            border: 1px solid #334455;
+            top: 26%;
+            right: 8%;
+            width: 22%;
+            height: 30%;
+            background: linear-gradient(180deg, #667788, #3a4a5a);
+            clip-path: polygon(0% 0%, 0% 100%, 55% 92%, 100% 50%, 55% 8%);
+            border: 1px solid #2a3a4a;
         }
         
         .ship-cockpit {
             position: absolute;
             top: 22%;
-            left: 33%;
-            width: 34%;
-            height: 18%;
-            background: #aaccff;
-            clip-path: polygon(15% 0%, 85% 0%, 100% 100%, 0% 100%);
-            border: 1px solid #6688aa;
-            box-shadow: inset 0 0 4px rgba(200, 220, 255, 0.5);
+            left: 34%;
+            width: 32%;
+            height: 16%;
+            background: #99bbdd;
+            clip-path: polygon(18% 0%, 82% 0%, 100% 100%, 0% 100%);
+            border: 1px solid #557799;
+            box-shadow: inset 0 0 3px rgba(180, 210, 240, 0.4);
         }
         
         .ship-engine {
             position: absolute;
-            bottom: 0;
-            left: 30%;
-            width: 40%;
-            height: 14%;
-            background: #556677;
-            clip-path: polygon(15% 0%, 85% 0%, 70% 100%, 30% 100%);
-            border: 1px solid #334455;
+            bottom: 2px;
+            left: 32%;
+            width: 36%;
+            height: 12%;
+            background: #4a5a6a;
+            clip-path: polygon(18% 0%, 82% 0%, 68% 100%, 32% 100%);
+            border: 1px solid #2a3a4a;
         }
         
         .ship-engine-glow {
             position: absolute;
-            bottom: -6px;
-            left: 33%;
-            width: 34%;
-            height: 8px;
-            background: #6699cc;
+            bottom: -4px;
+            left: 34%;
+            width: 32%;
+            height: 6px;
+            background: #5588aa;
             border-radius: 50%;
-            filter: blur(2px);
-            animation: engineGlow 0.6s infinite alternate;
+            filter: blur(1.5px);
+            animation: engineGlow 0.8s infinite alternate;
         }
 
-        /* АСТЕРОИДЫ - РЕАЛИСТИЧНЫЕ */
+        /* АСТЕРОИДЫ */
         .pixel-asteroid {
             position: relative;
         }
         
         .ast-body {
-            border: 1.5px solid #3a3028;
+            border: 1px solid #2a2018;
         }
         
         .pixel-asteroid.type1 .ast-body {
-            width: 36px;
-            height: 32px;
-            background: linear-gradient(135deg, #6b5b4a 0%, #4a3a2a 30%, #352820 60%, #1a120a 100%);
-            clip-path: polygon(20% 8%, 65% 0%, 90% 25%, 80% 70%, 50% 95%, 15% 75%, 0% 30%);
+            width: 28px;
+            height: 24px;
+            background: linear-gradient(135deg, #5a4a3a 0%, #3a2a1a 35%, #251810 65%, #100a05 100%);
+            clip-path: polygon(22% 10%, 60% 0%, 88% 22%, 78% 68%, 48% 92%, 18% 72%, 0% 28%);
         }
         
         .pixel-asteroid.type2 .ast-body {
-            width: 30px;
-            height: 36px;
-            background: linear-gradient(135deg, #5a4a3a 0%, #3a2a1a 30%, #251810 60%, #100a05 100%);
-            clip-path: polygon(25% 0%, 75% 12%, 95% 40%, 80% 80%, 35% 95%, 8% 65%, 0% 20%);
+            width: 24px;
+            height: 28px;
+            background: linear-gradient(135deg, #4a3a2a 0%, #2a1a0a 35%, #150a05 65%, #080300 100%);
+            clip-path: polygon(28% 0%, 72% 10%, 92% 38%, 78% 78%, 32% 92%, 10% 62%, 0% 18%);
         }
         
         .pixel-asteroid.type3 .ast-body {
-            width: 34px;
-            height: 30px;
-            background: linear-gradient(135deg, #7a6a5a 0%, #5a4a3a 30%, #3a2a1a 60%, #1a0a05 100%);
-            clip-path: polygon(12% 12%, 55% 0%, 90% 20%, 85% 65%, 45% 90%, 8% 70%, 0% 35%);
+            width: 26px;
+            height: 22px;
+            background: linear-gradient(135deg, #6a5a4a 0%, #4a3a2a 35%, #2a1a0a 65%, #0a0500 100%);
+            clip-path: polygon(15% 14%, 52% 0%, 88% 18%, 82% 62%, 42% 88%, 10% 68%, 0% 32%);
         }
         
         .ast-crater {
             position: absolute;
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(0, 0, 0, 0.5);
             border-radius: 50%;
             border: 1px solid rgba(0,0,0,0.3);
         }
-        
-        .ast-highlight {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.06);
-            border-radius: 40%;
-        }
 
-        /* ПИРАТЫ - РЕАЛИСТИЧНЫЕ */
+        /* ПИРАТЫ */
         .pixel-pirate {
             position: relative;
-            filter: drop-shadow(0 0 6px rgba(200, 40, 40, 0.4));
         }
         
         .pir-body {
-            border: 1.5px solid #441111;
+            border: 1px solid #331111;
         }
         
         .pixel-pirate.type1 .pir-body {
-            width: 40px;
-            height: 28px;
-            background: linear-gradient(180deg, #884444 0%, #663333 40%, #442222 100%);
-            clip-path: polygon(15% 0%, 85% 0%, 95% 35%, 80% 100%, 20% 100%, 5% 35%);
+            width: 32px;
+            height: 22px;
+            background: linear-gradient(180deg, #664444 0%, #442222 45%, #221111 100%);
+            clip-path: polygon(18% 0%, 82% 0%, 92% 32%, 78% 100%, 22% 100%, 8% 32%);
         }
         
         .pixel-pirate.type2 .pir-body {
-            width: 34px;
-            height: 32px;
-            background: linear-gradient(180deg, #774444 0%, #553333 40%, #332222 100%);
-            clip-path: polygon(20% 0%, 80% 0%, 90% 25%, 95% 65%, 65% 100%, 35% 100%, 5% 65%, 10% 25%);
+            width: 28px;
+            height: 26px;
+            background: linear-gradient(180deg, #553333 0%, #331111 45%, #110808 100%);
+            clip-path: polygon(22% 0%, 78% 0%, 88% 22%, 92% 62%, 62% 100%, 38% 100%, 8% 62%, 12% 22%);
         }
         
         .pixel-pirate.type3 .pir-body {
-            width: 38px;
-            height: 30px;
-            background: linear-gradient(180deg, #994444 0%, #773333 40%, #552222 100%);
-            clip-path: polygon(5% 20%, 35% 0%, 90% 8%, 90% 45%, 95% 85%, 45% 100%, 8% 80%, 0% 45%);
+            width: 30px;
+            height: 24px;
+            background: linear-gradient(180deg, #774444 0%, #552222 45%, #331111 100%);
+            clip-path: polygon(8% 22%, 32% 0%, 88% 10%, 88% 42%, 92% 82%, 42% 100%, 10% 78%, 0% 42%);
         }
         
         .pir-cockpit {
             position: absolute;
-            background: #6699aa;
-            clip-path: polygon(15% 0%, 85% 0%, 100% 100%, 0% 100%);
-            border: 1px solid #335566;
-            box-shadow: inset 0 0 3px rgba(150,200,220,0.4);
+            background: #557788;
+            clip-path: polygon(18% 0%, 82% 0%, 100% 100%, 0% 100%);
+            border: 1px solid #334455;
+            box-shadow: inset 0 0 2px rgba(130,170,200,0.3);
         }
         
         .pir-cannon {
             position: absolute;
-            background: #aa3333;
-            border: 1px solid #661111;
+            background: #883333;
+            border: 1px solid #551111;
         }
 
         .bg-object {
@@ -399,41 +396,37 @@
             transform: translate(-50%, -50%);
         }
 
-        /* ЛУЧИ */
+        /* ТОНКИЙ ЛУЧ */
         .mining-beam {
             position: absolute;
-            height: 4px;
-            background: linear-gradient(90deg, transparent, #44ff88, #88ffbb, #44ff88, transparent);
-            box-shadow: 0 0 8px #44ff88, 0 0 16px #44ff88;
+            height: 1px;
+            background: #44ff66;
             transform-origin: left center;
             z-index: 8;
             pointer-events: none;
-            animation: miningBeam 0.8s infinite;
-            border-radius: 2px;
+            animation: laserPulse 1s infinite;
         }
         
         .battle-beam {
             position: absolute;
-            height: 4px;
-            background: linear-gradient(90deg, transparent, #ff3333, #ff6666, #ff3333, transparent);
-            box-shadow: 0 0 8px #ff3333, 0 0 16px #ff3333;
+            height: 1px;
+            background: #ff3333;
             transform-origin: left center;
             z-index: 8;
             pointer-events: none;
-            animation: battleFlash 0.5s infinite;
-            border-radius: 2px;
+            animation: laserPulse 0.8s infinite;
         }
 
         .loot-popup {
             position: absolute;
             font-family: 'Press Start 2P', monospace;
-            font-size: 8px;
+            font-size: 7px;
             font-weight: bold;
             pointer-events: none;
             z-index: 15;
             animation: lootPopup 2.5s ease-out forwards;
             white-space: nowrap;
-            text-shadow: 0 0 6px currentColor;
+            color: #ccaa22;
         }
 
         .top-panel {
@@ -445,18 +438,18 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 5px 15px;
+            padding: 5px 12px;
             z-index: 100;
             pointer-events: none;
         }
 
         .back-btn {
-            width: 40px;
-            height: 40px;
-            background: rgba(0, 30, 0, 0.9);
-            border: 2px solid #00cc44;
-            color: #00ff44;
-            font-size: 18px;
+            width: 36px;
+            height: 36px;
+            background: rgba(0, 25, 0, 0.9);
+            border: 2px solid #00bb44;
+            color: #00ee55;
+            font-size: 16px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -465,14 +458,14 @@
             pointer-events: all;
             transition: all 0.2s;
         }
-        .back-btn:hover { background: rgba(0, 50, 0, 0.9); box-shadow: 0 0 12px rgba(0, 255, 68, 0.4); }
+        .back-btn:hover { background: rgba(0, 40, 0, 0.9); box-shadow: 0 0 10px rgba(0, 220, 60, 0.3); }
 
         .spice-counter {
             background: rgba(0, 0, 0, 0.85);
-            border: 2px solid #ccaa22;
-            color: #ccaa22;
-            padding: 8px 12px;
-            font-size: 10px;
+            border: 2px solid #bb9922;
+            color: #bb9922;
+            padding: 6px 10px;
+            font-size: 9px;
             pointer-events: all;
             text-align: center;
         }
@@ -480,13 +473,13 @@
         .dev-reset-btn {
             position: fixed;
             bottom: 90px;
-            right: 10px;
-            width: 26px;
-            height: 26px;
-            background: rgba(60, 0, 0, 0.7);
-            border: 1px solid #cc3333;
-            color: #cc3333;
-            font-size: 10px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            background: rgba(50, 0, 0, 0.7);
+            border: 1px solid #bb3333;
+            color: #bb3333;
+            font-size: 9px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -497,37 +490,36 @@
             border-radius: 50%;
             transition: all 0.2s;
         }
-        .dev-reset-btn:hover { background: rgba(90, 0, 0, 0.9); box-shadow: 0 0 8px rgba(200, 0, 0, 0.4); }
+        .dev-reset-btn:hover { background: rgba(70, 0, 0, 0.9); }
 
         .loot-feed {
             position: fixed;
             bottom: 85px;
-            left: 10px;
-            right: 10px;
+            left: 8px;
+            right: 8px;
             z-index: 90;
             pointer-events: none;
             text-align: center;
-            min-height: 30px;
+            min-height: 28px;
             display: none;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             flex-wrap: wrap;
         }
         .loot-item {
             font-family: 'Press Start 2P', monospace;
-            font-size: 8px;
-            color: #ccaa22;
-            text-shadow: 0 0 6px rgba(200, 170, 34, 0.5);
+            font-size: 7px;
+            color: #bb9922;
             animation: fadeInOut 3s ease-in-out forwards;
             background: rgba(0,0,0,0.6);
-            padding: 4px 8px;
+            padding: 3px 6px;
         }
         @keyframes fadeInOut {
-            0% { opacity: 0; transform: translateY(8px); }
+            0% { opacity: 0; transform: translateY(6px); }
             20% { opacity: 1; transform: translateY(0); }
             80% { opacity: 1; }
-            100% { opacity: 0; transform: translateY(-8px); }
+            100% { opacity: 0; transform: translateY(-6px); }
         }
 
         .content-overlay {
@@ -550,128 +542,128 @@
             left: 0;
             right: 0;
             height: 80px;
-            background: rgba(5, 5, 15, 0.96);
-            border-top: 2px solid #00cc44;
+            background: rgba(3, 3, 12, 0.96);
+            border-top: 2px solid #00aa44;
             display: flex;
             justify-content: space-around;
             align-items: center;
             z-index: 100;
-            padding: 5px;
+            padding: 4px;
         }
         .nav-btn {
-            background: #081208;
-            border: 2px solid #008833;
-            color: #00cc44;
-            padding: 8px 12px;
+            background: #060e06;
+            border: 2px solid #007733;
+            color: #00bb44;
+            padding: 6px 10px;
             font-family: 'Press Start 2P', monospace;
-            font-size: 7px;
+            font-size: 6px;
             cursor: pointer;
             transition: all 0.2s;
             text-align: center;
             flex: 1;
-            margin: 0 3px;
-            max-width: 100px;
+            margin: 0 2px;
+            max-width: 95px;
         }
-        .nav-btn:hover { background: #0a1a0a; box-shadow: 0 0 8px rgba(0, 200, 68, 0.4); }
-        .nav-btn.active { background: #0a200a; border-color: #ccaa22; box-shadow: 0 0 16px rgba(200, 170, 34, 0.4); }
-        .nav-btn .nav-icon { font-size: 16px; display: block; margin-bottom: 2px; }
+        .nav-btn:hover { background: #081408; box-shadow: 0 0 6px rgba(0, 180, 50, 0.3); }
+        .nav-btn.active { background: #081a08; border-color: #bb9922; box-shadow: 0 0 12px rgba(180, 150, 30, 0.3); }
+        .nav-btn .nav-icon { font-size: 14px; display: block; margin-bottom: 1px; }
 
         .window {
-            background: rgba(5, 5, 20, 0.94);
-            border: 2px solid #00cc44;
-            padding: 20px;
-            max-width: 350px;
+            background: rgba(3, 3, 16, 0.94);
+            border: 2px solid #00aa44;
+            padding: 16px;
+            max-width: 320px;
             width: 90%;
-            max-height: 60vh;
+            max-height: 55vh;
             overflow-y: auto;
             animation: slideUp 0.3s ease-out;
         }
         .input-field {
             width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            background: #080815;
-            border: 2px solid #00cc44;
+            padding: 10px;
+            margin: 8px 0;
+            background: #060610;
+            border: 2px solid #00aa44;
             color: #00cc44;
             font-family: 'Press Start 2P', monospace;
-            font-size: 10px;
+            font-size: 9px;
             text-align: center;
         }
         .btn {
             width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            background: #081208;
-            border: 2px solid #00cc44;
+            padding: 10px;
+            margin: 6px 0;
+            background: #060e06;
+            border: 2px solid #00aa44;
             color: #00cc44;
             font-family: 'Press Start 2P', monospace;
-            font-size: 10px;
+            font-size: 9px;
             cursor: pointer;
             transition: all 0.2s;
         }
-        .btn:hover { background: #0a1a0a; box-shadow: 0 0 12px rgba(0, 200, 68, 0.4); }
-        .btn:disabled { background: #1a1a1a; color: #333; border-color: #333; cursor: not-allowed; }
+        .btn:hover { background: #081408; box-shadow: 0 0 10px rgba(0, 180, 50, 0.3); }
+        .btn:disabled { background: #181818; color: #333; border-color: #333; cursor: not-allowed; }
         .title {
-            font-size: 14px;
-            color: #00cc44;
-            margin-bottom: 15px;
+            font-size: 12px;
+            color: #00bb44;
+            margin-bottom: 12px;
             text-align: center;
-            text-shadow: 2px 2px 0 #001100;
+            text-shadow: 1px 1px 0 #000800;
         }
         .pvp-arena-mini {
             background: rgba(0, 0, 0, 0.5);
-            border: 2px solid #cc3333;
-            padding: 15px;
-            height: 130px;
+            border: 2px solid #bb3333;
+            padding: 12px;
+            height: 120px;
             position: relative;
             display: flex;
             align-items: center;
             justify-content: space-around;
         }
-        .pvp-vs { font-size: 14px; color: #cc3333; }
-        .pvp-hp { font-size: 8px; color: #cc3333; position: absolute; top: 5px; }
+        .pvp-vs { font-size: 12px; color: #bb3333; }
+        .pvp-hp { font-size: 7px; color: #bb3333; position: absolute; top: 4px; }
         .leaderboard {
             background: rgba(0, 0, 0, 0.3);
-            border: 1px solid #00cc44;
-            padding: 10px;
-            max-height: 180px;
+            border: 1px solid #00aa44;
+            padding: 8px;
+            max-height: 160px;
             overflow-y: auto;
-            font-size: 8px;
+            font-size: 7px;
             text-align: left;
         }
-        .leaderboard-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(0,200,68,0.2); }
-        .leaderboard-item .rank { color: #ccaa22; width: 30px; }
-        .leaderboard-item .name { flex: 1; color: #00cc44; }
-        .leaderboard-item .score { color: #44aacc; width: 50px; text-align: right; }
+        .leaderboard-item { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid rgba(0,180,50,0.15); }
+        .leaderboard-item .rank { color: #bb9922; width: 25px; }
+        .leaderboard-item .name { flex: 1; color: #00bb44; }
+        .leaderboard-item .score { color: #4499aa; width: 45px; text-align: right; }
         .resources-mini {
             display: flex;
             justify-content: space-around;
             flex-wrap: wrap;
-            gap: 5px;
-            margin: 10px 0;
-            padding: 8px;
+            gap: 4px;
+            margin: 8px 0;
+            padding: 6px;
             background: rgba(0, 0, 0, 0.3);
-            border: 1px solid #00cc44;
+            border: 1px solid #00aa44;
         }
-        .resource-mini-item { text-align: center; font-size: 7px; color: #008844; }
-        .resource-mini-item .mini-icon { font-size: 14px; display: block; }
-        .resource-mini-item .mini-value { color: #ccaa22; font-size: 8px; }
+        .resource-mini-item { text-align: center; font-size: 6px; color: #007733; }
+        .resource-mini-item .mini-icon { font-size: 12px; display: block; }
+        .resource-mini-item .mini-value { color: #bb9922; font-size: 7px; }
         .upgrade-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px;
-            margin: 5px 0;
+            padding: 6px;
+            margin: 4px 0;
             background: rgba(0, 0, 0, 0.3);
-            border: 1px solid #00cc44;
+            border: 1px solid #00aa44;
         }
-        .upgrade-info { font-size: 8px; text-align: left; }
+        .upgrade-info { font-size: 7px; text-align: left; }
         .upgrade-btn {
-            background: #081208; color: #00cc44; border: 1px solid #00cc44;
-            padding: 5px 10px; font-family: 'Press Start 2P', monospace;
-            font-size: 7px; cursor: pointer;
+            background: #060e06; color: #00bb44; border: 1px solid #00aa44;
+            padding: 4px 8px; font-family: 'Press Start 2P', monospace;
+            font-size: 6px; cursor: pointer;
         }
-        .upgrade-btn:disabled { background: #1a1a1a; color: #333; border-color: #333; cursor: not-allowed; }
+        .upgrade-btn:disabled { background: #181818; color: #333; border-color: #333; cursor: not-allowed; }
         .hidden { display: none !important; }
     </style>
 </head>
@@ -708,19 +700,19 @@
             <div class="window hidden" id="window-faction">
                 <div class="title">ВЫБЕРИ ФРАКЦИЮ</div>
                 <div class="btn" style="border-color:#4488aa;color:#4488aa" onclick="selectFaction('Конфедерация','#4488aa','shield')">◆ КОНФЕДЕРАЦИЯ<br><small>Щит +50%</small></div>
-                <div class="btn" style="border-color:#cc5533;color:#cc5533" onclick="selectFaction('Повстанцы','#cc5533','weapon')">◆ ПОВСТАНЦЫ<br><small>Урон +50%</small></div>
-                <div class="btn" style="border-color:#cc9933;color:#cc9933" onclick="selectFaction('Торговая гильдия','#cc9933','mining')">◆ ТОРГОВАЯ ГИЛЬДИЯ<br><small>Добыча +50%</small></div>
+                <div class="btn" style="border-color:#bb5533;color:#bb5533" onclick="selectFaction('Повстанцы','#bb5533','weapon')">◆ ПОВСТАНЦЫ<br><small>Урон +50%</small></div>
+                <div class="btn" style="border-color:#bb9933;color:#bb9933" onclick="selectFaction('Торговая гильдия','#bb9933','mining')">◆ ТОРГОВАЯ ГИЛЬДИЯ<br><small>Добыча +50%</small></div>
             </div>
             <div class="window hidden" id="window-ship">
                 <div class="title">ВЫБЕРИ КОРАБЛЬ</div>
-                <div id="ship-selection" style="display:flex;gap:12px;justify-content:center;margin:15px 0"></div>
+                <div id="ship-selection" style="display:flex;gap:10px;justify-content:center;margin:12px 0"></div>
                 <input type="text" class="input-field" id="input-ship-name" placeholder="ИМЯ КОРАБЛЯ" maxlength="14">
                 <button class="btn" id="confirm-ship-btn" onclick="confirmShip()">ПОДТВЕРДИТЬ</button>
             </div>
             <div class="window hidden" id="window-hangar">
                 <div class="title">АНГАР</div>
-                <div id="hangar-ship" style="text-align:center;margin:10px 0;animation:float 3s ease-in-out infinite"></div>
-                <div style="font-size:10px;text-align:center;margin-bottom:5px" id="hangar-ship-name"></div>
+                <div id="hangar-ship" style="text-align:center;margin:8px 0;animation:float 3s ease-in-out infinite"></div>
+                <div style="font-size:9px;text-align:center;margin-bottom:4px" id="hangar-ship-name"></div>
                 <div class="resources-mini" id="hangar-resources"></div>
                 <div id="upgrades-list"></div>
             </div>
@@ -730,13 +722,13 @@
                     <span id="pvp-player-ship"></span>
                     <span class="pvp-vs">VS</span>
                     <span id="pvp-enemy-ship"></span>
-                    <span class="pvp-hp" style="left:10px" id="pvp-player-hp-text">HP:100</span>
-                    <span class="pvp-hp" style="right:10px" id="pvp-enemy-hp-text">HP:100</span>
+                    <span class="pvp-hp" style="left:8px" id="pvp-player-hp-text">HP:100</span>
+                    <span class="pvp-hp" style="right:8px" id="pvp-enemy-hp-text">HP:100</span>
                 </div>
-                <div style="text-align:center;font-size:10px;color:#ccaa22" id="pvp-timer">15</div>
-                <div style="text-align:center;font-size:8px" id="pvp-status">Нажмите НАЙТИ БОЙ</div>
+                <div style="text-align:center;font-size:9px;color:#bb9922" id="pvp-timer">15</div>
+                <div style="text-align:center;font-size:7px" id="pvp-status">Нажмите НАЙТИ БОЙ</div>
                 <button class="btn" onclick="searchPvP()">НАЙТИ БОЙ</button>
-                <div class="leaderboard" id="leaderboard"><div style="color:#ccaa22;margin-bottom:5px">ТОП 15</div></div>
+                <div class="leaderboard" id="leaderboard"><div style="color:#bb9922;margin-bottom:4px">ТОП 15</div></div>
             </div>
         </div>
         <div class="bottom-panel hidden" id="bottom-panel">
@@ -749,7 +741,7 @@
         window.playerName=localStorage.getItem('sd_player_name')||'';
         window.shipName=localStorage.getItem('sd_ship_name')||'';
         window.frac=localStorage.getItem('sd_frac')||null;
-        window.fracColor=localStorage.getItem('sd_color')||'#00cc44';
+        window.fracColor=localStorage.getItem('sd_color')||'#00bb44';
         window.fracBonus=localStorage.getItem('sd_bonus')||null;
         window.selectedShipIndex=parseInt(localStorage.getItem('sd_ship_index'))||0;
         window.resources={coins:parseInt(localStorage.getItem('sd_coins'))||0,shieldParts:parseInt(localStorage.getItem('sd_shield'))||0,weaponParts:parseInt(localStorage.getItem('sd_weapon'))||0,speedParts:parseInt(localStorage.getItem('sd_speed'))||0,critParts:parseInt(localStorage.getItem('sd_crit'))||0,spice:parseInt(localStorage.getItem('sd_spice'))||0};
@@ -761,36 +753,38 @@
         window.upgrades={shield:parseInt(localStorage.getItem('sd_upg_shield'))||1,damage:parseInt(localStorage.getItem('sd_upg_damage'))||0,speed:parseInt(localStorage.getItem('sd_upg_speed'))||0,crit:parseInt(localStorage.getItem('sd_upg_crit'))||0};
         window.galaxyObjects=[];window.isShipFlying=false;window.pvpInterval=null;window.pvpTimerInterval=null;window.currentTab='map';
         window.tempFaction=null;window.tempFactionColor=null;window.tempFactionBonus=null;window.tempShipIndex=null;
-        const shipStyles=[{hull:'#8899aa',wing:'#778899',engine:'#556677'},{hull:'#8899aa',wing:'#778899',engine:'#556677'},{hull:'#8899aa',wing:'#778899',engine:'#556677'}];
         const lootNames={coins:'◆ МОН',shieldParts:'◈ ЩИТ',weaponParts:'▣ ОРУД',speedParts:'◉ СКОР',critParts:'◎ КРИТ',spice:'◇ СПС'};
         window.saveAll=function(){Object.keys(window.resources).forEach(k=>localStorage.setItem('sd_'+k,window.resources[k]));localStorage.setItem('sd_spice_data',JSON.stringify(window.spiceData));localStorage.setItem('sd_pvp_score',window.pvpScore);localStorage.setItem('sd_leaderboard',JSON.stringify(window.leaderboard));localStorage.setItem('sd_player_name',window.playerName);localStorage.setItem('sd_ship_name',window.shipName)};
 
         function createPixelShip(scale=1){const c=document.createElement('div');c.className='pixel-player-ship';c.style.transform=`scale(${scale})`;c.innerHTML='<div class="ship-hull"></div><div class="ship-wing-l"></div><div class="ship-wing-r"></div><div class="ship-cockpit"></div><div class="ship-engine"></div><div class="ship-engine-glow"></div>';return c}
-        function createAsteroid(type){const c=document.createElement('div');c.className='pixel-asteroid type'+type;c.innerHTML=`<div class="ast-body"></div><div class="ast-crater" style="width:${5+type*2}px;height:${4+type*2}px;top:${18+type*6}%;left:${22+type*10}%"></div><div class="ast-highlight" style="width:${8+type*2}px;height:${4+type}px;top:${10+type*4}%;left:${15+type*5}%"></div>`;return c}
-        function createPirate(type){const c=document.createElement('div');c.className='pixel-pirate type'+type;c.innerHTML=`<div class="pir-body"></div><div class="pir-cockpit" style="width:${12+type*2}px;height:${7+type}px;top:${12+type*3}%;left:${28-type*4}%"></div><div class="pir-cannon" style="width:5px;height:7px;bottom:-3px;left:38%"></div>`;return c}
+        function createAsteroid(type){const c=document.createElement('div');c.className='pixel-asteroid type'+type;c.innerHTML=`<div class="ast-body"></div><div class="ast-crater" style="width:${4+type}px;height:${3+type}px;top:${16+type*5}%;left:${20+type*8}%"></div>`;return c}
+        function createPirate(type){const c=document.createElement('div');c.className='pixel-pirate type'+type;c.innerHTML=`<div class="pir-body"></div><div class="pir-cockpit" style="width:${10+type}px;height:${6+type}px;top:${10+type*2}%;left:${26-type*3}%"></div><div class="pir-cannon" style="width:4px;height:6px;bottom:-2px;left:36%"></div>`;return c}
 
-        window.getShipStyle=function(){return shipStyles[0]};
+        window.getShipStyle=function(){return{}};
         window.showLoot=function(type){if(!type)return;const f=document.getElementById('loot-feed');const i=document.createElement('span');i.className='loot-item';i.innerText='+'+lootNames[type];f.appendChild(i);setTimeout(()=>i.remove(),3000)};
         window.showWindow=function(id){document.querySelectorAll('.window').forEach(w=>w.classList.add('hidden'));const w=document.getElementById('window-'+id);if(w)w.classList.remove('hidden')};
         window.showUI=function(){document.getElementById('back-btn').classList.remove('hidden');document.getElementById('spice-counter').classList.remove('hidden');document.getElementById('bottom-panel').classList.remove('hidden');document.getElementById('dev-reset-btn').classList.remove('hidden');document.getElementById('spice-value').innerText=window.spiceData.collected};
 
         function createBackground(){
             const c=document.getElementById('stars-layer');
-            for(let i=0;i<300;i++){const s=document.createElement('div');s.className='star';s.style.left=Math.random()*100+'%';s.style.top=Math.random()*100+'%';const sz=Math.random()<0.1?2.5:(Math.random()<0.3?1.8:1);s.style.width=sz+'px';s.style.height=sz+'px';s.style.setProperty('--duration',(Math.random()*5+3)+'s');s.style.setProperty('--delay',Math.random()*4+'s');c.appendChild(s)}
+            for(let i=0;i<400;i++){const s=document.createElement('div');s.className='star';const r=Math.random();if(r<0.2)s.classList.add('bright');else if(r<0.5)s.classList.add('dim');s.style.left=Math.random()*100+'%';s.style.top=Math.random()*100+'%';const sz=Math.random()<0.08?2.2:(Math.random()<0.25?1.5:0.8);s.style.width=sz+'px';s.style.height=sz+'px';s.style.setProperty('--duration',(Math.random()*4+2)+'s');s.style.setProperty('--delay',Math.random()*3+'s');c.appendChild(s)}
         }
         createBackground();
 
         function getMapCenter(){const bg=document.getElementById('galaxy-bg');return{x:bg.offsetWidth/2,y:bg.offsetHeight/2}}
-        function createOrbitShip(){const o=document.getElementById('player-on-orbit');o.innerHTML='';o.appendChild(createPixelShip(0.65));o.style.display='block'}
+        function createOrbitShip(){const o=document.getElementById('player-on-orbit');o.innerHTML='';o.appendChild(createPixelShip(0.55));o.style.display='block'}
 
         window.generateBackgroundObjects=function(){
             const bg=document.getElementById('galaxy-bg');bg.querySelectorAll('.bg-object').forEach(e=>e.remove());window.galaxyObjects=[];
             const center=getMapCenter();const phi=(1+Math.sqrt(5))/2;
             const types=['asteroid','asteroid','asteroid','pirate','pirate','pirate'];
             const shuffled=types.sort(()=>Math.random()-0.5);
+            const minDist=Math.min(center.x,center.y)*0.85;
             shuffled.forEach((type,i)=>{
-                const angle=(i*phi*Math.PI*2)%(Math.PI*2);const distance=120+(i*28);
-                const x=center.x+Math.cos(angle)*distance;const y=center.y+Math.sin(angle)*distance;
+                const angle=(i*phi*Math.PI*2)%(Math.PI*2);
+                const distance=Math.min(minDist,140+(i*32));
+                const x=center.x+Math.cos(angle)*distance;
+                const y=center.y+Math.sin(angle)*distance;
                 const obj={type:type==='asteroid'?'mining':'battle',x,y,element:null,subtype:Math.floor(Math.random()*3)+1};
                 const div=document.createElement('div');div.className='bg-object';div.style.left=x+'px';div.style.top=y+'px';div.style.pointerEvents='all';div.style.cursor='pointer';
                 if(type==='asteroid'){div.appendChild(createAsteroid(obj.subtype))}else{div.appendChild(createPirate(obj.subtype))}
@@ -801,55 +795,63 @@
 
         window.addEventListener('resize',()=>{
             const c=getMapCenter();document.getElementById('planet-container').style.left=c.x+'px';document.getElementById('planet-container').style.top=c.y+'px';
-            window.galaxyObjects.forEach((o,i)=>{const phi=(1+Math.sqrt(5))/2;const a=(i*phi*Math.PI*2)%(Math.PI*2);const d=120+(i*28);o.x=c.x+Math.cos(a)*d;o.y=c.y+Math.sin(a)*d;if(o.element){o.element.style.left=o.x+'px';o.element.style.top=o.y+'px'}})
+            window.galaxyObjects.forEach((o,i)=>{const phi=(1+Math.sqrt(5))/2;const a=(i*phi*Math.PI*2)%(Math.PI*2);const d=Math.min(Math.min(c.x,c.y)*0.85,140+(i*32));o.x=c.x+Math.cos(a)*d;o.y=c.y+Math.sin(a)*d;if(o.element){o.element.style.left=o.x+'px';o.element.style.top=o.y+'px'}})
         });
 
         window.flyToObject=function(obj,element){
             if(window.isShipFlying)return;window.isShipFlying=true;
             const center=getMapCenter();const bg=document.getElementById('galaxy-bg');
             document.getElementById('player-on-orbit').style.display='none';
-            const shipW=document.createElement('div');shipW.className='flying-ship-anim';shipW.style.left=center.x+'px';shipW.style.top=center.y+'px';shipW.appendChild(createPixelShip(0.65));bg.appendChild(shipW);
-            // Полет 4с
+            const shipW=document.createElement('div');shipW.className='flying-ship-anim';shipW.style.left=center.x+'px';shipW.style.top=center.y+'px';shipW.appendChild(createPixelShip(0.55));bg.appendChild(shipW);
             shipW.style.transition='all 4s cubic-bezier(0.3,0,0.7,1)';
-            requestAnimationFrame(()=>{shipW.style.left=obj.x+'px';shipW.style.top=obj.y+'px';shipW.style.transform='translate(-50%,-50%) scale(0.55)'});
+            requestAnimationFrame(()=>{shipW.style.left=obj.x+'px';shipW.style.top=obj.y+'px';shipW.style.transform='translate(-50%,-50%) scale(0.5)'});
             setTimeout(()=>{
-                // Луч появляется когда подлетел
-                const dx=obj.x-center.x;const dy=obj.y-center.y;const dist=Math.sqrt(dx*dx+dy*dy);
+                // Луч от корабля к объекту
                 const beam=document.createElement('div');
                 beam.className=obj.type==='mining'?'mining-beam':'battle-beam';
-                beam.style.top=obj.y+'px';beam.style.left=obj.x+'px';beam.style.width=dist+'px';
-                beam.style.transform=`rotate(${Math.atan2(-dy,-dx)}rad)`;
+                const sx=parseFloat(shipW.style.left);const sy=parseFloat(shipW.style.top);
+                const dx=obj.x-sx;const dy=obj.y-sy;const dist=Math.sqrt(dx*dx+dy*dy);
+                beam.style.top=sy+'px';beam.style.left=sx+'px';beam.style.width=dist+'px';
+                beam.style.transform=`rotate(${Math.atan2(dy,dx)}rad)`;
+                beam.style.transformOrigin='0 0';
                 bg.appendChild(beam);
                 const duration=obj.type==='mining'?5000:4000;
-                // Лут
                 const lootType=window.addLoot(window.getLoot());
-                if(lootType){const popup=document.createElement('div');popup.className='loot-popup';popup.style.left=obj.x+'px';popup.style.top=(obj.y-25)+'px';popup.style.color='#ccaa22';popup.innerText='+'+lootNames[lootType];bg.appendChild(popup);setTimeout(()=>popup.remove(),2500)}
+                if(lootType){
+                    const popup=document.createElement('div');popup.className='loot-popup';popup.style.left=obj.x+'px';popup.style.top=(obj.y-30)+'px';popup.innerText='+'+lootNames[lootType];bg.appendChild(popup);setTimeout(()=>popup.remove(),2500);
+                }
                 window.showLoot(lootType);
-                element.style.opacity='0.3';
+                element.style.opacity='0.2';
+                // Обновление позиции луча
+                const updateBeam=setInterval(()=>{
+                    const sx2=parseFloat(shipW.style.left);const sy2=parseFloat(shipW.style.top);
+                    const dx2=obj.x-sx2;const dy2=obj.y-sy2;const dist2=Math.sqrt(dx2*dx2+dy2*dy2);
+                    beam.style.top=sy2+'px';beam.style.left=sx2+'px';beam.style.width=dist2+'px';
+                    beam.style.transform=`rotate(${Math.atan2(dy2,dx2)}rad)`;
+                },100);
                 setTimeout(()=>{
-                    beam.remove();element.style.opacity='0';
-                    // Возврат 3с
+                    clearInterval(updateBeam);beam.remove();element.style.opacity='0';
                     shipW.style.transition='all 3s cubic-bezier(0.3,0,0.7,1)';
-                    shipW.style.left=center.x+'px';shipW.style.top=center.y+'px';shipW.style.transform='translate(-50%,-50%) scale(0.65)';
+                    shipW.style.left=center.x+'px';shipW.style.top=center.y+'px';shipW.style.transform='translate(-50%,-50%) scale(0.55)';
                     setTimeout(()=>{shipW.remove();element.remove();window.galaxyObjects=window.galaxyObjects.filter(o=>o!==obj);window.isShipFlying=false;window.updateSpiceDisplay();createOrbitShip();if(document.querySelectorAll('.bg-object').length===0)window.generateBackgroundObjects()},3000)
                 },duration)
             },4000)
         };
 
         window.getLoot=function(){const r=Math.random()*100;if(r<40)return null;if(r<60)return'coins';if(r<70)return'shieldParts';if(r<80)return'weaponParts';if(r<90)return'speedParts';if(r<97)return'critParts';return'spice'};
-        window.addLoot=function(type){if(!type)return null;if(type==='spice'){if(window.spiceData.collected>=50)return null;window.spiceData.collected++;window.resources.spice++}else{const a={coins:Math.floor(Math.random()*20)+5,shieldParts:1,weaponParts:1,speedParts:1,critParts:1};window.resources[type]+=a[type]}window.saveAll();return type};
+        window.addLoot=function(type){if(!type)return null;if(type==='spice'){if(window.spiceData.collected>=50)return null;window.spiceData.collected++;window.resources.spice++}else{const a={coins:Math.floor(Math.random()*18)+4,shieldParts:1,weaponParts:1,speedParts:1,critParts:1};window.resources[type]+=a[type]}window.saveAll();return type};
         window.updateSpiceDisplay=function(){document.getElementById('spice-value').innerText=window.spiceData.collected};
         window.setPlayerName=function(){const n=document.getElementById('input-player-name').value.trim();if(n.length<2){alert('Минимум 2 символа');return}window.playerName=n;window.saveAll();window.showWindow('faction')};
         window.devReset=function(){if(confirm('СБРОСИТЬ ВСЕ ДАННЫЕ?')){localStorage.clear();location.reload()}};
-        window.selectFaction=function(name,color,bonus){window.tempFaction=name;window.tempFactionColor=color;window.tempFactionBonus=bonus;window.tempShipIndex=null;const c=document.getElementById('ship-selection');c.innerHTML='';for(let i=0;i<3;i++){const card=document.createElement('div');card.style.cssText='cursor:pointer;padding:10px;border:2px solid #00cc44;text-align:center;';card.appendChild(createPixelShip(0.9));card.onclick=()=>{window.tempShipIndex=i;c.querySelectorAll('div').forEach(d=>d.style.borderColor='#00cc44');card.style.borderColor='#ccaa22';document.getElementById('confirm-ship-btn').disabled=false};c.appendChild(card)}document.getElementById('confirm-ship-btn').disabled=true;window.showWindow('ship')};
+        window.selectFaction=function(name,color,bonus){window.tempFaction=name;window.tempFactionColor=color;window.tempFactionBonus=bonus;window.tempShipIndex=null;const c=document.getElementById('ship-selection');c.innerHTML='';for(let i=0;i<3;i++){const card=document.createElement('div');card.style.cssText='cursor:pointer;padding:8px;border:2px solid #00aa44;text-align:center;';card.appendChild(createPixelShip(0.8));card.onclick=()=>{window.tempShipIndex=i;c.querySelectorAll('div').forEach(d=>d.style.borderColor='#00aa44');card.style.borderColor='#bb9922';document.getElementById('confirm-ship-btn').disabled=false};c.appendChild(card)}document.getElementById('confirm-ship-btn').disabled=true;window.showWindow('ship')};
         window.confirmShip=function(){const n=document.getElementById('input-ship-name').value.trim();if(window.tempShipIndex===null||n.length<2){alert('Выберите корабль и введите имя');return}window.frac=window.tempFaction;window.fracColor=window.tempFactionColor;window.fracBonus=window.tempFactionBonus;window.selectedShipIndex=window.tempShipIndex;window.shipName=n;['sd_frac','sd_color','sd_bonus','sd_ship_index','sd_ship_name'].forEach(k=>localStorage.setItem(k,window[k.replace('sd_','')]));window.saveAll();window.showUI();document.getElementById('content-overlay').style.display='none';const center=getMapCenter();document.getElementById('planet-container').style.left=center.x+'px';document.getElementById('planet-container').style.top=center.y+'px';createOrbitShip();window.generateBackgroundObjects();window.updateLeaderboard()};
-        window.switchTab=function(tab){window.currentTab=tab;document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));document.getElementById('nav-'+tab).classList.add('active');document.querySelectorAll('.bg-object').forEach(o=>o.style.display=tab==='map'?'block':'none');document.getElementById('loot-feed').style.display=tab==='map'?'flex':'none';if(tab==='map'){document.getElementById('content-overlay').style.display='none'}else{document.getElementById('content-overlay').style.display='flex';if(tab==='hangar'){window.showWindow('hangar');const h=document.getElementById('hangar-ship');h.innerHTML='';h.appendChild(createPixelShip(1.2));document.getElementById('hangar-ship-name').innerText=window.shipName;updateHangarResources();updateHangar()}else if(tab==='pvp'){window.showWindow('pvp');const p=document.getElementById('pvp-player-ship');p.innerHTML='';p.appendChild(createPixelShip(0.85));window.updateLeaderboard()}}};
+        window.switchTab=function(tab){window.currentTab=tab;document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));document.getElementById('nav-'+tab).classList.add('active');document.querySelectorAll('.bg-object').forEach(o=>o.style.display=tab==='map'?'block':'none');document.getElementById('loot-feed').style.display=tab==='map'?'flex':'none';if(tab==='map'){document.getElementById('content-overlay').style.display='none'}else{document.getElementById('content-overlay').style.display='flex';if(tab==='hangar'){window.showWindow('hangar');const h=document.getElementById('hangar-ship');h.innerHTML='';h.appendChild(createPixelShip(1.1));document.getElementById('hangar-ship-name').innerText=window.shipName;updateHangarResources();updateHangar()}else if(tab==='pvp'){window.showWindow('pvp');const p=document.getElementById('pvp-player-ship');p.innerHTML='';p.appendChild(createPixelShip(0.75));window.updateLeaderboard()}}};
         function updateHangarResources(){const i=[{icon:'◆',key:'coins',label:'МОН'},{icon:'◈',key:'shieldParts',label:'ЩИТ'},{icon:'▣',key:'weaponParts',label:'ОРУД'},{icon:'◉',key:'speedParts',label:'СКОР'},{icon:'◎',key:'critParts',label:'КРИТ'},{icon:'◇',key:'spice',label:'СПС'}];document.getElementById('hangar-resources').innerHTML=i.map(t=>`<div class="resource-mini-item"><span class="mini-icon">${t.icon}</span><span>${t.label}</span><div class="mini-value">${window.resources[t.key]}</div></div>`).join('')}
         function updateHangar(){const t=[{key:'shield',name:'ЩИТЫ',icon:'◈',costKey:'shieldParts'},{key:'damage',name:'ОРУДИЯ',icon:'▣',costKey:'weaponParts'},{key:'speed',name:'СКОРОСТЬ',icon:'◉',costKey:'speedParts'},{key:'crit',name:'КРИТ/ДОДЖ',icon:'◎',costKey:'critParts'}];document.getElementById('upgrades-list').innerHTML=t.map(u=>{const c=5*(window.upgrades[u.key]+1);return`<div class="upgrade-row"><div class="upgrade-info"><div>${u.icon} ${u.name}</div><small>УР.${window.upgrades[u.key]} | ${c} ${u.icon}</small></div><button class="upgrade-btn" onclick="window.buyUpgrade('${u.key}')" ${window.resources[u.costKey]>=c?'':'disabled'}>+</button></div>`}).join('')}
         window.buyUpgrade=function(type){const ck={shield:'shieldParts',damage:'weaponParts',speed:'speedParts',crit:'critParts'};const c=5*(window.upgrades[type]+1);if(window.resources[ck[type]]>=c){window.resources[ck[type]]-=c;window.upgrades[type]++;localStorage.setItem('sd_upg_'+type,window.upgrades[type]);window.saveAll();updateHangarResources();updateHangar()}};
         window.searchPvP=function(){if(window.pvpInterval)return;const s={shield:10+window.upgrades.shield*2,damage:5+window.upgrades.damage,attackSpeed:1500-window.upgrades.speed*200,critDodge:5+window.upgrades.crit*2};if(window.fracBonus==='shield')s.shield=Math.floor(s.shield*1.5);if(window.fracBonus==='weapon')s.damage=Math.floor(s.damage*1.5);let pHP=s.shield,eHP=8+Math.floor(Math.random()*12),tL=15;document.getElementById('pvp-timer').innerText=tL;const eS=document.getElementById('pvp-enemy-ship');eS.innerHTML='';eS.appendChild(createPirate(Math.floor(Math.random()*3)+1));window.pvpTimerInterval=setInterval(()=>{tL--;document.getElementById('pvp-timer').innerText=tL;if(tL<=0)endPvP(pHP,eHP)},1000);window.pvpInterval=setInterval(()=>{let d=Math.floor(Math.random()*s.damage)+1;if(Math.random()*100<s.critDodge)d*=2;eHP-=d;document.getElementById('pvp-enemy-hp-text').innerText='HP:'+Math.max(0,eHP);if(eHP<=0){endPvP(pHP,0);return}setTimeout(()=>{if(eHP<=0)return;let eD=Math.floor(Math.random()*5)+2;if(Math.random()*100<s.critDodge)document.getElementById('pvp-status').innerText='УКЛОН!';else{pHP-=eD;document.getElementById('pvp-player-hp-text').innerText='HP:'+Math.max(0,pHP)}if(pHP<=0)endPvP(0,eHP)},500)},Math.max(s.attackSpeed,500))};
         function endPvP(pHP,eHP){clearInterval(window.pvpInterval);clearInterval(window.pvpTimerInterval);window.pvpInterval=null;window.pvpTimerInterval=null;let r;if(pHP<=0&&eHP<=0){r='НИЧЬЯ! +2';window.pvpScore+=2}else if(eHP<=0){r='ПОБЕДА! +15';window.pvpScore+=15}else if(pHP<=0){r='ПОРАЖЕНИЕ... -12';window.pvpScore=Math.max(0,window.pvpScore-12)}else{r='НИЧЬЯ! +2';window.pvpScore+=2}document.getElementById('pvp-status').innerText=r;document.getElementById('pvp-timer').innerText='0';window.updateLeaderboard();window.saveAll()}
-        window.updateLeaderboard=function(){const i=window.leaderboard.findIndex(p=>p.name===window.playerName);if(i>=0)window.leaderboard[i].score=window.pvpScore;else if(window.playerName)window.leaderboard.push({name:window.playerName,score:window.pvpScore});window.leaderboard.sort((a,b)=>b.score-a.score);window.leaderboard=window.leaderboard.slice(0,15);document.getElementById('leaderboard').innerHTML='<div style="color:#ccaa22;margin-bottom:5px">ТОП 15</div>'+window.leaderboard.map((p,i)=>`<div class="leaderboard-item"><span class="rank">#${i+1}</span><span class="name">${p.name}</span><span class="score">${p.score}</span></div>`).join('');window.saveAll()};
+        window.updateLeaderboard=function(){const i=window.leaderboard.findIndex(p=>p.name===window.playerName);if(i>=0)window.leaderboard[i].score=window.pvpScore;else if(window.playerName)window.leaderboard.push({name:window.playerName,score:window.pvpScore});window.leaderboard.sort((a,b)=>b.score-a.score);window.leaderboard=window.leaderboard.slice(0,15);document.getElementById('leaderboard').innerHTML='<div style="color:#bb9922;margin-bottom:4px">ТОП 15</div>'+window.leaderboard.map((p,i)=>`<div class="leaderboard-item"><span class="rank">#${i+1}</span><span class="name">${p.name}</span><span class="score">${p.score}</span></div>`).join('');window.saveAll()};
         window.goBack=function(){if(window.currentTab!=='map')window.switchTab('map')};
         if(window.Telegram?.WebApp){try{window.Telegram.WebApp.expand()}catch(e){}}
         if(window.playerName&&window.frac){window.showUI();document.getElementById('content-overlay').style.display='none';const c=getMapCenter();document.getElementById('planet-container').style.left=c.x+'px';document.getElementById('planet-container').style.top=c.y+'px';createOrbitShip();window.generateBackgroundObjects();window.updateLeaderboard()}else if(window.playerName){window.showWindow('faction')}else{window.showWindow('start')}
