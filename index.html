@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Space Dream: Survival</title>
+    <title>Space Dream: Universe</title>
     <script src="https://telegram.org"></script>
     <style>
         body {
@@ -12,79 +12,172 @@
             font-family: 'Segoe UI', Roboto, sans-serif;
             text-align: center;
             margin: 0;
-            padding-top: 60px;
+            padding: 40px 20px;
             user-select: none;
         }
-        .status-container {
-            font-size: 20px;
-            letter-spacing: 2px;
-            color: #a0aec0;
-            margin-bottom: 10px;
+        .hidden { display: none !important; }
+
+        /* ЭКРАН 1: СТАРТ */
+        #start-screen { padding-top: 100px; }
+        .title { font-size: 28px; font-weight: bold; letter-spacing: 3px; color: #fff; margin-bottom: 80px; }
+        #start-btn {
+            width: 240px; height: 240px;
+            background: radial-gradient(circle, #3b82f6 0%, #1d4ed8 100%);
+            border: 4px solid #60a5fa; border-radius: 50%; margin: 0 auto;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; font-weight: bold; color: white; letter-spacing: 1px;
+            box-shadow: 0 0 35px rgba(59, 130, 246, 0.5); cursor: pointer; transition: transform 0.05s;
         }
-        .score-container {
-            font-size: 42px;
-            font-weight: 800;
-            color: #ff4a4a; /* Огненно-красный под цвет лавы */
-            text-shadow: 0 0 20px rgba(255, 74, 74, 0.6);
-            margin-bottom: 50px;
+        #start-btn:active { transform: scale(0.95); }
+
+        /* ЭКРАН 2: ВЫБОР ФРАКЦИИ */
+        .fraction-title { font-size: 24px; font-weight: bold; margin-bottom: 40px; color: #94a3b8; }
+        .frac-btn {
+            width: 100%; max-width: 300px; padding: 18px; margin: 12px auto;
+            border-radius: 12px; font-size: 18px; font-weight: bold; color: white;
+            cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; border: 2px solid transparent;
         }
-        #core-button {
-            width: 220px;
-            height: 220px;
-            background: radial-gradient(circle, #ff6b6b 0%, #b71c1c 100%);
-            border: 4px solid #ff4a4a;
-            border-radius: 50%;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            font-weight: bold;
-            color: #ffffff;
-            box-shadow: 0 0 35px rgba(255, 28, 28, 0.4);
-            cursor: pointer;
-            transition: transform 0.05s, box-shadow 0.1s;
+        .frac-btn:active { transform: scale(0.98); }
+        .confed { background: linear-gradient(135deg, #1e3a8a, #3b82f6); border-color: #60a5fa; }
+        .rebels { background: linear-gradient(135deg, #7c2d12, #ea580c); border-color: #f97316; }
+        .aliens { background: linear-gradient(135deg, #78350f, #eab308); border-color: #fde047; }
+        .desc { font-size: 13px; font-weight: normal; color: #cbd5e1; margin-top: 5px; opacity: 0.8; }
+
+        /* ЭКРАН 3: ГЕЙМПЛЕЙ */
+        .info-panel { font-size: 16px; color: #94a3b8; margin-bottom: 5px; }
+        #user-fraction { font-weight: bold; text-transform: uppercase; }
+        .score-container { font-size: 42px; font-weight: 800; margin-bottom: 5px; text-shadow: 0 0 20px rgba(255,255,255,0.2); }
+        #main-clicker {
+            width: 200px; height: 200px; border-radius: 50%; margin: 40px auto 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; font-weight: bold; color: white; cursor: pointer; transition: transform 0.05s;
         }
-        #core-button:active {
-            transform: scale(0.93);
-            box-shadow: 0 0 50px rgba(255, 28, 28, 0.7);
-        }
+        #main-clicker:active { transform: scale(0.93); }
+        
+        /* КНОПКА СБРОСА ФРАКЦИИ ДЛЯ ТЕСТОВ */
+        .reset-btn { margin-top: 40px; background: none; border: 1px solid #334155; color: #64748b; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; }
     </style>
 </head>
 <body>
 
-    <div class="status-container">СИСТЕМА ЖИЗНЕОБЕСПЕЧЕНИЯ</div>
-    <div class="score-container">
-        <span id="balance">0</span> ГВт
+    <!-- ЭКРАН 1: СТАРТОВАЯ КНОПКА -->
+    <div id="start-screen">
+        <div class="title">SPACE DREAM</div>
+        <div id="start-btn">ЗАПУСТИТЬ ПУТЕШЕСТВИЕ</div>
     </div>
 
-    <div id="core-button">ЗАПУСТИТЬ РЕАКТОР</div>
+    <!-- ЭКРАН 2: ВЫБОР ФРАКЦИИ -->
+    <div id="fraction-screen" class="hidden">
+        <div class="fraction-title">ВЫБЕРИТЕ СВОЮ СТОРОНУ</div>
+        
+        <div class="frac-btn confed" onclick="selectFraction('Конфедерация', '#3b82f6')">
+            КОНФЕДЕРАЦИЯ
+            <div class="desc">Порядок, закон и железная дисциплина</div>
+        </div>
+        
+        <div class="frac-btn rebels" onclick="selectFraction('Повстанцы', '#ea580c')">
+            ПОВСТАНЦЫ
+            <div class="desc">Свобода ради будущего галактики</div>
+        </div>
+        
+        <div class="frac-btn aliens" onclick="selectFraction('Торговая гильдия', '#eab308')">
+            ТОРГОВАЯ ГИЛЬДИЯ
+            <div class="desc">Пришельцы. Только коммерческий интерес.</div>
+        </div>
+    </div>
+
+    <!-- ЭКРАН 3: ИГРОВОЙ ПРОЦЕСС -->
+    <div id="game-screen" class="hidden">
+        <div class="info-panel">Фракция: <span id="user-fraction"></span></div>
+        <div class="score-container"><span id="balance">0</span></div>
+        <div class="info-panel" id="resource-name">Ресурсы</div>
+        
+        <div id="main-clicker">ДОБЫЧА</div>
+        
+        <button class="reset-btn" onclick="resetGame()">Сменить фракцию (Сброс)</button>
+    </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // 1. Пытаемся загрузить сохраненный баланс из памяти телефона
-        // Если там ничего нет (первый вход), ставим 0
+        // Элементы экранов
+        const startScreen = document.getElementById('start-screen');
+        const fractionScreen = document.getElementById('fraction-screen');
+        const gameScreen = document.getElementById('game-screen');
+
+        // Переменные данных
         let score = parseInt(localStorage.getItem('space_score')) || 0;
-        
-        const balanceEl = document.getElementById('balance');
-        const buttonEl = document.getElementById('core-button');
+        let savedFraction = localStorage.getItem('space_fraction') || null;
+        let savedColor = localStorage.getItem('space_color') || '#ffffff';
 
-        // Отображаем сохраненный баланс сразу при запуске игры
-        balanceEl.innerText = score;
+        // Проверка при старте: если игрок уже выбрал фракцию ранее — сразу включаем игру
+        if (savedFraction) {
+            showGameScreen(savedFraction, savedColor);
+        }
 
-        buttonEl.addEventListener('click', () => {
+        // Клик по первой кнопке "Запустить путешествие"
+        document.getElementById('start-btn').addEventListener('click', () => {
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+            startScreen.classList.add('hidden');
+            fractionScreen.classList.remove('hidden');
+        });
+
+        // Функция выбора фракции
+        function selectFraction(name, color) {
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
+            
+            // Сохраняем выбор в память телефона
+            localStorage.setItem('space_fraction', name);
+            localStorage.setItem('space_color', color);
+            
+            fractionScreen.classList.add('hidden');
+            showGameScreen(name, color);
+        }
+
+        // Включение игрового экрана и настройка дизайна под фракцию
+        function showGameScreen(fractionName, color) {
+            startScreen.classList.add('hidden');
+            fractionScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+
+            document.getElementById('user-fraction').innerText = fractionName;
+            document.getElementById('user-fraction').style.color = color;
+            document.getElementById('balance').innerText = score;
+
+            const clicker = document.getElementById('main-clicker');
+            clicker.style.background = `radial-gradient(circle, ${color} 0%, #000 100%)`;
+            clicker.style.border = `3px solid ${color}`;
+            clicker.style.boxShadow = `0 0 30px ${color}66`;
+
+            // Уникальные названия ресурсов для каждой стороны
+            if (fractionName === 'Торговая гильдия') {
+                document.getElementById('resource-name').innerText = 'Галактические Кредиты';
+                document.getElementById('balance').style.color = '#eab308';
+            } else if (fractionName === 'Повстанцы') {
+                document.getElementById('resource-name').innerText = 'Материалы Сопротивления';
+                document.getElementById('balance').style.color = '#f97316';
+            } else {
+                document.getElementById('resource-name').innerText = 'Энергоблоки Конфедерации';
+                document.getElementById('balance').style.color = '#60a5fa';
+            }
+        }
+
+        // Логика кликера
+        document.getElementById('main-clicker').addEventListener('click', () => {
             score++;
-            balanceEl.innerText = score;
-
-            // 2. Сохраняем новое значение в память при каждом клике
+            document.getElementById('balance').innerText = score;
             localStorage.setItem('space_score', score);
 
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('medium');
-            }
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
         });
+
+        // Функция сброса для удобства тестирования
+        function resetGame() {
+            localStorage.removeItem('space_fraction');
+            localStorage.removeItem('space_color');
+            location.reload();
+        }
     </script>
 </body>
 </html>
