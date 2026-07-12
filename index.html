@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Space Dream: Odyssey 8-Bit</title>
+    <title>Space Dream</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         
@@ -30,7 +30,6 @@
             position: relative;
         }
         
-        /* Звездное поле */
         .stars {
             position: fixed;
             top: 0;
@@ -101,7 +100,6 @@
             margin: 0 auto;
         }
         
-        /* Кнопка НАЗАД */
         .back-arrow {
             position: absolute;
             top: 20px;
@@ -134,7 +132,6 @@
             animation: shake 0.3s;
         }
         
-        /* 8-BIT РАМКА */
         .pixel-border {
             border: 4px solid #00ff00;
             box-shadow: 
@@ -155,7 +152,6 @@
             pointer-events: none;
         }
         
-        /* ЭКРАН 1: СТАРТ */
         #screen1 { 
             padding-top: 60px;
             animation: slideIn 0.5s ease-out;
@@ -208,7 +204,6 @@
             animation: shake 0.3s;
         }
         
-        /* ЭКРАН 2: ВЫБОР ФРАКЦИИ */
         .title-screen { 
             font-size: 16px; 
             font-weight: bold; 
@@ -279,7 +274,6 @@
             line-height: 1.6; 
         }
 
-        /* ЭКРАН 3: ИГРОВОЙ ИНТЕРФЕЙС */
         .header-panel { 
             display: flex; 
             justify-content: space-between; 
@@ -330,7 +324,6 @@
             margin-top: 8px; 
         }
 
-        /* Главная кнопка */
         .main-reactor { 
             width: 180px; 
             height: 180px; 
@@ -365,7 +358,6 @@
             margin-top: 8px; 
         }
 
-        /* Анимация монеток */
         .floating-text {
             position: absolute;
             font-family: 'Press Start 2P', monospace;
@@ -382,7 +374,6 @@
             text-shadow: 0 0 10px #ffcc00;
         }
 
-        /* Улучшения */
         .upgrade-section { 
             width: 100%; 
             max-width: 340px; 
@@ -488,16 +479,15 @@
     </style>
 </head>
 <body>
-    <!-- Звездное поле -->
     <div class="stars" id="stars"></div>
 
     <div class="container">
         <!-- ЭКРАН 1: ДОБРО ПОЖАЛОВАТЬ -->
         <div id="screen1">
-            <div class="game-logo">КОСМОС МЕЧТЫ</div>
-            <div class="game-subtitle">8-БИТ ОДИССЕЯ v2.0</div>
+            <div class="game-logo">SPACE DREAM</div>
+            <div class="game-subtitle">КОСМИЧЕСКОЕ ПРИКЛЮЧЕНИЕ</div>
             <div class="start-btn pixel-border" id="start-btn">
-                ▶ СТАРТ
+                СТАРТ
             </div>
         </div>
 
@@ -507,17 +497,17 @@
             <div class="title-screen">ВЫБЕРИ ФРАКЦИЮ</div>
             
             <div class="frac-card confed" onclick="selectFrac('Конфедерация', '#0066ff')">
-                <div class="frac-name">КОНФЕДЕРАЦИЯ <span class="frac-bonus">-15%</span></div>
-                <div class="frac-desc">Порядок и дисциплина. Экономия ресурсов при модернизации.</div>
+                <div class="frac-name">КОНФЕДЕРАЦИЯ <span class="frac-bonus">СКИДКА 15%</span></div>
+                <div class="frac-desc">Порядок и дисциплина. Экономия ресурсов при улучшениях.</div>
             </div>
             
             <div class="frac-card rebels" onclick="selectFrac('Повстанцы', '#ff6600')">
-                <div class="frac-name">ПОВСТАНЦЫ <span class="frac-bonus">КРИТ x2</span></div>
+                <div class="frac-name">ПОВСТАНЦЫ <span class="frac-bonus">КРИТ x2 20%</span></div>
                 <div class="frac-desc">Альянс свободы. Шанс критического сбора ресурсов.</div>
             </div>
             
             <div class="frac-card guild" onclick="selectFrac('Торговая гильдия', '#ffcc00')">
-                <div class="frac-name">ТОРГОВАЯ ГИЛЬДИЯ <span class="frac-bonus">+30%</span></div>
+                <div class="frac-name">ТОРГОВАЯ ГИЛЬДИЯ <span class="frac-bonus">ПАССИВ +30%</span></div>
                 <div class="frac-desc">Коммерция пришельцев. Улучшенные авто-генераторы.</div>
             </div>
         </div>
@@ -528,8 +518,8 @@
             
             <div class="header-panel pixel-border">
                 <div class="panel-item">КОРАБЛЬ<div class="panel-val" id="hud-frac">—</div></div>
-                <div class="panel-item">КЛИК<div class="panel-val" id="hud-click">1</div></div>
-                <div class="panel-item">АВТО<div class="panel-val" id="hud-passive">0/с</div></div>
+                <div class="panel-item">СИЛА КЛИКА<div class="panel-val" id="hud-click">1</div></div>
+                <div class="panel-item">АВТО-СБОР<div class="panel-val" id="hud-passive">0/с</div></div>
             </div>
 
             <div class="resource-section">
@@ -538,20 +528,18 @@
                 <div class="pushed-income" id="passive-income-display">+0/с</div>
             </div>
             
-            <!-- Кнопка Корабля / Реактора -->
             <div id="main-reactor" class="pixel-border">
                 <span>ДОБЫЧА</span>
                 <span class="reactor-sub" id="reactor-action-text">КЛИК</span>
             </div>
 
-            <!-- МАГАЗИН УЛУЧШЕНИЙ -->
             <div class="upgrade-section">
-                <div class="section-label">► УЛУЧШЕНИЯ</div>
+                <div class="section-label">УЛУЧШЕНИЯ</div>
                 
                 <div class="up-card">
                     <div class="up-info">
                         <div class="up-title">ЛАЗЕРНАЯ ПУШКА</div>
-                        <div class="up-desc" id="up1-desc">УР.1 (+1 клик)</div>
+                        <div class="up-desc" id="up1-desc">УР.1 (+1 за клик)</div>
                     </div>
                     <button class="up-btn" id="up1-btn" onclick="buyUpgrade(1)">0</button>
                 </div>
@@ -559,21 +547,20 @@
                 <div class="up-card">
                     <div class="up-info">
                         <div class="up-title">АВТО-ГЕНЕРАТОР</div>
-                        <div class="up-desc" id="up2-desc">УР.0 (+2/с)</div>
+                        <div class="up-desc" id="up2-desc">УР.0 (+2/с пассивно)</div>
                     </div>
                     <button class="up-btn" id="up2-btn" onclick="buyUpgrade(2)">0</button>
                 </div>
             </div>
 
             <div class="system-footer">
-                <button class="tech-btn" onclick="changeFaction()">ФРАКЦИЯ</button>
+                <button class="tech-btn" onclick="changeFaction()">СМЕНИТЬ ФРАКЦИЮ</button>
                 <button class="tech-btn" onclick="resetAllData()">СБРОС</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Генерация звездного поля
         function createStars() {
             const starsContainer = document.getElementById('stars');
             for (let i = 0; i < 100; i++) {
@@ -589,7 +576,6 @@
         }
         createStars();
 
-        // Инициализация Telegram
         let tg = null;
         if (window.Telegram && window.Telegram.WebApp) {
             tg = window.Telegram.WebApp;
@@ -600,7 +586,6 @@
             }
         }
 
-        // Состояние игры
         let score = parseFloat(localStorage.getItem('sd_score')) || 0;
         let frac = localStorage.getItem('sd_frac') || null;
         let fracColor = localStorage.getItem('sd_color') || '#00ff00';
@@ -614,7 +599,6 @@
             initGameInterface();
         }
 
-        // Звуковые эффекты 8-bit
         function playBeep(frequency = 440, duration = 100) {
             try {
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -644,7 +628,6 @@
             setTimeout(() => playBeep(880, 100), 100);
         }
 
-        // Анимация плавающего текста
         function showFloatingText(x, y, text, isCrit = false) {
             const floatingText = document.createElement('div');
             floatingText.className = 'floating-text' + (isCrit ? ' crit-text' : '');
@@ -671,7 +654,7 @@
         }
 
         function changeFaction() {
-            if (confirm('Сменить фракцию? Прогресс сохранен.')) {
+            if (confirm('Сменить фракцию? Прогресс будет сохранен.')) {
                 playBeep(330, 100);
                 document.getElementById('screen3').classList.add('hidden');
                 document.getElementById('screen2').classList.remove('hidden');
@@ -761,12 +744,12 @@
             let cost1 = getUpgradeCost(1);
             let cost2 = getUpgradeCost(2);
             
-            document.getElementById('up1-desc').innerText = `УР.${up1Level} (+1 клик)`;
+            document.getElementById('up1-desc').innerText = `УР.${up1Level} (+1 за клик)`;
             const btn1 = document.getElementById('up1-btn');
             btn1.innerText = cost1;
             btn1.disabled = (score < cost1);
             
-            document.getElementById('up2-desc').innerText = `УР.${up2Level} (+2/с)`;
+            document.getElementById('up2-desc').innerText = `УР.${up2Level} (+2/с пассивно)`;
             const btn2 = document.getElementById('up2-btn');
             btn2.innerText = cost2;
             btn2.disabled = (score < cost2);
@@ -793,7 +776,6 @@
             score += clickPower;
             localStorage.setItem('sd_score', score);
             
-            // Показываем анимацию +число
             const rect = e.target.getBoundingClientRect();
             const x = rect.left + rect.width / 2;
             const y = rect.top;
@@ -844,7 +826,7 @@
         }
 
         function resetAllData() {
-            if (confirm('СБРОСИТЬ ВЕСЬ ПРОГРЕСС? [ДА/НЕТ]')) {
+            if (confirm('Сбросить весь прогресс? Данные будут удалены.')) {
                 localStorage.clear();
                 location.reload();
             }
