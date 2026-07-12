@@ -3,243 +3,661 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Space Dream: Odyssey</title>
+    <title>Space Dream: Odyssey 8-Bit</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        * {
+            image-rendering: pixelated;
+            -ms-interpolation-mode: nearest-neighbor;
+        }
+        
         body { 
-            background: radial-gradient(circle at center, #0f172a 0%, #020617 100%); 
-            color: #f1f5f9; 
-            font-family: 'Segoe UI', Roboto, sans-serif; 
+            background: #0a0a2e;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: #00ff00; 
+            font-family: 'Press Start 2P', monospace; 
             text-align: center; 
             margin: 0; 
             padding: 20px; 
             user-select: none; 
             -webkit-user-select: none;
             overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
         }
+        
+        /* Звездное поле */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .star {
+            position: absolute;
+            background: #fff;
+            animation: twinkle 2s infinite;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        @keyframes glitch {
+            0%, 100% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes critFlash {
+            0% { filter: brightness(1); }
+            50% { filter: brightness(2) saturate(2); }
+            100% { filter: brightness(1); }
+        }
+        
+        @keyframes coinDrop {
+            from { transform: translateY(-50px); opacity: 1; }
+            to { transform: translateY(100px); opacity: 0; }
+        }
+        
         .hidden { display: none !important; }
         
-        /* ЭКРАН 1: СТАРТ */
-        #screen1 { padding-top: 80px; }
-        .game-logo { font-size: 36px; font-weight: 900; letter-spacing: 4px; color: #fff; text-shadow: 0 0 20px rgba(59,130,246,0.6); margin-bottom: 10px; }
-        .game-subtitle { font-size: 14px; color: #64748b; letter-spacing: 2px; margin-bottom: 80px; }
-        .start-btn { 
-            width: 220px; height: 220px; background: radial-gradient(circle, #2563eb 0%, #1d4ed8 100%); 
-            border: 4px solid #60a5fa; border-radius: 50%; margin: 0 auto; 
-            display: flex; align-items: center; justify-content: center; 
-            font-size: 16px; font-weight: bold; color: white; letter-spacing: 1px;
-            box-shadow: 0 0 40px rgba(37,99,235,0.5); cursor: pointer; transition: transform 0.1s;
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 400px;
+            margin: 0 auto;
         }
-        .start-btn:active { transform: scale(0.95); }
+        
+        /* 8-BIT РАМКА */
+        .pixel-border {
+            border: 4px solid #00ff00;
+            box-shadow: 
+                0 0 0 2px #0a0a2e,
+                0 0 0 6px #00ff00,
+                0 0 20px rgba(0, 255, 0, 0.3);
+            position: relative;
+        }
+        
+        .pixel-border::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            right: -8px;
+            bottom: -8px;
+            border: 2px solid #00ff00;
+            pointer-events: none;
+        }
+        
+        /* ЭКРАН 1: СТАРТ */
+        #screen1 { 
+            padding-top: 60px;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        .game-logo { 
+            font-size: 24px; 
+            font-weight: bold; 
+            color: #00ff00; 
+            text-shadow: 4px 4px 0 #003300;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .game-subtitle { 
+            font-size: 10px; 
+            color: #00cc00; 
+            margin-bottom: 60px;
+            animation: glitch 3s infinite;
+        }
+        
+        .start-btn { 
+            width: 180px; 
+            height: 180px; 
+            background: #003300;
+            border: 6px solid #00ff00; 
+            margin: 0 auto; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 12px; 
+            font-weight: bold; 
+            color: #00ff00; 
+            cursor: pointer; 
+            transition: all 0.1s;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
+            animation: pulse 2s ease-in-out infinite;
+            image-rendering: pixelated;
+        }
+        
+        .start-btn:hover {
+            background: #004400;
+            box-shadow: 0 0 50px rgba(0, 255, 0, 0.8);
+        }
+        
+        .start-btn:active { 
+            transform: scale(0.9);
+            animation: shake 0.3s;
+        }
         
         /* ЭКРАН 2: ВЫБОР ФРАКЦИИ */
         .back-btn {
             position: absolute;
             top: 20px;
             left: 20px;
-            background: rgba(30, 41, 59, 0.8);
-            border: 1px solid #334155;
-            color: #94a3b8;
-            padding: 10px 16px;
-            border-radius: 8px;
+            background: #003300;
+            border: 3px solid #00ff00;
+            color: #00ff00;
+            padding: 8px 12px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px;
             cursor: pointer;
-            font-size: 14px;
-            transition: background 0.2s;
             z-index: 10;
+            transition: all 0.2s;
         }
-        .back-btn:hover {
-            background: rgba(51, 65, 85, 0.8);
-        }
-        .back-btn:active {
-            transform: scale(0.95);
-        }
-        .title-screen { font-size: 22px; font-weight: bold; margin-bottom: 30px; color: #94a3b8; letter-spacing: 1px; margin-top: 60px; }
-        .frac-card { 
-            width: 100%; max-width: 320px; padding: 20px; margin: 15px auto; 
-            border-radius: 16px; border: 2px solid transparent; text-align: left; cursor: pointer; 
-            transition: transform 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-        .frac-card:active { transform: scale(0.97); }
-        .confed { background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); border-color: #3b82f6; }
-        .rebels { background: linear-gradient(135deg, #7c2d12 0%, #9a3412 100%); border-color: #ea580c; }
-        .guild { background: linear-gradient(135deg, #78350f 0%, #854d0e 100%); border-color: #eab308; }
-        .frac-name { font-size: 20px; font-weight: bold; color: #fff; margin-bottom: 4px; display: flex; justify-content: space-between; }
-        .frac-bonus { font-size: 11px; background: rgba(255,255,255,0.15); padding: 2px 6px; border-radius: 4px; font-weight: normal; }
-        .frac-desc { font-size: 13px; color: #cbd5e1; opacity: 0.9; line-height: 1.4; }
-
-        /* ЭКРАН 3: ИГРОВОЙ ИНТЕРФЕЙС И МОСТИК КОРАБЛЯ */
-        .header-panel { display: flex; justify-content: space-between; align-items: center; background: rgba(15,23,42,0.6); padding: 12px 16px; border-radius: 12px; border: 1px solid #1e293b; margin-bottom: 20px; }
-        .panel-item { font-size: 12px; color: #64748b; text-align: left; }
-        .panel-val { font-size: 14px; font-weight: bold; color: #f1f5f9; margin-top: 2px; }
         
-        .resource-section { margin: 30px 0; }
-        #res-type { font-size: 14px; color: #94a3b8; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px; }
-        .balance-digits { font-size: 46px; font-weight: 800; color: #fff; text-shadow: 0 0 15px rgba(255,255,255,0.1); }
-        .pushed-income { font-size: 14px; color: #10b981; margin-top: 4px; font-weight: 500; }
+        .back-btn:hover {
+            background: #004400;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+        }
+        
+        .title-screen { 
+            font-size: 16px; 
+            font-weight: bold; 
+            margin-bottom: 30px; 
+            color: #00ff00; 
+            margin-top: 60px;
+            text-shadow: 2px 2px 0 #003300;
+        }
+        
+        .frac-card { 
+            width: 100%; 
+            max-width: 320px; 
+            padding: 20px; 
+            margin: 15px auto; 
+            border: 3px solid;
+            text-align: left; 
+            cursor: pointer; 
+            transition: all 0.3s;
+            animation: slideIn 0.5s ease-out;
+            background: #0a0a2e;
+        }
+        
+        .frac-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 0 20px currentColor;
+        }
+        
+        .frac-card:active { 
+            animation: shake 0.3s;
+        }
+        
+        .confed { 
+            border-color: #0066ff; 
+            color: #0066ff;
+            box-shadow: 0 0 15px rgba(0, 102, 255, 0.3);
+        }
+        
+        .rebels { 
+            border-color: #ff6600; 
+            color: #ff6600;
+            box-shadow: 0 0 15px rgba(255, 102, 0, 0.3);
+        }
+        
+        .guild { 
+            border-color: #ffcc00; 
+            color: #ffcc00;
+            box-shadow: 0 0 15px rgba(255, 204, 0, 0.3);
+        }
+        
+        .frac-name { 
+            font-size: 14px; 
+            font-weight: bold; 
+            margin-bottom: 8px; 
+            display: flex; 
+            justify-content: space-between; 
+        }
+        
+        .frac-bonus { 
+            font-size: 8px; 
+            background: rgba(255,255,255,0.1); 
+            padding: 4px 6px; 
+            border: 1px solid;
+        }
+        
+        .frac-desc { 
+            font-size: 9px; 
+            opacity: 0.8; 
+            line-height: 1.6; 
+        }
 
-        /* Главная кнопка добычи */
+        /* ЭКРАН 3: ИГРОВОЙ ИНТЕРФЕЙС */
+        .header-panel { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            background: #003300;
+            padding: 12px; 
+            border: 3px solid #00ff00;
+            margin-bottom: 20px;
+            font-size: 8px;
+        }
+        
+        .panel-item { 
+            font-size: 7px; 
+            color: #00cc00; 
+            text-align: left; 
+        }
+        
+        .panel-val { 
+            font-size: 10px; 
+            font-weight: bold; 
+            color: #00ff00; 
+            margin-top: 4px; 
+        }
+        
+        .resource-section { 
+            margin: 30px 0;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        #res-type { 
+            font-size: 10px; 
+            color: #00cc00; 
+            margin-bottom: 10px; 
+        }
+        
+        .balance-digits { 
+            font-size: 36px; 
+            font-weight: bold; 
+            color: #00ff00; 
+            text-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+            transition: all 0.3s;
+        }
+        
+        .pushed-income { 
+            font-size: 10px; 
+            color: #00ff00; 
+            margin-top: 8px; 
+        }
+
+        /* Главная кнопка */
         .main-reactor { 
-            width: 200px; height: 200px; border-radius: 50%; margin: 30px auto; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            font-size: 18px; font-weight: bold; color: white; cursor: pointer; 
-            transition: transform 0.05s, box-shadow 0.1s; position: relative;
+            width: 180px; 
+            height: 180px; 
+            border: 6px solid #00ff00;
+            margin: 30px auto; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 14px; 
+            font-weight: bold; 
+            color: #00ff00; 
+            cursor: pointer; 
+            transition: all 0.05s;
+            position: relative;
+            background: #003300;
+            animation: pulse 2s ease-in-out infinite;
         }
-        .main-reactor:active { transform: scale(0.93); }
-        .reactor-sub { font-size: 11px; opacity: 0.7; font-weight: normal; margin-top: 4px; letter-spacing: 1px; }
+        
+        .main-reactor:hover {
+            box-shadow: 0 0 40px rgba(0, 255, 0, 0.6);
+        }
+        
+        .main-reactor:active { 
+            transform: scale(0.9);
+            animation: shake 0.2s;
+        }
+        
+        .reactor-sub { 
+            font-size: 8px; 
+            opacity: 0.7; 
+            margin-top: 8px; 
+        }
 
-        /* Раздел прокачки и магазина */
-        .upgrade-section { width: 100%; max-width: 340px; margin: 40px auto 0; text-align: left; }
-        .section-label { font-size: 14px; color: #64748b; font-weight: bold; letter-spacing: 1px; margin-bottom: 12px; text-transform: uppercase; }
+        /* Анимация монеток */
+        .floating-text {
+            position: absolute;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 12px;
+            font-weight: bold;
+            pointer-events: none;
+            animation: coinDrop 1s ease-out forwards;
+            z-index: 100;
+        }
+        
+        .crit-text {
+            color: #ffcc00;
+            font-size: 16px;
+            text-shadow: 0 0 10px #ffcc00;
+        }
+
+        /* Улучшения */
+        .upgrade-section { 
+            width: 100%; 
+            max-width: 340px; 
+            margin: 40px auto 0; 
+            text-align: left; 
+        }
+        
+        .section-label { 
+            font-size: 10px; 
+            color: #00cc00; 
+            font-weight: bold; 
+            margin-bottom: 15px; 
+            text-shadow: 2px 2px 0 #003300;
+        }
+        
         .up-card { 
-            background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; 
-            padding: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
+            background: #0a0a2e;
+            border: 2px solid #00ff00;
+            padding: 14px; 
+            margin-bottom: 10px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            transition: all 0.3s;
         }
-        .up-info { display: flex; flex-direction: column; }
-        .up-title { font-size: 15px; font-weight: bold; color: #e2e8f0; }
-        .up-desc { font-size: 12px; color: #64748b; margin-top: 2px; }
+        
+        .up-card:hover {
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+        }
+        
+        .up-info { 
+            display: flex; 
+            flex-direction: column; 
+        }
+        
+        .up-title { 
+            font-size: 11px; 
+            font-weight: bold; 
+            color: #00ff00; 
+        }
+        
+        .up-desc { 
+            font-size: 8px; 
+            color: #00cc00; 
+            margin-top: 4px; 
+        }
+        
         .up-btn { 
-            background: #2563eb; color: white; padding: 10px 16px; border-radius: 8px; 
-            font-size: 13px; font-weight: bold; border: none; cursor: pointer; transition: background 0.2s;
+            background: #003300;
+            color: #00ff00; 
+            padding: 8px 12px; 
+            border: 2px solid #00ff00;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px; 
+            cursor: pointer; 
+            transition: all 0.2s;
         }
-        .up-btn:active { transform: scale(0.96); }
-        .up-btn:disabled { background: #1e293b; color: #475569; cursor: not-allowed; }
+        
+        .up-btn:hover {
+            background: #004400;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+        }
+        
+        .up-btn:active { 
+            animation: shake 0.2s;
+        }
+        
+        .up-btn:disabled { 
+            background: #1a1a1a;
+            color: #333; 
+            cursor: not-allowed;
+            border-color: #333;
+        }
 
-        .system-footer { margin-top: 40px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
-        .tech-btn { background: none; border: 1px solid #334155; color: #475569; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 11px; transition: background 0.2s; }
-        .tech-btn:hover { background: rgba(51, 65, 85, 0.3); }
-        .tech-btn:active { transform: scale(0.95); }
+        .system-footer { 
+            margin-top: 40px; 
+            display: flex; 
+            justify-content: center; 
+            gap: 10px; 
+            flex-wrap: wrap;
+        }
+        
+        .tech-btn { 
+            background: #0a0a2e;
+            border: 2px solid #00ff00;
+            color: #00ff00; 
+            padding: 8px 12px; 
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px; 
+            cursor: pointer; 
+            transition: all 0.2s;
+        }
+        
+        .tech-btn:hover {
+            background: #003300;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+        }
+        
+        .tech-btn:active { 
+            animation: shake 0.2s;
+        }
     </style>
 </head>
 <body>
+    <!-- Звездное поле -->
+    <div class="stars" id="stars"></div>
 
-    <!-- ЭКРАН 1: ДОБРО ПОЖАЛОВАТЬ -->
-    <div id="screen1">
-        <div class="game-logo">SPACE DREAM</div>
-        <div class="game-subtitle">КОСМИЧЕСКАЯ ОДИССЕЯ v1.2</div>
-        <div class="start-btn" id="start-btn">ЗАПУСТИТЬ ПУТЕШЕСТВИЕ</div>
-    </div>
-
-    <!-- ЭКРАН 2: ВЫБОР СТОРОНЫ -->
-    <div id="screen2" class="hidden">
-        <button class="back-btn" onclick="goBackToStart()">← Назад</button>
-        <div class="title-screen">ВЫБЕРИТЕ СВОЮ ФРАКЦИЮ</div>
-        
-        <div class="frac-card confed" onclick="selectFrac('Конфедерация', '#3b82f6')">
-            <div class="frac-name">КОНФЕДЕРАЦИЯ <span class="frac-bonus">Скидка 15%</span></div>
-            <div class="frac-desc">Порядок, строгая дисциплина и закон. Экономят ресурсы на модернизации модулей корабля.</div>
-        </div>
-        
-        <div class="frac-card rebels" onclick="selectFrac('Повстанцы', '#ea580c')">
-            <div class="frac-name">ПОВСТАНЦЫ <span class="frac-bonus">Крит x2 (20%)</span></div>
-            <div class="frac-desc">Свободный альянс ради будущего. Высокие технологии дают шанс критического ручного сбора.</div>
-        </div>
-        
-        <div class="frac-card guild" onclick="selectFrac('Торговая гильдия', '#eab308')">
-            <div class="frac-name">ТОРГОВАЯ ГИЛЬДИЯ <span class="frac-bonus">Пассив +30%</span></div>
-            <div class="frac-desc">Высший коммерческий интерес пришельцев. Оптимизированные авто-генераторы дают больше прибыли.</div>
-        </div>
-    </div>
-
-    <!-- ЭКРАН 3: ГЛАВНЫЙ ИГРОВОЙ МОСТИК -->
-    <div id="screen3" class="hidden">
-        <div class="header-panel">
-            <div class="panel-item">Корабль фракции<div class="panel-val" id="hud-frac">—</div></div>
-            <div class="panel-item">Эффективность клика<div class="panel-val" id="hud-click">1 ГВт</div></div>
-            <div class="panel-item">Системы авто-сбора<div class="panel-val" id="hud-passive">0 /сек</div></div>
+    <div class="container">
+        <!-- ЭКРАН 1: ДОБРО ПОЖАЛОВАТЬ -->
+        <div id="screen1">
+            <div class="game-logo">SPACE DREAM</div>
+            <div class="game-subtitle">8-BIT ODYSSEY v2.0</div>
+            <div class="start-btn pixel-border" id="start-btn">
+                ▶ START
+            </div>
         </div>
 
-        <div class="resource-section">
-            <div id="res-type">Загрузка систем...</div>
-            <div class="balance-digits" id="balance">0</div>
-            <div class="pushed-income" id="passive-income-display">+0/сек</div>
-        </div>
-        
-        <!-- Кнопка Корабля / Реактора -->
-        <div id="main-reactor">
-            <span>ДОБЫЧА</span>
-            <span class="reactor-sub" id="reactor-action-text">Клик</span>
-        </div>
-
-        <!-- МАГАЗИН УЛУЧШЕНИЙ -->
-        <div class="upgrade-section">
-            <div class="section-label">Модернизация отсеков</div>
+        <!-- ЭКРАН 2: ВЫБОР СТОРОНЫ -->
+        <div id="screen2" class="hidden">
+            <button class="back-btn" onclick="goBackToStart()">◄ BACK</button>
+            <div class="title-screen">SELECT FACTION</div>
             
-            <!-- Апгрейд 1: Ручной сбор -->
-            <div class="up-card">
-                <div class="up-info">
-                    <div class="up-title">Орудийный лазер</div>
-                    <div class="up-desc" id="up1-desc">Ур.1 (Добыча +1 за клик)</div>
-                </div>
-                <button class="up-btn" id="up1-btn" onclick="buyUpgrade(1)">0</button>
+            <div class="frac-card confed" onclick="selectFrac('Конфедерация', '#0066ff')">
+                <div class="frac-name">CONFEDERATION <span class="frac-bonus">-15%</span></div>
+                <div class="frac-desc">Order and discipline. Resource optimization for ship modules.</div>
             </div>
-
-            <!-- Апгрейд 2: Пассивный сбор -->
-            <div class="up-card">
-                <div class="up-info">
-                    <div class="up-title">Авто-генератор материи</div>
-                    <div class="up-desc" id="up2-desc">Ур.0 (+1/сек пассивно)</div>
-                </div>
-                <button class="up-btn" id="up2-btn" onclick="buyUpgrade(2)">0</button>
+            
+            <div class="frac-card rebels" onclick="selectFrac('Повстанцы', '#ff6600')">
+                <div class="frac-name">REBELS <span class="frac-bonus">CRIT x2</span></div>
+                <div class="frac-desc">Freedom alliance. High-tech critical collection systems.</div>
+            </div>
+            
+            <div class="frac-card guild" onclick="selectFrac('Торговая гильдия', '#ffcc00')">
+                <div class="frac-name">TRADE GUILD <span class="frac-bonus">+30%</span></div>
+                <div class="frac-desc">Alien commerce. Optimized auto-generators for profit.</div>
             </div>
         </div>
 
-        <div class="system-footer">
-            <button class="tech-btn" onclick="changeFaction()">Сменить фракцию</button>
-            <button class="tech-btn" onclick="resetAllData()">Сбросить прогресс</button>
+        <!-- ЭКРАН 3: ГЛАВНЫЙ ИГРОВОЙ МОСТИК -->
+        <div id="screen3" class="hidden">
+            <div class="header-panel pixel-border">
+                <div class="panel-item">SHIP<div class="panel-val" id="hud-frac">—</div></div>
+                <div class="panel-item">CLICK<div class="panel-val" id="hud-click">1</div></div>
+                <div class="panel-item">AUTO<div class="panel-val" id="hud-passive">0/s</div></div>
+            </div>
+
+            <div class="resource-section">
+                <div id="res-type">LOADING...</div>
+                <div class="balance-digits" id="balance">0</div>
+                <div class="pushed-income" id="passive-income-display">+0/s</div>
+            </div>
+            
+            <!-- Кнопка Корабля / Реактора -->
+            <div id="main-reactor" class="pixel-border">
+                <span>MINE</span>
+                <span class="reactor-sub" id="reactor-action-text">CLICK</span>
+            </div>
+
+            <!-- МАГАЗИН УЛУЧШЕНИЙ -->
+            <div class="upgrade-section">
+                <div class="section-label">► UPGRADES</div>
+                
+                <div class="up-card">
+                    <div class="up-info">
+                        <div class="up-title">LASER CANNON</div>
+                        <div class="up-desc" id="up1-desc">LVL.1 (+1 click)</div>
+                    </div>
+                    <button class="up-btn" id="up1-btn" onclick="buyUpgrade(1)">0</button>
+                </div>
+
+                <div class="up-card">
+                    <div class="up-info">
+                        <div class="up-title">AUTO-GENERATOR</div>
+                        <div class="up-desc" id="up2-desc">LVL.0 (+2/s)</div>
+                    </div>
+                    <button class="up-btn" id="up2-btn" onclick="buyUpgrade(2)">0</button>
+                </div>
+            </div>
+
+            <div class="system-footer">
+                <button class="tech-btn" onclick="changeFaction()">FACTION</button>
+                <button class="tech-btn" onclick="resetAllData()">RESET</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // Инициализация интерфейса Telegram
+        // Генерация звездного поля
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = Math.random() * 3 + 'px';
+                star.style.height = star.style.width;
+                star.style.animationDelay = Math.random() * 2 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+        createStars();
+
+        // Инициализация Telegram
         let tg = null;
         if (window.Telegram && window.Telegram.WebApp) {
             tg = window.Telegram.WebApp;
             try { 
                 tg.expand(); 
             } catch(e) {
-                console.log('Telegram WebApp не доступен');
+                console.log('Telegram WebApp not available');
             }
         }
 
-        // --- СОСТОЯНИЕ ИГРЫ (ПЕРЕМЕННЫЕ) ---
+        // Состояние игры
         let score = parseFloat(localStorage.getItem('sd_score')) || 0;
         let frac = localStorage.getItem('sd_frac') || null;
-        let fracColor = localStorage.getItem('sd_color') || '#ffffff';
-        
-        // Уровни улучшений
+        let fracColor = localStorage.getItem('sd_color') || '#00ff00';
         let up1Level = parseInt(localStorage.getItem('sd_up1_lvl')) || 1;
         let up2Level = parseInt(localStorage.getItem('sd_up2_lvl')) || 0;
-
-        // Базовые стоимости улучшений
         const up1BaseCost = 50;
         const up2BaseCost = 150;
-
-        // Таймер пассивного дохода
         let passiveInterval = null;
 
-        // Проверяем, была ли фракция выбрана ранее
         if (frac) {
             initGameInterface();
         }
 
-        // Обработчик клика по стартовой кнопке
+        // Звуковые эффекты 8-bit
+        function playBeep(frequency = 440, duration = 100) {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                oscillator.frequency.value = frequency;
+                oscillator.type = 'square';
+                gainNode.gain.value = 0.1;
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + duration / 1000);
+            } catch(e) {}
+        }
+
+        function playClickSound() {
+            playBeep(440, 50);
+        }
+
+        function playCritSound() {
+            playBeep(880, 100);
+            setTimeout(() => playBeep(1320, 50), 100);
+        }
+
+        function playBuySound() {
+            playBeep(660, 100);
+            setTimeout(() => playBeep(880, 100), 100);
+        }
+
+        // Анимация плавающего текста
+        function showFloatingText(x, y, text, isCrit = false) {
+            const floatingText = document.createElement('div');
+            floatingText.className = 'floating-text' + (isCrit ? ' crit-text' : '');
+            floatingText.innerText = text;
+            floatingText.style.left = x + 'px';
+            floatingText.style.top = y + 'px';
+            document.body.appendChild(floatingText);
+            
+            setTimeout(() => {
+                floatingText.remove();
+            }, 1000);
+        }
+
         document.getElementById('start-btn').addEventListener('click', function() {
+            playBeep(440, 100);
             document.getElementById('screen1').classList.add('hidden');
             document.getElementById('screen2').classList.remove('hidden');
         });
 
-        // Функция возврата на стартовый экран
         function goBackToStart() {
+            playBeep(220, 100);
             document.getElementById('screen2').classList.add('hidden');
             document.getElementById('screen1').classList.remove('hidden');
         }
 
-        // Функция смены фракции (возврат к выбору)
         function changeFaction() {
-            if (confirm('Вы уверены, что хотите сменить фракцию? Прогресс будет сохранен.')) {
+            if (confirm('Change faction? Progress saved.')) {
+                playBeep(330, 100);
                 document.getElementById('screen3').classList.add('hidden');
                 document.getElementById('screen2').classList.remove('hidden');
-                
-                // Останавливаем пассивный доход пока выбираем фракцию
                 if (passiveInterval) {
                     clearInterval(passiveInterval);
                     passiveInterval = null;
@@ -247,8 +665,8 @@
             }
         }
 
-        // Функция выбора фракции
         function selectFrac(name, color) {
+            playBeep(550, 150);
             frac = name;
             fracColor = color;
             localStorage.setItem('sd_frac', name);
@@ -256,136 +674,122 @@
             initGameInterface();
         }
 
-        // Построение и переключение на игровой экран
         function initGameInterface() {
             document.getElementById('screen1').classList.add('hidden');
             document.getElementById('screen2').classList.add('hidden');
             document.getElementById('screen3').classList.remove('hidden');
             
-            // Текст фракции и её уникальный цвет
             const hudFrac = document.getElementById('hud-frac');
             hudFrac.innerText = frac;
             hudFrac.style.color = fracColor;
             
-            // Настройка главного кликера под дизайн фракции
             const reactor = document.getElementById('main-reactor');
-            reactor.style.background = `radial-gradient(circle, ${fracColor} 0%, #020617 100%)`;
-            reactor.style.border = `4px solid ${fracColor}`;
+            reactor.style.background = `#003300`;
+            reactor.style.borderColor = fracColor;
+            reactor.style.color = fracColor;
             reactor.style.boxShadow = `0 0 30px ${fracColor}44`;
             
-            // Уникальное именование ресурсов фракций
             const resType = document.getElementById('res-type');
             const actionText = document.getElementById('reactor-action-text');
             
             if (frac === 'Торговая гильдия') {
-                resType.innerText = 'Галактические Кредиты';
-                actionText.innerText = 'СДЕЛКА';
+                resType.innerText = 'GALACTIC CREDITS';
+                actionText.innerText = 'DEAL';
             } else if (frac === 'Повстанцы') {
-                resType.innerText = 'Данные Сопротивления';
-                actionText.innerText = 'ВЗЛОМ';
+                resType.innerText = 'RESISTANCE DATA';
+                actionText.innerText = 'HACK';
             } else {
-                resType.innerText = 'Энергоблоки Империи';
-                actionText.innerText = 'СИНТЕЗ';
+                resType.innerText = 'ENERGY BLOCKS';
+                actionText.innerText = 'SYNTH';
             }
             
-            // Обновляем все цифры и запускаем таймер пассивного дохода
             updateUiDisplay();
             startPassiveIncomeTimer();
         }
 
-        // РАСЧЕТ СИЛЫ КЛИКА
         function getClickPower() {
-            // Базовый клик равен уровню первого апгрейда
             return up1Level;
         }
 
-        // РАСЧЕТ ПАССИВНОГО ДОХОДА
         function getPassiveIncome() {
             let income = up2Level * 2;
-            // Каждый уровень дает +2/сек
-            
-            // Бонус Торговой гильдии: +30% к пассивному доходу
             if (frac === 'Торговая гильдия') {
                 income = income * 1.3;
             }
-            
             return income;
         }
 
-        // РАСЧЕТ СТОИМОСТИ С УЧЕТОМ СКИДКИ КОНФЕДЕРАЦИИ
         function getUpgradeCost(type) {
             let cost = 0;
-            
             if (type === 1) {
                 cost = Math.floor(up1BaseCost * Math.pow(1.6, up1Level - 1));
             } else if (type === 2) {
                 cost = Math.floor(up2BaseCost * Math.pow(1.7, up2Level));
             }
-            
-            // Бонус Конфедерации: 15% скидка на покупку апгрейдов
             if (frac === 'Конфедерация') {
                 cost = Math.floor(cost * 0.85);
             }
-            
             return cost;
         }
 
-        // ОБНОВЛЕНИЕ ЭЛЕМЕНТОВ НА ЭКРАНЕ
         function updateUiDisplay() {
-            // Округляем до 1 знака для красоты при дробном доходе торговцев
             document.getElementById('balance').innerText = Math.floor(score).toLocaleString();
-            
             let clickPower = getClickPower();
             let passiveIncome = getPassiveIncome();
             
-            document.getElementById('hud-click').innerText = clickPower + ' Ед.';
-            document.getElementById('hud-passive').innerText = passiveIncome.toFixed(1) + ' /сек';
-            document.getElementById('passive-income-display').innerText = '+' + passiveIncome.toFixed(1) + ' /сек';
+            document.getElementById('hud-click').innerText = clickPower;
+            document.getElementById('hud-passive').innerText = passiveIncome.toFixed(1) + '/s';
+            document.getElementById('passive-income-display').innerText = '+' + passiveIncome.toFixed(1) + '/s';
             
-            // Цены
             let cost1 = getUpgradeCost(1);
             let cost2 = getUpgradeCost(2);
             
-            // Кнопка 1
-            document.getElementById('up1-desc').innerText = `Ур. ${up1Level} (+1 к сбору)`;
+            document.getElementById('up1-desc').innerText = `LVL.${up1Level} (+1 click)`;
             const btn1 = document.getElementById('up1-btn');
             btn1.innerText = cost1;
             btn1.disabled = (score < cost1);
             
-            // Кнопка 2
-            document.getElementById('up2-desc').innerText = `Ур. ${up2Level} (+2/сек пассив)`;
+            document.getElementById('up2-desc').innerText = `LVL.${up2Level} (+2/s)`;
             const btn2 = document.getElementById('up2-btn');
             btn2.innerText = cost2;
             btn2.disabled = (score < cost2);
             
-            // Красим баланс в цвет фракции
             document.getElementById('balance').style.color = fracColor;
         }
 
-        // КЛИК ПО ГЛАВНОМУ РЕАКТОРУ
-        document.getElementById('main-reactor').addEventListener('click', function() {
+        document.getElementById('main-reactor').addEventListener('click', function(e) {
             let clickPower = getClickPower();
+            let isCrit = false;
             
-            // Бонус Повстанцев: 20% шанс на критический клик х2
             if (frac === 'Повстанцы' && Math.random() < 0.2) {
                 clickPower = clickPower * 2;
-                playHaptic('heavy'); // Усиленная вибрация при крите
+                isCrit = true;
+                playCritSound();
+                document.getElementById('main-reactor').style.animation = 'critFlash 0.3s';
+                setTimeout(() => {
+                    document.getElementById('main-reactor').style.animation = 'pulse 2s ease-in-out infinite';
+                }, 300);
             } else {
-                playHaptic('light'); // Обычная вибрация
+                playClickSound();
             }
             
             score += clickPower;
             localStorage.setItem('sd_score', score);
+            
+            // Показываем анимацию +число
+            const rect = e.target.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top;
+            showFloatingText(x, y, '+' + clickPower, isCrit);
+            
             updateUiDisplay();
         });
 
-        // ПОКУПКА УЛУЧШЕНИЙ
         function buyUpgrade(type) {
             let cost = getUpgradeCost(type);
-            
             if (score >= cost) {
                 score -= cost;
-                playHaptic('medium');
+                playBuySound();
                 
                 if (type === 1) {
                     up1Level++;
@@ -400,36 +804,30 @@
             }
         }
 
-        // ТАЙМЕР ПАССИВНОГО ДОХОДА (РАБОТАЕТ РАЗ В СЕКУНДУ)
         function startPassiveIncomeTimer() {
             if (passiveInterval) {
                 clearInterval(passiveInterval);
             }
-            
             passiveInterval = setInterval(() => {
                 let passive = getPassiveIncome();
                 if (passive > 0) {
-                    score += (passive / 10); // Начисляем мелкими частями 10 раз в секунду для плавности счетчика
+                    score += (passive / 10);
                     localStorage.setItem('sd_score', score);
                     updateUiDisplay();
                 }
-            }, 100); // 100 миллисекунд
+            }, 100);
         }
 
-        // ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ ВИБРАЦИИ СМАРТФОНА
         function playHaptic(style) {
             if (tg && tg.HapticFeedback) {
                 try {
                     tg.HapticFeedback.impactOccurred(style);
-                } catch(e) {
-                    console.log('Haptic не поддерживается');
-                }
+                } catch(e) {}
             }
         }
 
-        // ПОЛНЫЙ СБРОС ИГРЫ С ПЕРЕЗАГРУЗКОЙ ПОЛУЧЕНИЕМ НОВОГО КЭША
         function resetAllData() {
-            if (confirm('Вы уверены, что хотите сбросить весь прогресс? Все данные будут удалены.')) {
+            if (confirm('RESET ALL PROGRESS? [Y/N]')) {
                 localStorage.clear();
                 location.reload();
             }
