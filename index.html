@@ -32,7 +32,27 @@
         .start-btn:active { transform: scale(0.95); }
         
         /* ЭКРАН 2: ВЫБОР ФРАКЦИИ */
-        .title-screen { font-size: 22px; font-weight: bold; margin-bottom: 30px; color: #94a3b8; letter-spacing: 1px; }
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid #334155;
+            color: #94a3b8;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+            z-index: 10;
+        }
+        .back-btn:hover {
+            background: rgba(51, 65, 85, 0.8);
+        }
+        .back-btn:active {
+            transform: scale(0.95);
+        }
+        .title-screen { font-size: 22px; font-weight: bold; margin-bottom: 30px; color: #94a3b8; letter-spacing: 1px; margin-top: 60px; }
         .frac-card { 
             width: 100%; max-width: 320px; padding: 20px; margin: 15px auto; 
             border-radius: 16px; border: 2px solid transparent; text-align: left; cursor: pointer; 
@@ -83,8 +103,10 @@
         .up-btn:active { transform: scale(0.96); }
         .up-btn:disabled { background: #1e293b; color: #475569; cursor: not-allowed; }
 
-        .system-footer { margin-top: 40px; display: flex; justify-content: center; gap: 15px; }
-        .tech-btn { background: none; border: 1px solid #334155; color: #475569; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 11px; }
+        .system-footer { margin-top: 40px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
+        .tech-btn { background: none; border: 1px solid #334155; color: #475569; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 11px; transition: background 0.2s; }
+        .tech-btn:hover { background: rgba(51, 65, 85, 0.3); }
+        .tech-btn:active { transform: scale(0.95); }
     </style>
 </head>
 <body>
@@ -98,6 +120,7 @@
 
     <!-- ЭКРАН 2: ВЫБОР СТОРОНЫ -->
     <div id="screen2" class="hidden">
+        <button class="back-btn" onclick="goBackToStart()">← Назад</button>
         <div class="title-screen">ВЫБЕРИТЕ СВОЮ ФРАКЦИЮ</div>
         
         <div class="frac-card confed" onclick="selectFrac('Конфедерация', '#3b82f6')">
@@ -160,6 +183,7 @@
         </div>
 
         <div class="system-footer">
+            <button class="tech-btn" onclick="changeFaction()">Сменить фракцию</button>
             <button class="tech-btn" onclick="resetAllData()">Сбросить прогресс</button>
         </div>
     </div>
@@ -202,6 +226,26 @@
             document.getElementById('screen1').classList.add('hidden');
             document.getElementById('screen2').classList.remove('hidden');
         });
+
+        // Функция возврата на стартовый экран
+        function goBackToStart() {
+            document.getElementById('screen2').classList.add('hidden');
+            document.getElementById('screen1').classList.remove('hidden');
+        }
+
+        // Функция смены фракции (возврат к выбору)
+        function changeFaction() {
+            if (confirm('Вы уверены, что хотите сменить фракцию? Прогресс будет сохранен.')) {
+                document.getElementById('screen3').classList.add('hidden');
+                document.getElementById('screen2').classList.remove('hidden');
+                
+                // Останавливаем пассивный доход пока выбираем фракцию
+                if (passiveInterval) {
+                    clearInterval(passiveInterval);
+                    passiveInterval = null;
+                }
+            }
+        }
 
         // Функция выбора фракции
         function selectFrac(name, color) {
@@ -385,7 +429,7 @@
 
         // ПОЛНЫЙ СБРОС ИГРЫ С ПЕРЕЗАГРУЗКОЙ ПОЛУЧЕНИЕМ НОВОГО КЭША
         function resetAllData() {
-            if (confirm('Вы уверены, что хотите сбросить весь прогресс?')) {
+            if (confirm('Вы уверены, что хотите сбросить весь прогресс? Все данные будут удалены.')) {
                 localStorage.clear();
                 location.reload();
             }
