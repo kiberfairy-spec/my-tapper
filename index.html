@@ -96,16 +96,14 @@
             100% { transform: translateY(-80px); opacity: 0; }
         }
         
-        @keyframes shieldPulse {
-            0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.5); }
-            50% { box-shadow: 0 0 40px rgba(0, 255, 255, 0.8); }
+        @keyframes laserShoot {
+            from { width: 0; opacity: 1; }
+            to { width: 100%; opacity: 0; }
         }
         
-        @keyframes dodgeAnim {
-            0% { transform: translateX(0); }
-            25% { transform: translateX(-20px); }
-            75% { transform: translateX(20px); }
-            100% { transform: translateX(0); }
+        @keyframes explode {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
         }
         
         .hidden { display: none !important; }
@@ -117,13 +115,12 @@
             margin: 0 auto;
         }
         
-        /* Исправленная кнопка НАЗАД */
+        /* Верхняя панель */
         .top-bar {
             display: flex;
             align-items: center;
-            justify-content: space-between;
             margin-bottom: 20px;
-            height: 50px;
+            height: 40px;
         }
         
         .back-arrow {
@@ -154,11 +151,6 @@
             animation: shake 0.3s;
         }
         
-        .top-spacer {
-            width: 40px;
-            flex-shrink: 0;
-        }
-        
         .pixel-border {
             border: 4px solid #00ff00;
             box-shadow: 
@@ -168,6 +160,7 @@
             position: relative;
         }
         
+        /* ЭКРАН 1 */
         #screen1 { 
             padding-top: 60px;
             animation: slideIn 0.5s ease-out;
@@ -219,6 +212,7 @@
             animation: shake 0.3s;
         }
         
+        /* ЭКРАН 2 */
         .title-screen { 
             font-size: 16px; 
             font-weight: bold; 
@@ -245,30 +239,32 @@
             box-shadow: 0 0 20px currentColor;
         }
         
+        .frac-card:active { 
+            animation: shake 0.3s;
+        }
+        
         .confed { 
             border-color: #0066ff; 
             color: #0066ff;
-            box-shadow: 0 0 15px rgba(0, 102, 255, 0.3);
         }
         
         .rebels { 
             border-color: #ff6600; 
             color: #ff6600;
-            box-shadow: 0 0 15px rgba(255, 102, 0, 0.3);
         }
         
         .guild { 
             border-color: #ffcc00; 
             color: #ffcc00;
-            box-shadow: 0 0 15px rgba(255, 204, 0, 0.3);
         }
         
         .frac-name { 
-            font-size: 12px; 
+            font-size: 11px; 
             font-weight: bold; 
             margin-bottom: 8px; 
             display: flex; 
             justify-content: space-between; 
+            align-items: center;
         }
         
         .frac-bonus { 
@@ -284,20 +280,19 @@
             line-height: 1.6; 
         }
 
-        /* БОЕВЫЕ СТАТЫ */
+        /* ЭКРАН 3 */
         .stats-panel {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 8px;
+            margin-bottom: 15px;
         }
         
         .stat-card {
             background: #0a0a2e;
             border: 2px solid #00ff00;
-            padding: 10px;
+            padding: 8px;
             text-align: center;
-            transition: all 0.3s;
         }
         
         .stat-label {
@@ -307,46 +302,20 @@
         }
         
         .stat-value {
-            font-size: 14px;
+            font-size: 12px;
             font-weight: bold;
-            color: #00ff00;
         }
         
         .shield-stat { color: #00ffff; }
         .weapon-stat { color: #ff4444; }
         .luck-stat { color: #ffcc00; }
         
-        .resource-section { 
-            margin: 20px 0;
-            animation: slideIn 0.5s ease-out;
-        }
-        
-        #res-type { 
-            font-size: 10px; 
-            color: #00cc00; 
-            margin-bottom: 10px; 
-        }
-        
-        .balance-digits { 
-            font-size: 36px; 
-            font-weight: bold; 
-            color: #00ff00; 
-            text-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
-            transition: all 0.3s;
-        }
-        
-        .pushed-income { 
-            font-size: 10px; 
-            color: #00ff00; 
-            margin-top: 8px; 
-        }
-
-        /* БОЕВАЯ АНИМАЦИЯ */
+        /* БОЕВАЯ АРЕНА */
         .battle-arena {
             width: 100%;
-            height: 200px;
+            height: 150px;
             position: relative;
-            margin: 20px 0;
+            margin: 15px 0;
             overflow: hidden;
             background: rgba(0, 0, 0, 0.3);
             border: 2px solid #00ff00;
@@ -372,17 +341,30 @@
             z-index: 2;
         }
         
+        .enemy-hp-bar {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            width: 60px;
+            height: 8px;
+            background: #333;
+            border: 1px solid #ff0000;
+            z-index: 3;
+        }
+        
+        .enemy-hp-fill {
+            height: 100%;
+            background: #ff0000;
+            transition: width 0.3s;
+        }
+        
         .laser-beam {
             position: absolute;
             height: 4px;
             background: #ff0000;
             box-shadow: 0 0 10px #ff0000;
             animation: laserShoot 0.5s ease-out;
-        }
-        
-        @keyframes laserShoot {
-            from { width: 0; opacity: 1; }
-            to { width: 100%; opacity: 0; }
+            z-index: 1;
         }
         
         .explosion {
@@ -392,30 +374,40 @@
             z-index: 3;
         }
         
-        @keyframes explode {
-            0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(2); opacity: 0; }
+        .resource-section { 
+            margin: 15px 0;
         }
         
-        .shield-effect {
-            position: absolute;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            border: 3px solid #00ffff;
-            animation: shieldPulse 0.5s;
+        #res-type { 
+            font-size: 10px; 
+            color: #00cc00; 
+            margin-bottom: 8px; 
+        }
+        
+        .balance-digits { 
+            font-size: 32px; 
+            font-weight: bold; 
+            color: #00ff00; 
+            text-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+            transition: all 0.3s;
+        }
+        
+        .pushed-income { 
+            font-size: 9px; 
+            color: #00ff00; 
+            margin-top: 6px; 
         }
 
         .main-reactor { 
-            width: 180px; 
-            height: 180px; 
+            width: 160px; 
+            height: 160px; 
             border: 6px solid #00ff00;
-            margin: 20px auto; 
+            margin: 15px auto; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
             justify-content: center; 
-            font-size: 14px; 
+            font-size: 12px; 
             font-weight: bold; 
             color: #00ff00; 
             cursor: pointer; 
@@ -436,13 +428,13 @@
         .reactor-sub { 
             font-size: 8px; 
             opacity: 0.7; 
-            margin-top: 8px; 
+            margin-top: 6px; 
         }
 
         .floating-text {
             position: absolute;
             font-family: 'Press Start 2P', monospace;
-            font-size: 12px;
+            font-size: 10px;
             font-weight: bold;
             pointer-events: none;
             animation: coinDrop 1s ease-out forwards;
@@ -451,35 +443,35 @@
         
         .crit-text {
             color: #ffcc00;
-            font-size: 16px;
+            font-size: 14px;
             text-shadow: 0 0 10px #ffcc00;
         }
         
         .dodge-text {
             color: #00ffff;
-            font-size: 14px;
+            font-size: 12px;
             text-shadow: 0 0 10px #00ffff;
         }
 
         .upgrade-section { 
             width: 100%; 
             max-width: 340px; 
-            margin: 30px auto 0; 
+            margin: 25px auto 0; 
             text-align: left; 
         }
         
         .section-label { 
-            font-size: 10px; 
+            font-size: 9px; 
             color: #00cc00; 
             font-weight: bold; 
-            margin-bottom: 15px; 
+            margin-bottom: 12px; 
             text-shadow: 2px 2px 0 #003300;
         }
         
         .up-card { 
             background: #0a0a2e;
             border: 2px solid #00ff00;
-            padding: 12px; 
+            padding: 10px; 
             margin-bottom: 8px; 
             display: flex; 
             justify-content: space-between; 
@@ -497,7 +489,7 @@
         }
         
         .up-title { 
-            font-size: 10px; 
+            font-size: 9px; 
             font-weight: bold; 
             color: #00ff00; 
         }
@@ -505,16 +497,16 @@
         .up-desc { 
             font-size: 7px; 
             color: #00cc00; 
-            margin-top: 4px; 
+            margin-top: 3px; 
         }
         
         .up-btn { 
             background: #003300;
             color: #00ff00; 
-            padding: 8px 12px; 
+            padding: 6px 10px; 
             border: 2px solid #00ff00;
             font-family: 'Press Start 2P', monospace;
-            font-size: 9px; 
+            font-size: 8px; 
             cursor: pointer; 
             transition: all 0.2s;
         }
@@ -536,7 +528,7 @@
         }
 
         .system-footer { 
-            margin-top: 30px; 
+            margin-top: 25px; 
             display: flex; 
             justify-content: center; 
             gap: 10px; 
@@ -548,7 +540,7 @@
             background: #0a0a2e;
             border: 2px solid #00ff00;
             color: #00ff00; 
-            padding: 8px 12px; 
+            padding: 6px 10px; 
             font-family: 'Press Start 2P', monospace;
             font-size: 7px; 
             cursor: pointer; 
@@ -565,7 +557,7 @@
     <div class="stars" id="stars"></div>
 
     <div class="container">
-        <!-- ЭКРАН 1: ДОБРО ПОЖАЛОВАТЬ -->
+        <!-- ЭКРАН 1 -->
         <div id="screen1">
             <div class="game-logo">SPACE DREAM</div>
             <div class="game-subtitle">КОСМИЧЕСКОЕ ПРИКЛЮЧЕНИЕ</div>
@@ -574,11 +566,10 @@
             </div>
         </div>
 
-        <!-- ЭКРАН 2: ВЫБОР СТОРОНЫ -->
+        <!-- ЭКРАН 2 -->
         <div id="screen2" class="hidden">
             <div class="top-bar">
                 <button class="back-arrow" onclick="goBackToStart()">←</button>
-                <div class="top-spacer"></div>
             </div>
             <div class="title-screen">ВЫБЕРИ ФРАКЦИЮ</div>
             
@@ -598,14 +589,12 @@
             </div>
         </div>
 
-        <!-- ЭКРАН 3: ГЛАВНЫЙ ИГРОВОЙ МОСТИК -->
+        <!-- ЭКРАН 3 -->
         <div id="screen3" class="hidden">
             <div class="top-bar">
                 <button class="back-arrow" onclick="changeFaction()">←</button>
-                <div class="top-spacer"></div>
             </div>
             
-            <!-- БОЕВЫЕ СТАТЫ -->
             <div class="stats-panel">
                 <div class="stat-card">
                     <div class="stat-label">БРОНЯ</div>
@@ -621,14 +610,16 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">ФРАКЦИЯ</div>
-                    <div class="stat-value" id="hud-frac" style="font-size: 10px;">—</div>
+                    <div class="stat-value" id="hud-frac" style="font-size: 8px;">—</div>
                 </div>
             </div>
 
-            <!-- БОЕВАЯ АРЕНА -->
             <div class="battle-arena" id="battle-arena">
                 <div class="player-ship" id="player-ship">🚀</div>
                 <div class="enemy-ship" id="enemy-ship">👾</div>
+                <div class="enemy-hp-bar">
+                    <div class="enemy-hp-fill" id="enemy-hp-fill" style="width: 100%;"></div>
+                </div>
             </div>
 
             <div class="resource-section">
@@ -650,7 +641,7 @@
                         <div class="up-title">УСИЛИТЬ БРОНЮ</div>
                         <div class="up-desc" id="up1-desc">УР.1 (+2 брони)</div>
                     </div>
-                    <button class="up-btn" id="up1-btn" onclick="buyUpgrade(1)">0</button>
+                    <button class="up-btn" id="up1-btn" onclick="buyUpgrade(1)">50</button>
                 </div>
 
                 <div class="up-card">
@@ -658,7 +649,7 @@
                         <div class="up-title">УЛУЧШИТЬ ОРУЖИЕ</div>
                         <div class="up-desc" id="up2-desc">УР.0 (+1 урона)</div>
                     </div>
-                    <button class="up-btn" id="up2-btn" onclick="buyUpgrade(2)">0</button>
+                    <button class="up-btn" id="up2-btn" onclick="buyUpgrade(2)">75</button>
                 </div>
                 
                 <div class="up-card">
@@ -666,7 +657,7 @@
                         <div class="up-title">ПОВЫСИТЬ УДАЧУ</div>
                         <div class="up-desc" id="up3-desc">УР.0 (+1 удачи)</div>
                     </div>
-                    <button class="up-btn" id="up3-btn" onclick="buyUpgrade(3)">0</button>
+                    <button class="up-btn" id="up3-btn" onclick="buyUpgrade(3)">100</button>
                 </div>
             </div>
 
@@ -678,6 +669,7 @@
     </div>
 
     <script>
+        // Создание звезд
         function createStars() {
             const starsContainer = document.getElementById('stars');
             for (let i = 0; i < 100; i++) {
@@ -693,6 +685,7 @@
         }
         createStars();
 
+        // Telegram WebApp
         let tg = null;
         if (window.Telegram && window.Telegram.WebApp) {
             tg = window.Telegram.WebApp;
@@ -705,12 +698,6 @@
         let fracColor = localStorage.getItem('sd_color') || '#00ff00';
         let fracBonus = localStorage.getItem('sd_bonus') || null;
         
-        // Базовые статы
-        let baseShield = 10;
-        let baseWeapon = 5;
-        let baseLuck = 3;
-        
-        // Уровни улучшений
         let up1Level = parseInt(localStorage.getItem('sd_up1_lvl')) || 1; // Броня
         let up2Level = parseInt(localStorage.getItem('sd_up2_lvl')) || 0; // Оружие
         let up3Level = parseInt(localStorage.getItem('sd_up3_lvl')) || 0; // Удача
@@ -722,11 +709,19 @@
         let passiveInterval = null;
         let enemyHP = 20;
         let maxEnemyHP = 20;
+        let isAttacking = false;
+
+        // Загрузка состояния врага
+        if (localStorage.getItem('sd_enemy_hp')) {
+            enemyHP = parseInt(localStorage.getItem('sd_enemy_hp'));
+            maxEnemyHP = parseInt(localStorage.getItem('sd_enemy_max_hp')) || 20;
+        }
 
         if (frac) {
             initGameInterface();
         }
 
+        // Звуки
         function playBeep(frequency = 440, duration = 100) {
             try {
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -742,6 +737,7 @@
             } catch(e) {}
         }
 
+        // Плавающий текст
         function showFloatingText(x, y, text, className = '') {
             const floatingText = document.createElement('div');
             floatingText.className = 'floating-text ' + className;
@@ -754,6 +750,9 @@
 
         // БОЕВАЯ АНИМАЦИЯ
         function animateBattle(damage, isCrit = false, isDodge = false) {
+            if (isAttacking) return;
+            isAttacking = true;
+            
             const arena = document.getElementById('battle-arena');
             const player = document.getElementById('player-ship');
             const enemy = document.getElementById('enemy-ship');
@@ -769,22 +768,26 @@
             laser.className = 'laser-beam';
             laser.style.top = '50%';
             laser.style.left = '60px';
+            laser.style.width = '0';
             arena.appendChild(laser);
+            
+            requestAnimationFrame(() => {
+                laser.style.width = '60%';
+            });
+            
             setTimeout(() => laser.remove(), 500);
             
             if (isDodge) {
-                // Анимация уклонения врага
-                enemy.style.transform = 'translateY(-50%) translateY(-20px)';
+                enemy.style.transform = 'translateY(-50%) translateY(-30px)';
                 setTimeout(() => {
                     enemy.style.transform = 'translateY(-50%)';
                 }, 300);
                 
                 const rect = enemy.getBoundingClientRect();
-                showFloatingText(rect.left, rect.top, 'УКЛОН!', 'dodge-text');
+                showFloatingText(rect.left + 20, rect.top, 'УКЛОН!', 'dodge-text');
                 playBeep(200, 100);
             } else {
-                // Анимация попадания
-                enemy.style.transform = 'translateY(-50%) scale(1.2)';
+                enemy.style.transform = 'translateY(-50%) scale(1.3)';
                 if (isCrit) {
                     enemy.style.filter = 'brightness(2)';
                 }
@@ -804,7 +807,7 @@
                 
                 const rect = enemy.getBoundingClientRect();
                 const text = isCrit ? 'КРИТ! ' + damage : '' + damage;
-                showFloatingText(rect.left, rect.top, text, isCrit ? 'crit-text' : '');
+                showFloatingText(rect.left + 20, rect.top, text, isCrit ? 'crit-text' : '');
                 
                 if (isCrit) {
                     playBeep(880, 100);
@@ -818,19 +821,17 @@
             setTimeout(() => {
                 const playerShield = getShield();
                 const enemyDamage = Math.floor(Math.random() * 5) + 3;
-                const dodgeChance = getLuck() * 2;
+                const dodgeChance = Math.min(getLuck() * 2, 40);
                 
                 if (Math.random() * 100 < dodgeChance) {
-                    // Игрок уклоняется
-                    player.style.transform = 'translateY(-50%) translateY(-20px)';
+                    player.style.transform = 'translateY(-50%) translateY(-25px)';
                     setTimeout(() => {
                         player.style.transform = 'translateY(-50%)';
                     }, 300);
                     
                     const rect = player.getBoundingClientRect();
-                    showFloatingText(rect.left, rect.top, 'УКЛОН!', 'dodge-text');
+                    showFloatingText(rect.left + 20, rect.top, 'УКЛОН!', 'dodge-text');
                 } else {
-                    // Игрок получает урон
                     const actualDamage = Math.max(1, enemyDamage - Math.floor(playerShield / 3));
                     player.style.transform = 'translateY(-50%) scale(0.8)';
                     setTimeout(() => {
@@ -838,13 +839,16 @@
                     }, 200);
                     
                     const rect = player.getBoundingClientRect();
-                    showFloatingText(rect.left, rect.top, '-' + actualDamage, 'weapon-stat');
+                    showFloatingText(rect.left + 20, rect.top, '-' + actualDamage, 'weapon-stat');
                 }
+                
+                isAttacking = false;
             }, 600);
         }
 
+        // Расчет статов
         function getShield() {
-            let shield = baseShield + (up1Level - 1) * 2;
+            let shield = 10 + (up1Level - 1) * 2;
             if (fracBonus === 'shield') {
                 shield = Math.floor(shield * 1.5);
             }
@@ -852,7 +856,7 @@
         }
 
         function getWeapon() {
-            let weapon = baseWeapon + up2Level;
+            let weapon = 5 + up2Level;
             if (fracBonus === 'weapon') {
                 weapon = Math.floor(weapon * 1.5);
             }
@@ -860,13 +864,14 @@
         }
 
         function getLuck() {
-            let luck = baseLuck + up3Level;
+            let luck = 3 + up3Level;
             if (fracBonus === 'luck') {
                 luck = Math.floor(luck * 1.5);
             }
             return luck;
         }
 
+        // Навигация
         document.getElementById('start-btn').addEventListener('click', function() {
             playBeep(440, 100);
             document.getElementById('screen1').classList.add('hidden');
@@ -923,6 +928,7 @@
             startPassiveIncomeTimer();
         }
 
+        // Стоимость улучшений
         function getUpgradeCost(type) {
             let cost = 0;
             if (type === 1) {
@@ -935,13 +941,21 @@
             return cost;
         }
 
+        // Обновление интерфейса
         function updateUiDisplay() {
             document.getElementById('balance').innerText = Math.floor(score).toLocaleString();
             
-            // Обновляем статы
             document.getElementById('shield-stat').innerText = getShield();
             document.getElementById('weapon-stat').innerText = getWeapon();
             document.getElementById('luck-stat').innerText = getLuck();
+            
+            // Обновление HP врага
+            const hpPercent = Math.max(0, (enemyHP / maxEnemyHP) * 100);
+            document.getElementById('enemy-hp-fill').style.width = hpPercent + '%';
+            
+            // Сохраняем состояние врага
+            localStorage.setItem('sd_enemy_hp', enemyHP);
+            localStorage.setItem('sd_enemy_max_hp', maxEnemyHP);
             
             let cost1 = getUpgradeCost(1);
             let cost2 = getUpgradeCost(2);
@@ -963,22 +977,29 @@
             btn3.disabled = (score < cost3);
             
             document.getElementById('balance').style.color = fracColor;
+            
+            // Пассивный доход
+            const passiveIncome = getLuck() * 0.5;
+            document.getElementById('passive-income-display').innerText = '+' + passiveIncome.toFixed(1) + '/с';
         }
 
+        // Атака
         document.getElementById('main-reactor').addEventListener('click', function(e) {
+            if (isAttacking) return;
+            
             const weapon = getWeapon();
             const luck = getLuck();
             let damage = Math.floor(Math.random() * weapon) + 1;
             let isCrit = false;
             let isDodge = false;
             
-            // Проверка на крит (шанс = удача * 3%)
-            if (Math.random() * 100 < luck * 3) {
-                damage = damage * 2;
+            // Проверка на крит (шанс = удача * 3%, макс 50%)
+            if (Math.random() * 100 < Math.min(luck * 3, 50)) {
+                damage = Math.floor(damage * 2);
                 isCrit = true;
             }
             
-            // Проверка на уклонение врага
+            // Проверка на уклонение врага (10% шанс)
             if (Math.random() * 100 < 10) {
                 isDodge = true;
                 damage = 0;
@@ -995,21 +1016,23 @@
             // Если враг побежден
             if (enemyHP <= 0) {
                 setTimeout(() => {
-                    score += 100;
+                    const bonus = 100;
+                    score += bonus;
                     localStorage.setItem('sd_score', score);
-                    enemyHP = maxEnemyHP;
                     maxEnemyHP = Math.floor(maxEnemyHP * 1.2);
                     enemyHP = maxEnemyHP;
-                    updateUiDisplay();
                     
                     const rect = document.getElementById('enemy-ship').getBoundingClientRect();
-                    showFloatingText(rect.left, rect.top, '+100', 'crit-text');
+                    showFloatingText(rect.left + 20, rect.top, '+' + bonus, 'crit-text');
+                    playBeep(660, 150);
+                    updateUiDisplay();
                 }, 800);
             }
             
             updateUiDisplay();
         });
 
+        // Покупка улучшений
         function buyUpgrade(type) {
             let cost = getUpgradeCost(type);
             if (score >= cost) {
@@ -1033,6 +1056,7 @@
             }
         }
 
+        // Пассивный доход
         function startPassiveIncomeTimer() {
             if (passiveInterval) {
                 clearInterval(passiveInterval);
@@ -1047,6 +1071,7 @@
             }, 1000);
         }
 
+        // Сброс
         function resetAllData() {
             if (confirm('Сбросить весь прогресс? Данные будут удалены.')) {
                 localStorage.clear();
