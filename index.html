@@ -4,11 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Space Dream</title>
-    <script src="https://telegram.org"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background: #050608; color: #e0e6ed; font-family: sans-serif; text-align: center; padding: 40px 20px; user-select: none; }
+        body { 
+            background: #050608; 
+            color: #e0e6ed; 
+            font-family: sans-serif; 
+            text-align: center; 
+            padding: 40px 20px; 
+            user-select: none; 
+            -webkit-user-select: none;
+        }
         .hidden { display: none !important; }
-        .btn { width: 220px; height: 220px; background: #3b82f6; border-radius: 50%; margin: 80px auto 0; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; color: white; cursor: pointer; box-shadow: 0 0 20px rgba(59,130,246,0.4); }
+        
+        /* Главная кнопка */
+        .btn { 
+            width: 220px; 
+            height: 220px; 
+            background: #3b82f6; 
+            border-radius: 50%; 
+            margin: 80px auto 0; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 18px; 
+            font-weight: bold; 
+            color: white; 
+            cursor: pointer; 
+            box-shadow: 0 0 20px rgba(59,130,246,0.4); 
+            transition: background 0.2s, transform 0.1s;
+        }
+        /* Эффект выделения при нажатии */
+        .btn:active { 
+            transform: scale(0.95);
+            background: #1d4ed8;
+        }
+        
         .frac-btn { width: 100%; max-width: 280px; padding: 20px; margin: 15px auto; border-radius: 10px; font-size: 18px; font-weight: bold; color: white; cursor: pointer; }
         .confed { background: #1e3a8a; } .rebels { background: #7c2d12; } .guild { background: #78350f; }
         .reset-btn { margin-top: 40px; background: none; border: 1px solid #334155; color: #64748b; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; }
@@ -40,27 +71,37 @@
     </div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        if (tg) tg.expand();
+        // Безопасное подключение Telegram SDK
+        let tg = null;
+        if (window.Telegram && window.Telegram.WebApp) {
+            tg = window.Telegram.WebApp;
+            try {
+                tg.expand();
+            } catch(e) { console.log(e); }
+        }
 
         let score = parseInt(localStorage.getItem('space_score')) || 0;
         let frac = localStorage.getItem('space_fraction');
 
-        // Если игрок уже выбирал фракцию ранее — сразу перекидываем в игру
+        // Проверяем сохраненную фракцию
         if (frac) {
             showGame(frac);
         }
 
         // Переход с 1 на 2 экран
-        document.getElementById('start-btn').addEventListener('click', () => {
-            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+        document.getElementById('start-btn').addEventListener('click', function() {
+            if (tg && tg.HapticFeedback) {
+                try { tg.HapticFeedback.impactOccurred('medium'); } catch(e){}
+            }
             document.getElementById('screen1').classList.add('hidden');
             document.getElementById('screen2').classList.remove('hidden');
         });
 
-        // Клик по кнопке выбора фракции
+        // Выбор фракции
         function choose(name) {
-            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
+            if (tg && tg.HapticFeedback) {
+                try { tg.HapticFeedback.impactOccurred('heavy'); } catch(e){}
+            }
             localStorage.setItem('space_fraction', name);
             showGame(name);
         }
@@ -75,14 +116,16 @@
         }
 
         // Клик по кнопке ДОБЫЧА
-        document.getElementById('click-btn').addEventListener('click', () => {
+        document.getElementById('click-btn').addEventListener('click', function() {
             score++;
             document.getElementById('balance').innerText = score;
             localStorage.setItem('space_score', score);
-            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            if (tg && tg.HapticFeedback) {
+                try { tg.HapticFeedback.impactOccurred('light'); } catch(e){}
+            }
         });
 
-        // Кнопка сброса фракции
+        // Сброс игры
         function resetGame() {
             localStorage.removeItem('space_fraction');
             location.reload();
