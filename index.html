@@ -10,14 +10,9 @@
         body { background:#000; color:#0f0; font-family:'Press Start 2P',monospace; user-select:none; -webkit-user-select:none; overflow:hidden; height:100dvh; width:100dvw; position:fixed; }
         .stars-layer { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0; background:radial-gradient(ellipse at 50% 50%, #010310 0%, #000008 60%, #000 100%); }
         .star { position:absolute; background:#fff; border-radius:50%; animation:twinkle var(--duration) infinite; animation-delay:var(--delay); }
-        .star.bright { background:#ccddff; box-shadow:0 0 3px #8899cc; }
-        .star.medium { background:#8899bb; }
-        .star.dim { background:#556677; }
-        .star.tiny { background:#334455; }
         @keyframes twinkle { 0%,100%{opacity:0.1;transform:scale(0.8)} 50%{opacity:0.9;transform:scale(1.3)} }
         @keyframes rotate { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
         @keyframes slideUp { from{transform:translateY(100%);opacity:0} to{transform:translateY(0);opacity:1} }
-        @keyframes lootPopup { 0%{opacity:0;transform:translate(-50%,0)} 20%{opacity:1;transform:translate(-50%,-35px)} 100%{opacity:0;transform:translate(-50%,-90px)} }
         .app-container { position:relative; width:100%; height:100dvh; display:flex; flex-direction:column; }
         .background-map { position:fixed; top:0; left:0; width:100%; height:calc(100dvh - 80px); z-index:1; pointer-events:none; }
         .galaxy-bg { position:relative; width:100%; height:100%; overflow:hidden; background:transparent; }
@@ -27,11 +22,12 @@
         .bg-object { position:absolute; z-index:2; pointer-events:none; transition:opacity 0.3s; transform:translate(-50%,-50%); cursor:pointer; }
         .top-panel { position:fixed; top:0; left:0; right:0; height:50px; display:flex; justify-content:space-between; align-items:center; padding:5px 10px; z-index:100; pointer-events:none; }
         .vip-badge { background:rgba(0,0,0,0.8); border:2px solid #ffaa00; color:#ffaa00; padding:4px 8px; font-size:7px; pointer-events:all; text-align:center; }
-        .resources-panel { display:flex; gap:5px; align-items:center; }
+        .resources-panel { display:flex; gap:5px; align-items:center; flex-wrap:wrap; }
         .resource-badge { background:rgba(0,0,0,0.85); border:2px solid #bb9922; color:#bb9922; padding:4px 6px; font-size:7px; pointer-events:all; text-align:center; }
         .fuel-badge { border-color:#4488ff; color:#4488ff; }
         .credits-badge { border-color:#ffcc00; color:#ffcc00; }
         .spice-badge { border-color:#ff66ff; color:#ff66ff; }
+        .shards-badge { border-color:#66ff99; color:#66ff99; }
         .refuel-btn { background:#4488ff; color:#fff; border:none; padding:4px 8px; font-size:7px; cursor:pointer; font-family:'Press Start 2P',monospace; pointer-events:all; margin-left:5px; display:none; }
         .dev-reset-btn { background:#aa3333; color:#fff; border:none; padding:4px 8px; font-size:7px; cursor:pointer; font-family:'Press Start 2P',monospace; pointer-events:all; margin-left:5px; display:inline-block; }
         .back-btn { width:34px; height:34px; background:rgba(0,20,0,0.9); border:2px solid #00aa44; color:#00dd55; font-size:15px; cursor:pointer; display:none; align-items:center; justify-content:center; font-family:'Press Start 2P',monospace; pointer-events:all; }
@@ -44,424 +40,1033 @@
         .nav-btn { background:#040c04; border:2px solid #006633; color:#00aa44; padding:5px 8px; font-family:'Press Start 2P',monospace; font-size:6px; cursor:pointer; transition:all 0.2s; text-align:center; flex:1; margin:0 2px; max-width:90px; }
         .nav-btn.active { background:#061806; border-color:#bb9922; }
         .window { background:rgba(2,2,14,0.94); border:2px solid #009944; padding:14px; max-width:320px; width:88%; max-height:55vh; overflow-y:auto; animation:slideUp 0.3s ease-out; }
+        .window-title { color:#bb9922; font-size:10px; margin-bottom:10px; text-align:center; }
         .input-field { width:100%; padding:8px; margin:6px 0; background:#040410; border:2px solid #009944; color:#00bb44; font-family:'Press Start 2P',monospace; font-size:8px; text-align:center; }
         .btn { width:100%; padding:8px; margin:5px 0; background:#040c04; border:2px solid #009944; color:#00bb44; font-family:'Press Start 2P',monospace; font-size:8px; cursor:pointer; transition:all 0.2s; }
         .btn:disabled { background:#161616; color:#333; border-color:#333; cursor:not-allowed; }
+        .btn-small { width:auto; padding:3px 6px; font-size:6px; }
         .hidden { display:none !important; }
+        .flex-row { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .upgrade-row { display:flex; justify-content:space-between; padding:4px; border:1px solid #009944; margin:2px 0; align-items:center; }
+        .artifact-card { border:2px solid #009944; padding:6px; margin:4px; cursor:pointer; text-align:center; min-width:70px; }
+        .artifact-card.selected { border-color:#ffaa00; }
+        .pvp-stats { font-size:6px; margin:5px 0; }
     </style>
 </head>
 <body>
-    <div class="stars-layer" id="stars-layer"></div>
-    <div class="app-container">
-        <div class="background-map" id="background-map">
-            <div class="galaxy-bg" id="galaxy-bg">
-                <div class="planet-container" id="planet-container">
-                    <div class="pixel-planet" id="pixel-planet"></div>
-                </div>
-                <div class="player-docked" id="player-docked"></div>
-            </div>
-        </div>
-        <div class="top-panel">
-            <div style="display:flex; gap:8px; align-items:center;">
-                <button class="back-btn" id="back-btn" onclick="goBack()">←</button>
-                <div class="vip-badge" id="vip-badge">⭐ VIP 0</div>
-                <button class="dev-reset-btn" id="dev-reset-btn" onclick="devReset()">🔄 СБРОС</button>
-            </div>
-            <div class="resources-panel">
-                <div class="resource-badge credits-badge" id="credits-badge">🪙 <span id="credits-value">0</span></div>
-                <div class="resource-badge fuel-badge" id="fuel-badge">⛽ <span id="fuel-value">100</span></div>
-                <div class="resource-badge spice-badge" id="spice-badge">💎 <span id="spice-value">0</span></div>
-                <button class="refuel-btn" id="refuel-btn" onclick="window.freeRefuel()">БЕСПЛ. ЗАПРАВКА</button>
-            </div>
-        </div>
-        <div class="loot-feed" id="loot-feed"></div>
-        <div class="content-overlay" id="content-overlay">
-            <!-- Окна без изменений -->
-            <div class="window" id="window-start">
-                <div class="title">SPACE DREAM</div>
-                <input type="text" class="input-field" id="input-player-name" placeholder="ИМЯ ИГРОКА" maxlength="12">
-                <button class="btn" onclick="setPlayerName()">ДАЛЕЕ</button>
-            </div>
-            <div class="window hidden" id="window-faction">
-                <div class="title">ВЫБЕРИ ФРАКЦИЮ</div>
-                <button class="btn" style="border-color:#4488aa;color:#4488aa" onclick="selectFaction('Конфедерация','#4488aa','tank')">◆ КОНФЕДЕРАЦИЯ<br><small>Защита: 40 | Урон: 20 | Скорость: 15</small></button>
-                <button class="btn" style="border-color:#aa5533;color:#aa5533" onclick="selectFaction('Повстанцы','#aa5533','dps')">◆ ПОВСТАНЦЫ<br><small>Защита: 15 | Урон: 25 | Скорость: 35</small></button>
-                <button class="btn" style="border-color:#aa9933;color:#aa9933" onclick="selectFaction('Торговая гильдия','#aa9933','sniper')">◆ ТОРГОВАЯ ГИЛЬДИЯ<br><small>Защита: 20 | Урон: 40 | Скорость: 15</small></button>
-            </div>
-            <div class="window hidden" id="window-ship">
-                <div class="title">ВЫБЕРИ КОРАБЛЬ</div>
-                <div id="ship-selection" style="display:flex;gap:12px;justify-content:center;margin:10px 0; flex-wrap:wrap;"></div>
-                <input type="text" class="input-field" id="input-ship-name" placeholder="ИМЯ КОРАБЛЯ" maxlength="14">
-                <button class="btn" id="confirm-ship-btn" onclick="confirmShip()">ПОДТВЕРДИТЬ</button>
-            </div>
-            <div class="window hidden" id="window-hangar">
-                <div class="title">АНГАР</div>
-                <div id="hangar-ship-display" style="text-align:center; margin:10px 0;"></div>
-                <div id="hangar-resources" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:8px 0;font-size:7px;"></div>
-                <div id="upgrades-list"></div>
-            </div>
-            <div class="window hidden" id="window-pvp">
-                <div class="title">PvP АРЕНА</div>
-                <div style="display:flex; justify-content:space-around; align-items:center; margin:10px 0;">
-                    <div id="pvp-player-ship-display"></div>
-                    <span style="color:#aa3333;">VS</span>
-                    <div id="pvp-enemy-ship-display"></div>
-                </div>
-                <div style="text-align:center;font-size:8px;color:#aa9933" id="pvp-timer">15</div>
-                <div style="text-align:center;font-size:6px" id="pvp-status">Нажмите НАЙТИ БОЙ</div>
-                <button class="btn" onclick="searchPvP()">НАЙТИ БОЙ</button>
-                <div class="leaderboard" id="leaderboard" style="max-height:120px;overflow-y:auto;font-size:6px;"></div>
-            </div>
-            <div class="window hidden" id="window-vip">
-                <div class="title">VIP СТАТУС</div>
-                <p style="font-size:8px;">Уровень: <span id="vip-level">0</span></p>
-                <p style="font-size:8px;">Множитель добычи: x<span id="vip-mult">1</span></p>
-                <button class="btn" onclick="upgradeVip()">УЛУЧШИТЬ VIP</button>
-            </div>
-        </div>
-        <div class="bottom-panel hidden" id="bottom-panel">
-            <button class="nav-btn active" id="nav-map" onclick="switchTab('map')">🌌 КАРТА</button>
-            <button class="nav-btn" id="nav-hangar" onclick="switchTab('hangar')">🚀 АНГАР</button>
-            <button class="nav-btn" id="nav-pvp" onclick="switchTab('pvp')">⚔️ PvP</button>
-            <button class="nav-btn" id="nav-vip" onclick="switchTab('vip')">⭐ VIP</button>
+<div class="stars-layer" id="stars-layer"></div>
+<div class="app-container">
+    <div class="background-map" id="background-map">
+        <div class="galaxy-bg" id="galaxy-bg">
+            <div class="planet-container" id="planet-container"><div class="pixel-planet" id="pixel-planet"></div></div>
+            <div class="player-docked" id="player-docked"></div>
         </div>
     </div>
-    <script>
-        // ---------- ПЛАНЕТА (увеличена) ----------
-        const planetColors = { 1:'#3c1a5b', 2:'#b094fa', 3:'#f25cf2', 4:'#ff9eff', 5:'#e3e8ff' };
-        const WIDTH = 64, HEIGHT = 40;
-        const planetMatrix = Array(HEIGHT).fill().map(()=>Array(WIDTH).fill(0));
-        const centerX=32, centerY=20, radius=14;
-        for(let y=0;y<HEIGHT;y++){for(let x=0;x<WIDTH;x++){const dx=x-centerX,dy=y-centerY;if(dx*dx+dy*dy<=radius*radius){planetMatrix[y][x]=2;if((y>=10&&y<=13)||(y>=18&&y<=22)||(y>=27&&y<=29))planetMatrix[y][x]=3;if((y===9&&x===28)||(y===10&&x===29)||(y===21&&x===24))planetMatrix[y][x]=4;}}}
-        for(let y=0;y<HEIGHT;y++){for(let x=0;x<WIDTH;x++){const dx=x-centerX,dy=y-centerY;const angle=-20*Math.PI/180;const rx=dx*Math.cos(angle)-dy*Math.sin(angle);const ry=dx*Math.sin(angle)+dy*Math.cos(angle);const inRing=(rx*rx)/(28*28)+(ry*ry)/(5*5)<=1.0;const inInnerHole=(rx*rx)/(18*18)+(ry*ry)/(3.2*3.2)<=1.0;if(inRing&&!inInnerHole){const isFront=ry>0||dx>8;const isPlanetHere=planetMatrix[y][x]!==0;if(!isPlanetHere||isFront){planetMatrix[y][x]=2;if(Math.abs(rx)>24)planetMatrix[y][x]=4;}}}}
-        const finalMatrix=JSON.parse(JSON.stringify(planetMatrix));
-        for(let y=1;y<HEIGHT-1;y++){for(let x=1;x<WIDTH-1;x++){if(planetMatrix[y][x]===0){if(planetMatrix[y-1][x]>1||planetMatrix[y+1][x]>1||planetMatrix[y][x-1]>1||planetMatrix[y][x+1]>1)finalMatrix[y][x]=1;}}}
-        function drawPlanet(ctx,matrix,pixelSize){for(let y=0;y<matrix.length;y++){for(let x=0;x<matrix[0].length;x++){const c=matrix[y][x];if(c){ctx.fillStyle=planetColors[c];ctx.fillRect(x*pixelSize,y*pixelSize,pixelSize,pixelSize);}}}}
-        function setupPixelPlanet(){
-            const pc=document.querySelector('.pixel-planet');if(!pc)return;pc.innerHTML='';
-            const w=document.createElement('div');w.style.cssText='width:100%;height:100%;display:flex;align-items:center;justify-content:center;';
-            const ps=2.5; // увеличено с 2
-            const canvas=document.createElement('canvas');canvas.width=WIDTH*ps;canvas.height=HEIGHT*ps;
-            const ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;canvas.style.imageRendering='pixelated';
-            drawPlanet(ctx,finalMatrix,ps);
-            canvas.style.cssText='display:block;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;';
-            w.appendChild(canvas);w.style.animation='rotate 60s linear infinite';pc.appendChild(w);
+    <div class="top-panel">
+        <div style="display:flex; gap:8px; align-items:center;">
+            <button class="back-btn" id="back-btn" onclick="goBack()">←</button>
+            <div class="vip-badge" id="vip-badge">⭐ VIP 0</div>
+            <button class="dev-reset-btn" id="dev-reset-btn" onclick="devReset()">🔄 СБРОС</button>
+        </div>
+        <div class="resources-panel" id="resources-panel">
+            <div class="resource-badge credits-badge">🪙 <span id="credits-value">0</span></div>
+            <div class="resource-badge fuel-badge">⛽ <span id="fuel-value">100/100</span></div>
+            <div class="resource-badge spice-badge">💎 <span id="spice-value">0</span></div>
+            <div class="resource-badge shards-badge">🧩 <span id="shards-value">0</span></div>
+            <button class="refuel-btn" id="refuel-btn" onclick="freeRefuel()">БЕСПЛ. ЗАПРАВКА</button>
+        </div>
+    </div>
+    <div class="loot-feed" id="loot-feed"></div>
+    <div class="content-overlay" id="content-overlay">
+        <!-- Окна -->
+        <div class="window" id="window-start">
+            <div class="window-title">SPACE DREAM</div>
+            <input type="text" class="input-field" id="input-player-name" placeholder="ИМЯ ИГРОКА" maxlength="12">
+            <button class="btn" onclick="setPlayerName()">ДАЛЕЕ</button>
+        </div>
+        <div class="window hidden" id="window-faction">
+            <div class="window-title">ВЫБЕРИ ФРАКЦИЮ</div>
+            <button class="btn" style="border-color:#4488aa;color:#4488aa" onclick="selectFaction('Конфедерация','#4488aa','tank')">◆ КОНФЕДЕРАЦИЯ<br><small>Защита:40 | Урон:20 | Скорость:15</small></button>
+            <button class="btn" style="border-color:#aa5533;color:#aa5533" onclick="selectFaction('Повстанцы','#aa5533','dps')">◆ ПОВСТАНЦЫ<br><small>Защита:15 | Урон:25 | Скорость:35</small></button>
+            <button class="btn" style="border-color:#aa9933;color:#aa9933" onclick="selectFaction('Торговая гильдия','#aa9933','sniper')">◆ ТОРГОВАЯ ГИЛЬДИЯ<br><small>Защита:20 | Урон:40 | Скорость:15</small></button>
+        </div>
+        <div class="window hidden" id="window-ship">
+            <div class="window-title">ВЫБЕРИ КОРАБЛЬ</div>
+            <div id="ship-selection" class="flex-row"></div>
+            <input type="text" class="input-field" id="input-ship-name" placeholder="ИМЯ КОРАБЛЯ" maxlength="14">
+            <button class="btn" id="confirm-ship-btn" onclick="confirmShip()" disabled>ПОДТВЕРДИТЬ</button>
+        </div>
+        <div class="window hidden" id="window-hangar">
+            <div class="window-title">АНГАР</div>
+            <div id="hangar-ship-display" style="text-align:center;margin:5px 0;"></div>
+            <div id="hangar-resources" class="flex-row" style="font-size:7px;margin:5px 0;"></div>
+            <div id="upgrades-list"></div>
+            <div style="margin-top:10px;border-top:1px solid #009944;padding-top:6px;">
+                <div class="window-title" style="font-size:8px;">АРТЕФАКТЫ</div>
+                <div id="artifact-section"></div>
+            </div>
+        </div>
+        <div class="window hidden" id="window-pvp">
+            <div class="window-title">PvP АРЕНА</div>
+            <div class="flex-row" style="align-items:center;margin:8px 0;">
+                <div id="pvp-player-ship-display"></div>
+                <span style="color:#aa3333;font-size:10px;">VS</span>
+                <div id="pvp-enemy-ship-display"></div>
+            </div>
+            <div style="text-align:center;font-size:8px;color:#aa9933" id="pvp-timer">10</div>
+            <div style="text-align:center;font-size:6px" id="pvp-status">Нажмите НАЙТИ БОЙ</div>
+            <button class="btn" onclick="searchPvP()">НАЙТИ БОЙ</button>
+            <div class="leaderboard" id="leaderboard" style="max-height:120px;overflow-y:auto;font-size:6px;margin-top:6px;"></div>
+        </div>
+        <div class="window hidden" id="window-vip">
+            <div class="window-title">VIP СТАТУС</div>
+            <p style="font-size:8px;">Уровень: <span id="vip-level">0</span></p>
+            <p style="font-size:8px;">Множитель добычи: x<span id="vip-mult">1</span></p>
+            <p style="font-size:8px;">Скидка на улучшения: <span id="vip-discount">0</span>%</p>
+            <button class="btn" onclick="upgradeVip()">УЛУЧШИТЬ VIP</button>
+        </div>
+        <div class="window hidden" id="window-battlepass">
+            <div class="window-title">БАТЛ-ПАСС (сезон)</div>
+            <p style="font-size:7px;">Уровень: <span id="bp-level">0</span> / 60</p>
+            <p style="font-size:7px;">До конца сезона: <span id="season-remaining">45</span> дней</p>
+            <button class="btn" onclick="buyBattlePass()">КУПИТЬ БАТЛ-ПАСС (15 USDT)</button>
+            <button class="btn btn-small" onclick="claimBPReward()">ПОЛУЧИТЬ НАГРАДУ</button>
+            <div id="bp-rewards" style="font-size:6px;margin-top:5px;"></div>
+        </div>
+    </div>
+    <div class="bottom-panel hidden" id="bottom-panel">
+        <button class="nav-btn active" id="nav-map" onclick="switchTab('map')">🌌 КАРТА</button>
+        <button class="nav-btn" id="nav-hangar" onclick="switchTab('hangar')">🚀 АНГАР</button>
+        <button class="nav-btn" id="nav-pvp" onclick="switchTab('pvp')">⚔️ PvP</button>
+        <button class="nav-btn" id="nav-vip" onclick="switchTab('vip')">⭐ VIP</button>
+        <button class="nav-btn" id="nav-bp" onclick="switchTab('battlepass')">🎫 ПАСС</button>
+    </div>
+</div>
+<script>
+// ----------------------------------------------------------------------
+//  1. КОНСТАНТЫ И ДАННЫЕ
+// ----------------------------------------------------------------------
+
+// Палитры и спрайты (из исходного кода, оставляем)
+const PALETTE = { 'A':'#2E0A4E','B':'#5B2C8E','C':'#8B5FBF','P':'#FF44AA','Q':'#44CCFF', 'R':'#8B0000','D':'#2A2A2A','E':'#FF4500','F':'#FF6600','G':'#FFAA00','H':'#FFD700', '_':null };
+const UFO_PALETTE = { 1:'#14143d',2:'#346cbd',3:'#7cb5ec',4:'#e1f3ff',5:'#73737c',6:'#ffffff',7:'#ff9000' };
+const player1Matrix = [
+"__________A___________","_________AAA__________","_________AAA__________","________AAAAA_________","________AACAA_________","________ACCCA_________","________ACCCA_________","________AAAAA_________","________APBBA_________","________ABBBB_________","________ABBBB_________","_______AABABAA_______","_______ABBABB_______","_______ABBCBA_______","_______ABBCBA_______","_____AAABBABBAAA_____","____ABBABBBBBABB____","___ABBBABBBBBABBBA___","__ABBBBABBBBBABBBB__","_ABBBBBAPBBBPABBBBB_","ABBBBBBAAAAAAABBBBBBA","ABQQBBBABBBBBABBBQQBA","AAAAAAAAABBBBBAAAAAAAAA","_______AAAAAAA_______","________AAAAA_________","_______AAA_AAA_______","_______AAA_AAA_______","________QQ_QQ_________","________QQ_QQ_________","________QB_QB_________","_________Q__Q________","_________Q__Q________"
+];
+// UFO (упрощённо) – для краткости используем эмодзи или заготовку
+function createUfoMatrix() { /* заглушка – вернём простую матрицу */ return []; }
+
+const SHIP_SPRITES = {
+    player1: player1Matrix,
+    player2: createUfoMatrix(),
+    player3: []
+};
+// Функция отрисовки корабля (упрощена, но рабочая)
+function drawShipSprite(matrix, scale=1) {
+    if (!matrix || matrix.length===0) {
+        const s = document.createElement('span'); s.style.fontSize='30px'; s.innerText='🚀'; return s;
+    }
+    const rows = matrix.length, cols = matrix[0].length;
+    const tileSize = Math.max(2, Math.round(6 * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = cols * tileSize; canvas.height = rows * tileSize;
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    canvas.style.imageRendering = 'pixelated';
+    const isNumeric = typeof matrix[0][0] === 'number';
+    for (let y=0; y<rows; y++) {
+        for (let x=0; x<cols; x++) {
+            const key = matrix[y][x];
+            if (key === '_' || key === 0 || key === undefined) continue;
+            let color;
+            if (isNumeric) color = UFO_PALETTE[key] || '#888';
+            else color = PALETTE[key] || '#888';
+            ctx.fillStyle = color;
+            ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
         }
+    }
+    const wrapper = document.createElement('div');
+    wrapper.style.display = 'inline-block';
+    wrapper.style.pointerEvents = 'none';
+    wrapper.style.imageRendering = 'pixelated';
+    wrapper.appendChild(canvas);
+    return wrapper;
+}
+window.createPlayerShip = (scale=1) => {
+    const idx = (window.selectedShipIndex || 0) + 1;
+    const matrix = SHIP_SPRITES[`player${idx}`] || [];
+    return drawShipSprite(matrix, scale);
+};
+window.createEnemyShip = (variant=0) => {
+    const s = document.createElement('span'); s.style.fontSize='30px'; s.innerText='👾'; return s;
+};
 
-        // ---------- КОРАБЛИ ----------
-        // Палитра для первого корабля (буквенная)
-        const PALETTE = { 'A':'#2E0A4E','B':'#5B2C8E','C':'#8B5FBF','P':'#FF44AA','Q':'#44CCFF', 'R':'#8B0000','D':'#2A2A2A','E':'#FF4500','F':'#FF6600','G':'#FFAA00','H':'#FFD700', '_':null };
-        // Палитра для НЛО
-        const UFO_PALETTE = {
-            1:'#14143d', 2:'#346cbd', 3:'#7cb5ec', 4:'#e1f3ff', 5:'#73737c', 6:'#ffffff', 7:'#ff9000'
-        };
+// Фракции
+const FACTION_STATS = {
+    tank:   { shield:40, damage:20, speed:15 },
+    dps:    { shield:15, damage:25, speed:35 },
+    sniper: { shield:20, damage:40, speed:15 }
+};
 
-        // Первый корабль (player1)
-        const player1Matrix = [
-            "__________A___________","_________AAA__________","_________AAA__________","________AAAAA_________","________AACAA_________","________ACCCA_________","________ACCCA_________","________AAAAA_________","________APBBA_________","________ABBBB_________","________ABBBB_________","_______AABABAA_______","_______ABBABB_______","_______ABBCBA_______","_______ABBCBA_______","_____AAABBABBAAA_____","____ABBABBBBBABB____","___ABBBABBBBBABBBA___","__ABBBBABBBBBABBBB__","_ABBBBBAPBBBPABBBBB_","ABBBBBBAAAAAAABBBBBBA","ABQQBBBABBBBBABBBQQBA","AAAAAAAAABBBBBAAAAAAAAA","_______AAAAAAA_______","________AAAAA_________","_______AAA_AAA_______","_______AAA_AAA_______","________QQ_QQ_________","________QQ_QQ_________","________QB_QB_________","_________Q__Q________","_________Q__Q________"
-        ];
+// Артефакты
+const ARTIFACTS = [
+    { id:'phantom_blade', name:'Клинок Фантома', desc:'+5% урона/ур', effect:'damage', perLevel:5 },
+    { id:'shield_imperishability', name:'Щит Нерушимости', desc:'+5% защиты/ур', effect:'shield', perLevel:5 },
+    { id:'vortex_engine', name:'Двигатель Вихря', desc:'+5% скорости/ур', effect:'speed', perLevel:5 },
+    { id:'vampire_crystal', name:'Вампирический Кристалл', desc:'3% шанс восстановить 10% HP/ур', effect:'vampire', perLevel:3 },
+    { id:'eye_of_foresight', name:'Глаз Предвидения', desc:'3% шанс уклонения/ур', effect:'dodge', perLevel:3 }
+];
 
-        // Генерация НЛО (player2)
-        const UFO_W = 52, UFO_H = 34;
-        const ufoMatrix = Array(UFO_H).fill().map(()=>Array(UFO_W).fill(0));
-        const ufoCenterX = 26, domeCenterY = 22, domeRadius = 20;
-        for (let y=0; y<UFO_H; y++) {
-            for (let x=0; x<UFO_W; x++) {
-                const dx = x - ufoCenterX, dy = y - domeCenterY;
-                const distSq = dx*dx + dy*dy;
-                if (distSq <= domeRadius*domeRadius && y <= 21) {
-                    ufoMatrix[y][x] = 2;
-                    if (dx > 4 && distSq > 12*12) ufoMatrix[y][x] = 3;
-                    if (dx > 10 && distSq > 17*17) ufoMatrix[y][x] = 4;
-                    if (dx < -4 && distSq < 15*15) ufoMatrix[y][x] = 1;
-                }
-                if (y >= 21 && y <= 24 && Math.abs(dx) <= 24 - (y-21)*2) {
-                    ufoMatrix[y][x] = 1;
-                    if (y === 22) ufoMatrix[y][x] = 2;
-                }
-                if (y >= 25 && y <= 26 && Math.abs(dx) <= 16) ufoMatrix[y][x] = 5;
+// ----------------------------------------------------------------------
+//  2. СОСТОЯНИЕ ИГРОКА (localStorage)
+// ----------------------------------------------------------------------
+
+const defaultState = {
+    playerName: '',
+    shipName: '',
+    faction: null,
+    factionColor: '#00aa44',
+    factionBonus: null,
+    shipIndex: 0,
+    resources: { credits:0, fuel:100, shieldParts:0, weaponParts:0, speedParts:0, spice:0, shards:0 },
+    maxFuel: 100,
+    upgrades: { damage:0, shield:0, speed:0, luck:0, fuelTank:0 },
+    artifact: { id:null, level:0 },
+    vip: 0,
+    pvpScore: 0,
+    leaderboard: [],
+    freeRefuelUsed: false,
+    battlePass: { level:0, paid:false, claimed:false },
+    seasonStart: Date.now()
+};
+
+// Загрузка
+function loadState() {
+    const s = defaultState;
+    try {
+        s.playerName = localStorage.getItem('sd_player_name') || '';
+        s.shipName = localStorage.getItem('sd_ship_name') || '';
+        s.faction = localStorage.getItem('sd_frac') || null;
+        s.factionColor = localStorage.getItem('sd_color') || '#00aa44';
+        s.factionBonus = localStorage.getItem('sd_bonus') || null;
+        s.shipIndex = parseInt(localStorage.getItem('sd_ship_index')) || 0;
+        s.resources.credits = parseInt(localStorage.getItem('sd_credits')) || 0;
+        s.resources.fuel = parseInt(localStorage.getItem('sd_fuel')) || 100;
+        s.resources.shieldParts = parseInt(localStorage.getItem('sd_shieldParts')) || 0;
+        s.resources.weaponParts = parseInt(localStorage.getItem('sd_weaponParts')) || 0;
+        s.resources.speedParts = parseInt(localStorage.getItem('sd_speedParts')) || 0;
+        s.resources.spice = parseInt(localStorage.getItem('sd_spice')) || 0;
+        s.resources.shards = parseInt(localStorage.getItem('sd_shards')) || 0;
+        s.maxFuel = parseInt(localStorage.getItem('sd_maxFuel')) || 100;
+        s.upgrades.damage = parseInt(localStorage.getItem('sd_upg_damage')) || 0;
+        s.upgrades.shield = parseInt(localStorage.getItem('sd_upg_shield')) || 0;
+        s.upgrades.speed = parseInt(localStorage.getItem('sd_upg_speed')) || 0;
+        s.upgrades.luck = parseInt(localStorage.getItem('sd_upg_luck')) || 0;
+        s.upgrades.fuelTank = parseInt(localStorage.getItem('sd_upg_fuelTank')) || 0;
+        s.artifact.id = localStorage.getItem('sd_artifact_id') || null;
+        s.artifact.level = parseInt(localStorage.getItem('sd_artifact_level')) || 0;
+        s.vip = parseInt(localStorage.getItem('sd_vip')) || 0;
+        s.pvpScore = parseInt(localStorage.getItem('sd_pvp_score')) || 0;
+        s.leaderboard = JSON.parse(localStorage.getItem('sd_leaderboard')) || [];
+        s.freeRefuelUsed = localStorage.getItem('sd_free_refuel') === 'true';
+        s.battlePass.level = parseInt(localStorage.getItem('sd_bp_level')) || 0;
+        s.battlePass.paid = localStorage.getItem('sd_bp_paid') === 'true';
+        s.battlePass.claimed = localStorage.getItem('sd_bp_claimed') === 'true';
+        s.seasonStart = parseInt(localStorage.getItem('sd_season_start')) || Date.now();
+    } catch(e) {}
+    return s;
+}
+
+let state = loadState();
+
+// Сохранение
+function saveState() {
+    const s = state;
+    localStorage.setItem('sd_player_name', s.playerName);
+    localStorage.setItem('sd_ship_name', s.shipName);
+    localStorage.setItem('sd_frac', s.faction);
+    localStorage.setItem('sd_color', s.factionColor);
+    localStorage.setItem('sd_bonus', s.factionBonus);
+    localStorage.setItem('sd_ship_index', s.shipIndex);
+    localStorage.setItem('sd_credits', s.resources.credits);
+    localStorage.setItem('sd_fuel', s.resources.fuel);
+    localStorage.setItem('sd_shieldParts', s.resources.shieldParts);
+    localStorage.setItem('sd_weaponParts', s.resources.weaponParts);
+    localStorage.setItem('sd_speedParts', s.resources.speedParts);
+    localStorage.setItem('sd_spice', s.resources.spice);
+    localStorage.setItem('sd_shards', s.resources.shards);
+    localStorage.setItem('sd_maxFuel', s.maxFuel);
+    localStorage.setItem('sd_upg_damage', s.upgrades.damage);
+    localStorage.setItem('sd_upg_shield', s.upgrades.shield);
+    localStorage.setItem('sd_upg_speed', s.upgrades.speed);
+    localStorage.setItem('sd_upg_luck', s.upgrades.luck);
+    localStorage.setItem('sd_upg_fuelTank', s.upgrades.fuelTank);
+    localStorage.setItem('sd_artifact_id', s.artifact.id);
+    localStorage.setItem('sd_artifact_level', s.artifact.level);
+    localStorage.setItem('sd_vip', s.vip);
+    localStorage.setItem('sd_pvp_score', s.pvpScore);
+    localStorage.setItem('sd_leaderboard', JSON.stringify(s.leaderboard));
+    localStorage.setItem('sd_free_refuel', s.freeRefuelUsed);
+    localStorage.setItem('sd_bp_level', s.battlePass.level);
+    localStorage.setItem('sd_bp_paid', s.battlePass.paid);
+    localStorage.setItem('sd_bp_claimed', s.battlePass.claimed);
+    localStorage.setItem('sd_season_start', s.seasonStart);
+}
+
+// ----------------------------------------------------------------------
+//  3. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+// ----------------------------------------------------------------------
+
+function updateTopPanel() {
+    const r = state.resources;
+    document.getElementById('vip-badge').innerHTML = `⭐ VIP ${state.vip}`;
+    document.getElementById('credits-value').innerText = Math.floor(r.credits);
+    document.getElementById('fuel-value').innerText = Math.floor(r.fuel)+'/'+state.maxFuel;
+    document.getElementById('spice-value').innerText = r.spice;
+    document.getElementById('shards-value').innerText = r.shards;
+    const refuelBtn = document.getElementById('refuel-btn');
+    refuelBtn.style.display = (r.fuel === 0 && !state.freeRefuelUsed) ? 'inline-block' : 'none';
+}
+
+function showLoot(name, amount) {
+    const feed = document.getElementById('loot-feed');
+    const item = document.createElement('span');
+    item.className = 'loot-item';
+    item.innerText = `+${amount} ${name}`;
+    feed.appendChild(item);
+    setTimeout(() => item.remove(), 2500);
+}
+
+function showWindow(id) {
+    document.querySelectorAll('.window').forEach(w => w.classList.add('hidden'));
+    const win = document.getElementById('window-'+id);
+    if (win) win.classList.remove('hidden');
+}
+
+function showUI() {
+    document.getElementById('back-btn').style.display = 'flex';
+    document.getElementById('bottom-panel').classList.remove('hidden');
+    updateTopPanel();
+}
+
+// Звёздный фон
+function createStars() {
+    const layer = document.getElementById('stars-layer');
+    for (let i=0; i<400; i++) {
+        const s = document.createElement('div');
+        s.className = 'star';
+        const r = Math.random();
+        if (r<0.1) s.style.background = '#ccddff';
+        else if (r<0.3) s.style.background = '#8899bb';
+        else if (r<0.6) s.style.background = '#556677';
+        else s.style.background = '#334455';
+        s.style.left = Math.random()*100+'%';
+        s.style.top = Math.random()*100+'%';
+        const sz = Math.random()<0.08?2.5:(Math.random()<0.2?1.8:(Math.random()<0.5?1.2:0.6));
+        s.style.width = sz+'px'; s.style.height = sz+'px';
+        s.style.setProperty('--duration', (Math.random()*3+1.5)+'s');
+        s.style.setProperty('--delay', Math.random()*2+'s');
+        layer.appendChild(s);
+    }
+}
+createStars();
+
+// Планета (упрощённая, из исходника)
+const planetColors = {1:'#3c1a5b',2:'#b094fa',3:'#f25cf2',4:'#ff9eff',5:'#e3e8ff'};
+const W=64,H=40;
+let planetMatrix = Array(H).fill().map(()=>Array(W).fill(0));
+const cX=32,cY=20,rad=14;
+for(let y=0;y<H;y++)for(let x=0;x<W;x++){const dx=x-cX,dy=y-cY;if(dx*dx+dy*dy<=rad*rad){planetMatrix[y][x]=2;if((y>=10&&y<=13)||(y>=18&&y<=22)||(y>=27&&y<=29))planetMatrix[y][x]=3;if((y===9&&x===28)||(y===10&&x===29)||(y===21&&x===24))planetMatrix[y][x]=4;}}
+// Упрощённо рисуем
+function drawPlanet() {
+    const container = document.getElementById('pixel-planet');
+    container.innerHTML = '';
+    const ps = 2.5;
+    const canvas = document.createElement('canvas');
+    canvas.width = W*ps; canvas.height = H*ps;
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    for (let y=0;y<H;y++)for (let x=0;x<W;x++){const c=planetMatrix[y][x];if(c){ctx.fillStyle=planetColors[c];ctx.fillRect(x*ps,y*ps,ps,ps);}}
+    canvas.style.cssText = 'display:block;width:100%;height:100%;image-rendering:pixelated;';
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;animation:rotate 60s linear infinite;';
+    wrapper.appendChild(canvas);
+    container.appendChild(wrapper);
+}
+drawPlanet();
+
+function getMapCenter() {
+    const bg = document.getElementById('galaxy-bg');
+    return { x: bg.offsetWidth/2, y: bg.offsetHeight/2 };
+}
+
+function parkShipOnPlanet() {
+    const docked = document.getElementById('player-docked');
+    if (!docked) return;
+    const planet = document.getElementById('planet-container');
+    const pr = planet.getBoundingClientRect();
+    const mr = document.getElementById('galaxy-bg').getBoundingClientRect();
+    const cx = pr.left - mr.left + pr.width/2;
+    const cy = pr.top - mr.top + pr.height/2;
+    const ship = window.createPlayerShip(0.35);
+    docked.innerHTML = '';
+    docked.appendChild(ship);
+    docked.style.left = cx + 'px';
+    docked.style.top = (cy + 18) + 'px';
+    docked.style.transform = 'translate(-50%, -50%)';
+    docked.style.display = 'block';
+}
+
+// ----------------------------------------------------------------------
+//  4. КАРТА ДОБЫЧИ (PvE)
+// ----------------------------------------------------------------------
+
+let galaxyObjects = [];
+let isShipFlying = false;
+const FUEL_COST_PER_FLIGHT = 10;
+const FUEL_REGENERATION_INTERVAL = 4 * 60 * 1000; // 4 минуты
+
+function generateObjects() {
+    const bg = document.getElementById('galaxy-bg');
+    bg.querySelectorAll('.bg-object').forEach(e => e.remove());
+    galaxyObjects = [];
+    const center = getMapCenter();
+    // 9 объектов: 3 астероида, 3 пирата, 3 обломка
+    const types = ['asteroid','asteroid','asteroid','pirate','pirate','pirate','wreck','wreck','wreck'];
+    types.sort(() => Math.random()-0.5);
+    types.forEach(type => {
+        const angle = Math.random()*Math.PI*2;
+        const dist = 120 + Math.random()*80;
+        const x = center.x + Math.cos(angle)*dist;
+        const y = center.y + Math.sin(angle)*dist;
+        const obj = { type, x, y, element:null };
+        const div = document.createElement('div');
+        div.className = 'bg-object';
+        div.style.left = x+'px';
+        div.style.top = y+'px';
+        div.style.pointerEvents = 'all';
+        if (type === 'asteroid') div.innerHTML = '🪨';
+        else if (type === 'pirate') div.appendChild(window.createEnemyShip(Math.floor(Math.random()*3)));
+        else div.innerHTML = '🛸'; // обломки
+        div.onclick = (e) => {
+            e.stopPropagation();
+            if (state.resources.fuel >= FUEL_COST_PER_FLIGHT && !isShipFlying && state.faction) {
+                flyToObject(obj, div);
             }
+        };
+        bg.appendChild(div);
+        obj.element = div;
+        galaxyObjects.push(obj);
+    });
+}
+
+function generateLoot() {
+    const mult = (state.vip === 0) ? 1 : (1 + state.vip * 0.2); // множитель VIP
+    let nothingChance = 55 - state.upgrades.luck * 2;
+    if (nothingChance < 5) nothingChance = 5;
+    const r = Math.random() * 100;
+    if (r < nothingChance) return null;
+    // Остальные шансы пересчитываем пропорционально:
+    // 20% кредиты, 10% топливо, 6% щит, 6% оружие, 6% скорость, 2% спайс.
+    // Сумма оставшихся шансов = 100 - nothingChance.
+    const remaining = 100 - nothingChance;
+    const creditsChance = 20 / 50 * remaining; // 20 из 50 исходных
+    const fuelChance = 10 / 50 * remaining;
+    const shieldChance = 6 / 50 * remaining;
+    const weaponChance = 6 / 50 * remaining;
+    const speedChance = 6 / 50 * remaining;
+    const spiceChance = 2 / 50 * remaining;
+    // Определяем выпадение
+    let roll = Math.random() * remaining;
+    if (roll < creditsChance) {
+        const amt = Math.floor((10 + Math.random()*91) * mult);
+        state.resources.credits += amt;
+        return { name:'Кредиты', amount:amt };
+    } else if (roll < creditsChance + fuelChance) {
+        const amt = Math.floor((5 + Math.random()*11) * mult);
+        state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + amt);
+        return { name:'Топливо', amount:amt };
+    } else if (roll < creditsChance + fuelChance + shieldChance) {
+        const amt = Math.floor((1 + Math.random()*5) * mult);
+        state.resources.shieldParts += amt;
+        return { name:'Детали щита', amount:amt };
+    } else if (roll < creditsChance + fuelChance + shieldChance + weaponChance) {
+        const amt = Math.floor((1 + Math.random()*5) * mult);
+        state.resources.weaponParts += amt;
+        return { name:'Детали оружия', amount:amt };
+    } else if (roll < creditsChance + fuelChance + shieldChance + weaponChance + speedChance) {
+        const amt = Math.floor((1 + Math.random()*5) * mult);
+        state.resources.speedParts += amt;
+        return { name:'Детали скорости', amount:amt };
+    } else {
+        const amt = Math.floor((1 + Math.random()*3) * mult);
+        state.resources.spice += amt;
+        return { name:'Спайс', amount:amt };
+    }
+}
+
+function flyToObject(obj, element) {
+    if (isShipFlying) return;
+    if (state.resources.fuel < FUEL_COST_PER_FLIGHT) {
+        // можно показать сообщение
+        return;
+    }
+    isShipFlying = true;
+    state.resources.fuel -= FUEL_COST_PER_FLIGHT;
+    saveState();
+    updateTopPanel();
+
+    const docked = document.getElementById('player-docked');
+    const startX = parseFloat(docked.style.left) || getMapCenter().x;
+    const startY = parseFloat(docked.style.top) || getMapCenter().y;
+    docked.style.display = 'none';
+    const bg = document.getElementById('galaxy-bg');
+    const shipEl = window.createPlayerShip(0.45);
+    shipEl.style.position = 'absolute';
+    shipEl.style.left = startX + 'px';
+    shipEl.style.top = startY + 'px';
+    shipEl.style.transform = 'translate(-50%, -50%)';
+    shipEl.style.transition = 'all 5s cubic-bezier(0.25,0.1,0.25,1)';
+    bg.appendChild(shipEl);
+    requestAnimationFrame(() => {
+        shipEl.style.left = obj.x + 'px';
+        shipEl.style.top = obj.y + 'px';
+        shipEl.style.transform = 'translate(-50%, -50%) scale(0.8)';
+    });
+    setTimeout(() => {
+        const loot = generateLoot();
+        if (loot) showLoot(loot.name, loot.amount);
+        saveState();
+        updateTopPanel();
+        element.style.opacity = '0';
+        setTimeout(() => element.remove(), 300);
+        shipEl.style.transition = 'all 5s cubic-bezier(0.25,0.1,0.25,1)';
+        shipEl.style.left = startX + 'px';
+        shipEl.style.top = startY + 'px';
+        shipEl.style.transform = 'translate(-50%, -50%) scale(0.45)';
+        setTimeout(() => {
+            shipEl.remove();
+            galaxyObjects = galaxyObjects.filter(o => o !== obj);
+            isShipFlying = false;
+            parkShipOnPlanet();
+            if (document.querySelectorAll('.bg-object').length === 0) generateObjects();
+        }, 5000);
+    }, 5000);
+}
+
+// Восстановление топлива
+setInterval(() => {
+    if (state.resources.fuel < state.maxFuel) {
+        state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + 1);
+        saveState();
+        updateTopPanel();
+    }
+}, FUEL_REGENERATION_INTERVAL);
+
+function freeRefuel() {
+    if (state.freeRefuelUsed) return;
+    state.resources.fuel = state.maxFuel;
+    state.freeRefuelUsed = true;
+    saveState();
+    updateTopPanel();
+}
+
+// ----------------------------------------------------------------------
+//  5. АНГАР (СИСТЕМА ПРОКАЧКИ)
+// ----------------------------------------------------------------------
+
+function getUpgradeCost(type) {
+    const lvl = state.upgrades[type];
+    if (type === 'fuelTank') {
+        const credits = Math.floor(100 * Math.pow(2, lvl));
+        const spice = Math.floor(50 * Math.pow(1.5, lvl));
+        return { credits, spice, partsType: null, parts:0 };
+    } else {
+        const partsType = type==='shield'?'shieldParts':(type==='damage'?'weaponParts':(type==='speed'?'speedParts':'shieldParts'));
+        const baseParts = 5, baseCredits = 50;
+        let parts = Math.floor(baseParts * Math.pow(1.5, lvl));
+        let credits = Math.floor(baseCredits * Math.pow(2, lvl));
+        let spice = 0;
+        if (lvl >= 15) { // 16-й уровень (индекс 15)
+            spice = (lvl === 15) ? 10 : Math.floor(10 * Math.pow(1.6, lvl - 15));
         }
-        const lightPositionsX = [10, 18, 26, 34, 42];
-        lightPositionsX.forEach(px => {
-            if (px>=0 && px<UFO_W) {
-                ufoMatrix[22][px] = 6;
-                if (ufoMatrix[22][px-1] !== undefined) ufoMatrix[22][px-1] = 7;
-                if (ufoMatrix[22][px+1] !== undefined) ufoMatrix[22][px+1] = 7;
-                if (ufoMatrix[21] && ufoMatrix[21][px] !== undefined) ufoMatrix[21][px] = 7;
-                if (ufoMatrix[23] && ufoMatrix[23][px] !== undefined) ufoMatrix[23][px] = 7;
+        // Применяем скидку VIP
+        const discount = Math.min(state.vip * 5, 30);
+        parts = Math.floor(parts * (1 - discount/100));
+        credits = Math.floor(credits * (1 - discount/100));
+        if (spice) spice = Math.floor(spice * (1 - discount/100));
+        return { credits, spice, partsType, parts };
+    }
+}
+
+function canBuyUpgrade(type) {
+    const max = (type === 'fuelTank') ? 10 : (type === 'luck' ? 5 : 30);
+    if (state.upgrades[type] >= max) return false;
+    const cost = getUpgradeCost(type);
+    if (state.resources.credits < cost.credits) return false;
+    if (cost.spice && state.resources.spice < cost.spice) return false;
+    if (cost.partsType && state.resources[cost.partsType] < cost.parts) return false;
+    return true;
+}
+
+function buyUpgrade(type) {
+    if (!canBuyUpgrade(type)) return;
+    const cost = getUpgradeCost(type);
+    state.resources.credits -= cost.credits;
+    if (cost.spice) state.resources.spice -= cost.spice;
+    if (cost.partsType) state.resources[cost.partsType] -= cost.parts;
+    state.upgrades[type]++;
+    if (type === 'fuelTank') {
+        state.maxFuel += 10;
+        state.resources.fuel = Math.min(state.resources.fuel + 10, state.maxFuel);
+    }
+    saveState();
+    updateHangar();
+    updateTopPanel();
+}
+
+function updateHangar() {
+    const r = state.resources;
+    document.getElementById('hangar-resources').innerHTML =
+        `🪙${r.credits} ⛽${Math.floor(r.fuel)}/${state.maxFuel} 🛡️${r.shieldParts} ⚔️${r.weaponParts} ⚡${r.speedParts} 💎${r.spice} 🧩${r.shards}`;
+    const list = document.getElementById('upgrades-list');
+    const types = ['damage','shield','speed','luck','fuelTank'];
+    const names = { damage:'УРОН', shield:'ЗАЩИТА', speed:'СКОРОСТЬ', luck:'УДАЧА', fuelTank:'ТОПЛИВНЫЙ БАК' };
+    const maxMap = { damage:30, shield:30, speed:30, luck:5, fuelTank:10 };
+    list.innerHTML = types.map(t => {
+        const lvl = state.upgrades[t], max = maxMap[t];
+        const cost = getUpgradeCost(t);
+        const can = canBuyUpgrade(t);
+        let costStr = `${cost.credits}🪙`;
+        if (cost.spice) costStr += ` ${cost.spice}💎`;
+        if (cost.partsType) costStr += ` ${cost.parts} ${cost.partsType==='shieldParts'?'🛡️':(cost.partsType==='weaponParts'?'⚔️':'⚡')}`;
+        return `<div class="upgrade-row"><span>${names[t]} Ур.${lvl}/${max}</span><button class="btn btn-small" ${can&&lvl<max?'':'disabled'} onclick="buyUpgrade('${t}')">${costStr}</button></div>`;
+    }).join('');
+    // Артефакты
+    updateArtifactSection();
+}
+
+// ----------------------------------------------------------------------
+//  6. АРТЕФАКТЫ
+// ----------------------------------------------------------------------
+
+function getArtifactCost(currentLevel) {
+    const costs = {
+        0: { shards: 5, spice: 30 },
+        1: { shards: 8, spice: 30 },
+        2: { shards: 16, spice: 30 },
+        3: { shards: 31, spice: 30 },
+        4: { shards: 43, spice: 30 }
+    };
+    return costs[currentLevel] || null;
+}
+
+function upgradeArtifact(artifactId) {
+    if (state.artifact.id && state.artifact.id !== artifactId) {
+        alert('Сначала снимите текущий артефакт');
+        return;
+    }
+    const art = ARTIFACTS.find(a => a.id === artifactId);
+    let level = state.artifact.level || 0;
+    if (level >= 5) {
+        alert('Максимальный уровень');
+        return;
+    }
+    const cost = getArtifactCost(level);
+    if (!cost) return;
+    if (state.resources.shards < cost.shards || state.resources.spice < cost.spice) {
+        alert('Не хватает ресурсов');
+        return;
+    }
+    state.resources.shards -= cost.shards;
+    state.resources.spice -= cost.spice;
+    state.artifact.id = artifactId;
+    state.artifact.level = level + 1;
+    saveState();
+    updateHangar();
+}
+
+function unequipArtifact() {
+    state.artifact.id = null;
+    state.artifact.level = 0;
+    saveState();
+    updateHangar();
+}
+
+function updateArtifactSection() {
+    const container = document.getElementById('artifact-section');
+    let html = `<div style="font-size:6px;margin:4px 0;">Экипирован: ${state.artifact.id ? ARTIFACTS.find(a=>a.id===state.artifact.id).name + ' (ур.'+state.artifact.level+')' : 'нет'}</div>`;
+    html += `<div class="flex-row">`;
+    ARTIFACTS.forEach(art => {
+        const isEquipped = state.artifact.id === art.id;
+        const level = isEquipped ? state.artifact.level : 0;
+        const canUpgrade = isEquipped && level < 5 && getArtifactCost(level);
+        html += `<div class="artifact-card ${isEquipped?'selected':''}" onclick="upgradeArtifact('${art.id}')">
+            <div style="font-size:7px;">${art.name}</div>
+            <div style="font-size:5px;">${art.desc}</div>
+            <div style="font-size:5px;">ур.${level}/5</div>
+            ${canUpgrade ? `<div style="font-size:5px;">${getArtifactCost(level).shards}🧩 ${getArtifactCost(level).spice}💎</div>` : ''}
+        </div>`;
+    });
+    html += `</div>`;
+    if (state.artifact.id) {
+        html += `<button class="btn btn-small" onclick="unequipArtifact()">СНЯТЬ</button>`;
+    }
+    container.innerHTML = html;
+}
+
+// ----------------------------------------------------------------------
+//  7. PvP АРЕНА (по формулам концепции)
+// ----------------------------------------------------------------------
+
+function getFinalStats() {
+    const base = FACTION_STATS[state.factionBonus] || { shield:20, damage:20, speed:15 };
+    let shield = base.shield + state.upgrades.shield * 2;
+    let damage = base.damage + state.upgrades.damage * 2;
+    let speed = base.speed + state.upgrades.speed * 2;
+    // Артефакт
+    if (state.artifact.id) {
+        const art = ARTIFACTS.find(a => a.id === state.artifact.id);
+        const lvl = state.artifact.level;
+        const bonus = art.perLevel * lvl;
+        if (art.effect === 'damage') damage *= (1 + bonus/100);
+        else if (art.effect === 'shield') shield *= (1 + bonus/100);
+        else if (art.effect === 'speed') speed *= (1 + bonus/100);
+        // vampire и dodge учитываются отдельно в симуляции
+    }
+    // Удача -> шанс крита
+    let critChance = 5 + state.upgrades.luck * 2;
+    return { damage, shield, speed, critChance, artifactEffect: state.artifact.id };
+}
+
+function generateEnemyStats() {
+    // Генерируем противника со случайными параметрами (усреднённо)
+    const base = FACTION_STATS[['tank','dps','sniper'][Math.floor(Math.random()*3)]];
+    let shield = base.shield + Math.floor(Math.random() * 20);
+    let damage = base.damage + Math.floor(Math.random() * 20);
+    let speed = base.speed + Math.floor(Math.random() * 20);
+    // Может иметь артефакт
+    const hasArtifact = Math.random() < 0.5;
+    let artifactEffect = null;
+    if (hasArtifact) {
+        const art = ARTIFACTS[Math.floor(Math.random()*5)];
+        const lvl = Math.floor(Math.random()*5)+1;
+        const bonus = art.perLevel * lvl;
+        if (art.effect === 'damage') damage *= (1 + bonus/100);
+        else if (art.effect === 'shield') shield *= (1 + bonus/100);
+        else if (art.effect === 'speed') speed *= (1 + bonus/100);
+        artifactEffect = art.effect;
+    }
+    const critChance = 5 + Math.floor(Math.random() * 10);
+    return { damage, shield, speed, critChance, artifactEffect };
+}
+
+function simulatePvP(playerStats, enemyStats) {
+    const HP = 1000;
+    let pHP = HP, eHP = HP;
+    let pNext = 0, eNext = 0;
+    const myDelay = 100 / playerStats.speed;
+    const enemyDelay = 100 / enemyStats.speed;
+    // Доп. эффекты артефактов
+    const myVampireChance = (playerStats.artifactEffect === 'vampire') ? state.artifact.level * 3 : 0;
+    const myDodgeChance = (playerStats.artifactEffect === 'dodge') ? state.artifact.level * 3 : 0;
+    const enemyVampireChance = (enemyStats.artifactEffect === 'vampire') ? 5 : 0; // пример
+    const enemyDodgeChance = (enemyStats.artifactEffect === 'dodge') ? 5 : 0;
+
+    for (let t = 0; t < 10; t += 0.1) {
+        // Атака игрока
+        if (t >= pNext) {
+            let dmg = Math.max(0, playerStats.damage - enemyStats.shield * 0.5);
+            if (Math.random() * 100 < playerStats.critChance) dmg *= 1.5;
+            // Уклонение врага
+            if (enemyDodgeChance && Math.random() * 100 < enemyDodgeChance) dmg = 0;
+            eHP -= dmg;
+            // Вампиризм игрока
+            if (myVampireChance && Math.random() * 100 < myVampireChance) {
+                pHP = Math.min(HP, pHP + HP * 0.1);
+            }
+            pNext = t + myDelay;
+        }
+        // Атака врага
+        if (t >= eNext) {
+            let dmg = Math.max(0, enemyStats.damage - playerStats.shield * 0.5);
+            if (Math.random() * 100 < enemyStats.critChance) dmg *= 1.5;
+            if (myDodgeChance && Math.random() * 100 < myDodgeChance) dmg = 0;
+            pHP -= dmg;
+            if (enemyVampireChance && Math.random() * 100 < enemyVampireChance) {
+                eHP = Math.min(HP, eHP + HP * 0.1);
+            }
+            eNext = t + enemyDelay;
+        }
+        if (pHP <= 0 || eHP <= 0) break;
+    }
+    return { pHP, eHP };
+}
+
+function searchPvP() {
+    if (!state.faction) return;
+    const playerStats = getFinalStats();
+    const enemyStats = generateEnemyStats();
+    const result = simulatePvP(playerStats, enemyStats);
+    let outcome;
+    if (result.pHP <= 0 && result.eHP <= 0) outcome = 'НИЧЬЯ! +2';
+    else if (result.eHP <= 0) outcome = 'ПОБЕДА! +15';
+    else if (result.pHP <= 0) outcome = 'ПОРАЖЕНИЕ... -12';
+    else outcome = 'НИЧЬЯ! +2';
+    document.getElementById('pvp-status').innerText = outcome;
+    // Рейтинг
+    if (outcome.includes('ПОБЕДА')) state.pvpScore += 15;
+    else if (outcome.includes('ПОРАЖЕНИЕ')) state.pvpScore = Math.max(0, state.pvpScore - 12);
+    else state.pvpScore += 2;
+    updateLeaderboard();
+    saveState();
+    // Отобразить HP
+    document.getElementById('pvp-timer').innerText = '0';
+}
+
+function updateLeaderboard() {
+    const idx = state.leaderboard.findIndex(p => p.name === state.playerName);
+    if (idx >= 0) state.leaderboard[idx].score = state.pvpScore;
+    else if (state.playerName) state.leaderboard.push({ name: state.playerName, score: state.pvpScore });
+    state.leaderboard.sort((a,b) => b.score - a.score);
+    state.leaderboard = state.leaderboard.slice(0, 15);
+    const list = document.getElementById('leaderboard');
+    if (list) list.innerHTML = '<div style="color:#aa9933">ТОП 15</div>' +
+        state.leaderboard.map((p,i) => `<div>#${i+1} ${p.name}: ${p.score}</div>`).join('');
+    saveState();
+}
+
+// ----------------------------------------------------------------------
+//  8. VIP
+// ----------------------------------------------------------------------
+
+function upgradeVip() {
+    if (state.vip < 6) {
+        state.vip++;
+        saveState();
+        updateVipWindow();
+        updateTopPanel();
+    }
+}
+
+function updateVipWindow() {
+    document.getElementById('vip-level').innerText = state.vip;
+    const mult = (state.vip === 0) ? 1 : (1 + state.vip * 0.2);
+    document.getElementById('vip-mult').innerText = mult;
+    const discount = Math.min(state.vip * 5, 30);
+    document.getElementById('vip-discount').innerText = discount;
+}
+
+// ----------------------------------------------------------------------
+//  9. БАТЛ-ПАСС И СЕЗОН
+// ----------------------------------------------------------------------
+
+function seasonDaysLeft() {
+    const end = state.seasonStart + 45 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    if (now >= end) return 0;
+    return Math.ceil((end - now) / (24 * 60 * 60 * 1000));
+}
+
+function updateBattlePassWindow() {
+    document.getElementById('bp-level').innerText = state.battlePass.level;
+    document.getElementById('season-remaining').innerText = seasonDaysLeft();
+    // Показываем награды
+    const rewards = getBPRewards(state.battlePass.level);
+    document.getElementById('bp-rewards').innerHTML = rewards.map(r => `${r.name}: ${r.amount}`).join('<br>');
+}
+
+function getBPRewards(level) {
+    // Упрощённо: каждый уровень даёт немного спайса, кредитов, деталей
+    const rewards = [];
+    if (level % 5 === 0) rewards.push({ name:'Спайс', amount: 50 + level*5 });
+    if (level % 3 === 0) rewards.push({ name:'Кредиты', amount: 200 + level*20 });
+    if (level % 2 === 0) rewards.push({ name:'Детали (случайные)', amount: 5 + level });
+    return rewards;
+}
+
+function buyBattlePass() {
+    if (state.battlePass.paid) {
+        alert('Батл-пасс уже куплен');
+        return;
+    }
+    // Имитация покупки за USDT (просто активируем)
+    state.battlePass.paid = true;
+    // Даём мгновенные награды за уже достигнутые уровни
+    // (можно реализовать позже)
+    saveState();
+    updateBattlePassWindow();
+}
+
+function claimBPReward() {
+    // Просто повышаем уровень (имитация прогресса)
+    if (state.battlePass.level < 60) {
+        state.battlePass.level++;
+        // Начисляем награды
+        const rewards = getBPRewards(state.battlePass.level);
+        rewards.forEach(r => {
+            if (r.name === 'Спайс') state.resources.spice += r.amount;
+            else if (r.name === 'Кредиты') state.resources.credits += r.amount;
+            else {
+                // случайные детали
+                const parts = ['shieldParts','weaponParts','speedParts'];
+                const p = parts[Math.floor(Math.random()*3)];
+                state.resources[p] += r.amount;
             }
         });
-        for (let y=26; y<34; y++) {
-            const step = y-26;
-            if (step<6 && Math.abs(ufoCenterX-ufoCenterX)<=2) {
-                ufoMatrix[y][ufoCenterX] = 5;
-                ufoMatrix[y][ufoCenterX-1] = 1;
-                ufoMatrix[y][ufoCenterX+1] = 1;
-            }
-            const leftX = 14 - step*1.2;
-            ufoMatrix[y][Math.round(leftX)] = 5;
-            ufoMatrix[y][Math.round(leftX)-1] = 1;
-            const rightX = 38 + step*1.2;
-            ufoMatrix[y][Math.round(rightX)] = 5;
-            ufoMatrix[y][Math.round(rightX)+1] = 1;
+        saveState();
+        updateBattlePassWindow();
+        updateTopPanel();
+    } else {
+        alert('Максимальный уровень');
+    }
+}
+
+// Проверка окончания сезона (при загрузке)
+function checkSeason() {
+    const days = seasonDaysLeft();
+    if (days <= 0) {
+        // Сброс: уровни урона/защиты/скорости на 20% (округляем вниз)
+        state.upgrades.damage = Math.floor(state.upgrades.damage * 0.8);
+        state.upgrades.shield = Math.floor(state.upgrades.shield * 0.8);
+        state.upgrades.speed = Math.floor(state.upgrades.speed * 0.8);
+        state.pvpScore = 0;
+        state.battlePass.level = 0;
+        state.battlePass.paid = false;
+        state.seasonStart = Date.now();
+        // Вывод спайса: можно показать сообщение
+        saveState();
+        alert('Новый сезон! Уровни сброшены на 20%, рейтинг обнулён.');
+    }
+}
+
+// ----------------------------------------------------------------------
+//  10. ИНИЦИАЛИЗАЦИЯ И НАВИГАЦИЯ
+// ----------------------------------------------------------------------
+
+function setPlayerName() {
+    const name = document.getElementById('input-player-name').value.trim();
+    if (name.length < 2) { alert('Минимум 2 символа'); return; }
+    state.playerName = name;
+    saveState();
+    showWindow('faction');
+}
+
+function selectFaction(name, color, bonus) {
+    state.faction = name;
+    state.factionColor = color;
+    state.factionBonus = bonus;
+    saveState();
+    // Показываем выбор корабля
+    const container = document.getElementById('ship-selection');
+    container.innerHTML = '';
+    for (let i=0; i<3; i++) {
+        const card = document.createElement('div');
+        card.style.cssText = 'cursor:pointer;padding:6px;border:2px solid #009944;text-align:center;width:100px;height:120px;display:flex;align-items:center;justify-content:center;';
+        const matrix = SHIP_SPRITES[`player${i+1}`] || [];
+        card.appendChild(drawShipSprite(matrix, i===0?0.8:0.5));
+        card.onclick = () => {
+            state.shipIndex = i;
+            container.querySelectorAll('div').forEach(d => d.style.borderColor = '#009944');
+            card.style.borderColor = '#aa9933';
+            document.getElementById('confirm-ship-btn').disabled = false;
+        };
+        container.appendChild(card);
+    }
+    document.getElementById('confirm-ship-btn').disabled = true;
+    showWindow('ship');
+}
+
+function confirmShip() {
+    const name = document.getElementById('input-ship-name').value.trim();
+    if (state.shipIndex === null || name.length < 2) {
+        alert('Выберите корабль и введите имя');
+        return;
+    }
+    state.shipName = name;
+    saveState();
+    showUI();
+    document.getElementById('content-overlay').style.display = 'none';
+    const center = getMapCenter();
+    document.getElementById('planet-container').style.left = center.x + 'px';
+    document.getElementById('planet-container').style.top = center.y + 'px';
+    parkShipOnPlanet();
+    generateObjects();
+    updateHangar();
+    updateLeaderboard();
+    updateVipWindow();
+    updateBattlePassWindow();
+    checkSeason();
+}
+
+function switchTab(tab) {
+    const tabs = ['map','hangar','pvp','vip','battlepass'];
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('nav-'+tab).classList.add('active');
+    document.querySelectorAll('.bg-object').forEach(o => o.style.display = (tab === 'map') ? 'block' : 'none');
+    if (tab === 'map') {
+        document.getElementById('content-overlay').style.display = 'none';
+    } else {
+        document.getElementById('content-overlay').style.display = 'flex';
+        if (tab === 'hangar') {
+            showWindow('hangar');
+            const hangarDiv = document.getElementById('hangar-ship-display');
+            hangarDiv.innerHTML = '';
+            hangarDiv.appendChild(window.createPlayerShip(1.0));
+            updateHangar();
+        } else if (tab === 'pvp') {
+            showWindow('pvp');
+            document.getElementById('pvp-player-ship-display').innerHTML = '';
+            document.getElementById('pvp-player-ship-display').appendChild(window.createPlayerShip(1.0));
+            document.getElementById('pvp-enemy-ship-display').innerHTML = '';
+            document.getElementById('pvp-enemy-ship-display').appendChild(window.createEnemyShip(Math.floor(Math.random()*3)));
+            updateLeaderboard();
+        } else if (tab === 'vip') {
+            showWindow('vip');
+            updateVipWindow();
+        } else if (tab === 'battlepass') {
+            showWindow('battlepass');
+            updateBattlePassWindow();
         }
-        const finalUfoMatrix = JSON.parse(JSON.stringify(ufoMatrix));
-        for (let y=1; y<UFO_H-1; y++) {
-            for (let x=1; x<UFO_W-1; x++) {
-                if (ufoMatrix[y][x] === 0) {
-                    if (ufoMatrix[y-1][x] || ufoMatrix[y+1][x] || ufoMatrix[y][x-1] || ufoMatrix[y][x+1]) {
-                        finalUfoMatrix[y][x] = 1;
-                    }
-                }
-            }
-        }
+    }
+}
 
-        const SHIP_SPRITES = {
-            player1: player1Matrix,
-            player2: finalUfoMatrix, // числовая матрица
-            player3: [], // заглушка
-            enemy1: [], enemy2: [], enemy3: []
-        };
+function goBack() {
+    if (state.faction) switchTab('map');
+}
 
-        function drawShipSprite(matrix, scale=1) {
-            if (!matrix || matrix.length === 0) {
-                const s = document.createElement('span'); s.style.fontSize='30px'; s.innerText='🚀'; return s;
-            }
-            const rows = matrix.length, cols = matrix[0].length;
-            const tileSize = Math.max(2, Math.round(6 * scale));
-            const canvas = document.createElement('canvas');
-            canvas.width = cols * tileSize;
-            canvas.height = rows * tileSize;
-            const ctx = canvas.getContext('2d');
-            ctx.imageSmoothingEnabled = false;
-            canvas.style.imageRendering = 'pixelated';
-            canvas.style.imageRendering = 'crisp-edges';
+function devReset() {
+    if (confirm('СБРОСИТЬ ВЕСЬ ПРОГРЕСС?')) {
+        localStorage.clear();
+        location.reload();
+    }
+}
 
-            // Определяем тип матрицы: если первый элемент строка или число
-            const isNumeric = typeof matrix[0][0] === 'number';
+// Запуск
+function init() {
+    createStars();
+    drawPlanet();
+    if (state.faction && state.playerName) {
+        showUI();
+        document.getElementById('content-overlay').style.display = 'none';
+        const center = getMapCenter();
+        document.getElementById('planet-container').style.left = center.x + 'px';
+        document.getElementById('planet-container').style.top = center.y + 'px';
+        parkShipOnPlanet();
+        generateObjects();
+        updateHangar();
+        updateLeaderboard();
+        updateVipWindow();
+        updateBattlePassWindow();
+        checkSeason();
+    } else if (state.playerName) {
+        showWindow('faction');
+    } else {
+        showWindow('start');
+    }
+}
 
-            for (let y = 0; y < rows; y++) {
-                for (let x = 0; x < cols; x++) {
-                    const key = matrix[y][x];
-                    if (key === '_' || key === 0 || key === undefined) continue;
-                    let color;
-                    if (isNumeric) {
-                        color = UFO_PALETTE[key] || '#888';
-                    } else {
-                        color = PALETTE[key] || '#888';
-                    }
-                    ctx.fillStyle = color;
-                    ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
-                }
-            }
-            const wrapper = document.createElement('div');
-            wrapper.style.display = 'inline-block';
-            wrapper.style.pointerEvents = 'none';
-            wrapper.style.imageRendering = 'pixelated';
-            wrapper.appendChild(canvas);
-            return wrapper;
-        }
-
-        window.createPlayerShip = (scale=1) => {
-            const index = (window.selectedShipIndex || 0) + 1;
-            const matrix = SHIP_SPRITES[`player${index}`];
-            return drawShipSprite(matrix, scale);
-        };
-        window.createEnemyShip=(variant=0)=>{const type=`enemy${(variant%3)+1}`;const m=SHIP_SPRITES[type];if(m&&m.length>0)return drawShipSprite(m,0.8);const s=document.createElement('span');s.style.fontSize='30px';s.innerText='👾';return s;};
-        window.createAsteroidEmoji=()=>'🪨'; window.createWreckEmoji=()=>{const w=document.createElement('span');w.style.fontSize='30px';w.innerText='🛸';w.style.filter='grayscale(1) brightness(0.5)';return w;};
-
-        // ---------- БАЗОВЫЕ СТАТЫ ФРАКЦИЙ ----------
-        const FACTION_STATS = {
-            tank:   { shield:40, damage:20, speed:15 },
-            dps:    { shield:15, damage:25, speed:35 },
-            sniper: { shield:20, damage:40, speed:15 }
-        };
-
-        // ---------- СОСТОЯНИЕ ----------
-        window.playerName=localStorage.getItem('sd_player_name')||''; window.shipName=localStorage.getItem('sd_ship_name')||'';
-        window.frac=localStorage.getItem('sd_frac')||null; window.fracColor=localStorage.getItem('sd_color')||'#00aa44';
-        window.fracBonus=localStorage.getItem('sd_bonus')||null; window.selectedShipIndex=parseInt(localStorage.getItem('sd_ship_index'))||0;
-        window.resources={ credits:parseInt(localStorage.getItem('sd_credits'))||0, fuel:parseInt(localStorage.getItem('sd_fuel'))||100, shieldParts:parseInt(localStorage.getItem('sd_shieldParts'))||0, weaponParts:parseInt(localStorage.getItem('sd_weaponParts'))||0, speedParts:parseInt(localStorage.getItem('sd_speedParts'))||0, spice:parseInt(localStorage.getItem('sd_spice'))||0 };
-        window.maxFuel=parseInt(localStorage.getItem('sd_maxFuel'))||100; window.freeRefuelUsed=localStorage.getItem('sd_free_refuel')==='true';
-        window.upgrades={ damage:parseInt(localStorage.getItem('sd_upg_damage'))||0, shield:parseInt(localStorage.getItem('sd_upg_shield'))||0, speed:parseInt(localStorage.getItem('sd_upg_speed'))||0, luck:parseInt(localStorage.getItem('sd_upg_luck'))||0, fuelTank:parseInt(localStorage.getItem('sd_upg_fuelTank'))||0 };
-        window.maxUpgradeLevels={ damage:30, shield:30, speed:30, luck:5, fuelTank:10 };
-        window.vipLevel=parseInt(localStorage.getItem('sd_vip'))||0; const vipMultipliers=[1,1.5,3,5,7.5]; window.getMultiplier=()=>vipMultipliers[window.vipLevel]||1;
-        window.pvpScore=parseInt(localStorage.getItem('sd_pvp_score'))||0; window.leaderboard=JSON.parse(localStorage.getItem('sd_leaderboard'))||[];
-        window.galaxyObjects=[]; window.isShipFlying=false; window.pvpInterval=null; window.pvpTimerInterval=null;
-        window.currentTab='map'; window.tempFaction=null; window.tempShipIndex=null;
-
-        window.saveAll=function(){
-            Object.keys(window.resources).forEach(k=>localStorage.setItem('sd_'+k,window.resources[k]));
-            localStorage.setItem('sd_maxFuel',window.maxFuel); localStorage.setItem('sd_free_refuel',window.freeRefuelUsed);
-            localStorage.setItem('sd_vip',window.vipLevel); localStorage.setItem('sd_pvp_score',window.pvpScore);
-            localStorage.setItem('sd_leaderboard',JSON.stringify(window.leaderboard));
-            localStorage.setItem('sd_player_name',window.playerName); localStorage.setItem('sd_ship_name',window.shipName);
-            Object.keys(window.upgrades).forEach(k=>localStorage.setItem('sd_upg_'+k,window.upgrades[k]));
-            ['sd_frac','sd_color','sd_bonus','sd_ship_index'].forEach(k=>localStorage.setItem(k,window[k]));
-        };
-
-        function updateTopPanel(){
-            document.getElementById('vip-badge').innerHTML=`⭐ VIP ${window.vipLevel}`;
-            document.getElementById('credits-value').innerText=Math.floor(window.resources.credits);
-            document.getElementById('fuel-value').innerText=Math.floor(window.resources.fuel)+'/'+window.maxFuel;
-            document.getElementById('spice-value').innerText=window.resources.spice;
-            document.getElementById('refuel-btn').style.display=(window.resources.fuel===0&&!window.freeRefuelUsed)?'inline-block':'none';
-        }
-        window.showLoot=function(name,amount){const feed=document.getElementById('loot-feed');const item=document.createElement('span');item.className='loot-item';item.innerText=`+${amount} ${name}`;feed.appendChild(item);setTimeout(()=>item.remove(),2500);};
-        window.showWindow=function(id){document.querySelectorAll('.window').forEach(w=>w.classList.add('hidden'));const win=document.getElementById('window-'+id);if(win)win.classList.remove('hidden');};
-        window.showUI=function(){document.getElementById('back-btn').style.display='flex';document.getElementById('bottom-panel').classList.remove('hidden');updateTopPanel();};
-
-        window.devReset = function(){
-            if(confirm('СБРОСИТЬ ВЕСЬ ПРОГРЕСС? ЭТО НЕОБРАТИМО.')){
-                localStorage.clear();
-                location.reload();
-            }
-        };
-
-        function createBackground(){const layer=document.getElementById('stars-layer');for(let i=0;i<400;i++){const s=document.createElement('div');s.className='star';const r=Math.random();if(r<0.1)s.classList.add('bright');else if(r<0.3)s.classList.add('medium');else if(r<0.6)s.classList.add('dim');else s.classList.add('tiny');s.style.left=Math.random()*100+'%';s.style.top=Math.random()*100+'%';const sz=Math.random()<0.08?2.5:(Math.random()<0.2?1.8:(Math.random()<0.5?1.2:0.6));s.style.width=sz+'px';s.style.height=sz+'px';s.style.setProperty('--duration',(Math.random()*3+1.5)+'s');s.style.setProperty('--delay',Math.random()*2+'s');layer.appendChild(s);}}
-        createBackground();
-
-        function getMapCenter(){const bg=document.getElementById('galaxy-bg');return{x:bg.offsetWidth/2,y:bg.offsetHeight/2};}
-        function parkShipOnPlanet(){
-            const docked = document.getElementById('player-docked');
-            if(!docked) return;
-            const planet = document.getElementById('planet-container');
-            const planetRect = planet.getBoundingClientRect();
-            const mapRect = document.getElementById('galaxy-bg').getBoundingClientRect();
-            const planetCenterX = planetRect.left - mapRect.left + planetRect.width/2;
-            const planetCenterY = planetRect.top - mapRect.top + planetRect.height/2;
-            const ship = window.createPlayerShip(0.35); // уменьшено
-            docked.innerHTML = '';
-            docked.appendChild(ship);
-            docked.style.left = (planetCenterX) + 'px';
-            docked.style.top = (planetCenterY + 18) + 'px';
-            docked.style.transform = 'translate(-50%, -50%)';
-            docked.style.display = 'block';
-        }
-
-        window.generateObjects=function(){
-            const bg=document.getElementById('galaxy-bg');bg.querySelectorAll('.bg-object').forEach(e=>e.remove());window.galaxyObjects=[];
-            const center=getMapCenter(); const types=['asteroid','asteroid','asteroid','pirate','pirate','pirate','wreck','wreck','wreck'];
-            types.sort(()=>Math.random()-0.5);
-            types.forEach(type=>{const angle=Math.random()*Math.PI*2,distance=120+Math.random()*80;const x=center.x+Math.cos(angle)*distance,y=center.y+Math.sin(angle)*distance;const obj={type,x,y,element:null};const div=document.createElement('div');div.className='bg-object';div.style.left=x+'px';div.style.top=y+'px';div.style.pointerEvents='all';if(type==='asteroid')div.innerHTML=window.createAsteroidEmoji();else if(type==='pirate')div.appendChild(window.createEnemyShip(Math.floor(Math.random()*3)));else div.appendChild(window.createWreckEmoji());div.onclick=(e)=>{e.stopPropagation();if(window.currentTab==='map'&&!window.isShipFlying&&window.resources.fuel>=10)window.flyToObject(obj,div);};bg.appendChild(div);obj.element=div;window.galaxyObjects.push(obj);});
-        };
-
-        window.generateLoot=function(){
-            const mult=window.getMultiplier(); const r=Math.random()*100;
-            if(r<55)return null; if(r<75){const amt=Math.floor((Math.random()*91+10)*mult);window.resources.credits+=amt;return{name:'Кредиты',amount:amt};}
-            if(r<85){const amt=Math.floor((Math.random()*11+5)*mult);window.resources.fuel=Math.min(window.maxFuel,window.resources.fuel+amt);return{name:'Топливо',amount:amt};}
-            if(r<90){const amt=Math.floor((Math.random()*5+1)*mult);window.resources.shieldParts+=amt;return{name:'Щит',amount:amt};}
-            if(r<95){const amt=Math.floor((Math.random()*5+1)*mult);window.resources.weaponParts+=amt;return{name:'Оружие',amount:amt};}
-            if(r<98){const amt=Math.floor((Math.random()*5+1)*mult);window.resources.speedParts+=amt;return{name:'Скорость',amount:amt};}
-            const amt=Math.floor((Math.random()*3+1)*mult);window.resources.spice+=amt;return{name:'Спайс',amount:amt};
-        };
-
-        window.flyToObject=function(obj,element){
-            if(window.isShipFlying||window.resources.fuel<10)return;
-            window.isShipFlying=true;window.resources.fuel-=10;saveAll();updateTopPanel();
-            const docked = document.getElementById('player-docked');
-            const startX = parseFloat(docked.style.left) || getMapCenter().x;
-            const startY = parseFloat(docked.style.top) || getMapCenter().y;
-            docked.style.display = 'none';
-            const bg=document.getElementById('galaxy-bg');
-            const shipEl=window.createPlayerShip(0.45); // уменьшено для полета
-            shipEl.style.position='absolute';shipEl.style.left=startX+'px';shipEl.style.top=startY+'px';shipEl.style.transform='translate(-50%,-50%)';shipEl.style.transition='all 5s cubic-bezier(0.25,0.1,0.25,1)';bg.appendChild(shipEl);
-            requestAnimationFrame(()=>{shipEl.style.left=obj.x+'px';shipEl.style.top=obj.y+'px';shipEl.style.transform='translate(-50%,-50%) scale(0.8)';});
-            setTimeout(()=>{
-                const loot=window.generateLoot(); if(loot)window.showLoot(loot.name,loot.amount);
-                saveAll();updateTopPanel();
-                element.style.opacity='0';setTimeout(()=>element.remove(),300);
-                shipEl.style.transition='all 5s cubic-bezier(0.25,0.1,0.25,1)';shipEl.style.left=startX+'px';shipEl.style.top=startY+'px';shipEl.style.transform='translate(-50%,-50%) scale(0.45)';
-                setTimeout(()=>{shipEl.remove();window.galaxyObjects=window.galaxyObjects.filter(o=>o!==obj);window.isShipFlying=false;parkShipOnPlanet();if(document.querySelectorAll('.bg-object').length===0)window.generateObjects();},5000);
-            },5000);
-        };
-
-        setInterval(()=>{if(window.resources.fuel<window.maxFuel){window.resources.fuel=Math.min(window.maxFuel,window.resources.fuel+1);saveAll();updateTopPanel();}},300000);
-        window.freeRefuel=function(){if(window.freeRefuelUsed)return;window.resources.fuel=window.maxFuel;window.freeRefuelUsed=true;saveAll();updateTopPanel();};
-
-        function getUpgradeCost(type){
-            const lvl=window.upgrades[type];
-            if(type==='fuelTank'){const credits=Math.floor(100*Math.pow(2,lvl));const spice=Math.floor(50*Math.pow(1.5,lvl));return{credits,spice,partsType:null,parts:0};}
-            else{const partsType=type==='shield'?'shieldParts':(type==='damage'?'weaponParts':(type==='speed'?'speedParts':'shieldParts'));const baseParts=5,baseCredits=50;const parts=Math.floor(baseParts*Math.pow(1.5,lvl));const credits=Math.floor(baseCredits*Math.pow(2,lvl));let spice=0;if(lvl>=14)spice=(lvl===14)?10:Math.floor(10*Math.pow(1.5,lvl-14));return{credits,spice,partsType,parts};}
-        }
-        function canBuyUpgrade(type){if(window.upgrades[type]>=window.maxUpgradeLevels[type])return false;const cost=getUpgradeCost(type);if(window.resources.credits<cost.credits)return false;if(cost.spice&&window.resources.spice<cost.spice)return false;if(cost.partsType&&window.resources[cost.partsType]<cost.parts)return false;return true;}
-        window.buyUpgrade=function(type){if(!canBuyUpgrade(type))return;const cost=getUpgradeCost(type);window.resources.credits-=cost.credits;if(cost.spice)window.resources.spice-=cost.spice;if(cost.partsType)window.resources[cost.partsType]-=cost.parts;window.upgrades[type]++;if(type==='fuelTank'){window.maxFuel+=10;window.resources.fuel=Math.min(window.resources.fuel+10,window.maxFuel);}saveAll();updateHangar();updateTopPanel();};
-
-        function updateHangar(){
-            document.getElementById('hangar-resources').innerHTML=`🪙${window.resources.credits} ⛽${Math.floor(window.resources.fuel)}/${window.maxFuel} 🛡️${window.resources.shieldParts} ⚔️${window.resources.weaponParts} ⚡${window.resources.speedParts} 💎${window.resources.spice}`;
-            const list=document.getElementById('upgrades-list'); const types=['damage','shield','speed','luck','fuelTank']; const names={damage:'УРОН',shield:'ЗАЩИТА',speed:'СКОРОСТЬ',luck:'УДАЧА',fuelTank:'ТОПЛИВНЫЙ БАК'};
-            list.innerHTML=types.map(t=>{const lvl=window.upgrades[t],max=window.maxUpgradeLevels[t];const cost=getUpgradeCost(t);const can=canBuyUpgrade(t);let costStr=`${cost.credits}🪙`;if(cost.spice)costStr+=` ${cost.spice}💎`;if(cost.partsType)costStr+=` ${cost.parts} ${cost.partsType==='shieldParts'?'🛡️':(cost.partsType==='weaponParts'?'⚔️':'⚡')}`;return`<div style="display:flex;justify-content:space-between;padding:4px;border:1px solid #009944;margin:2px 0;"><span>${names[t]} Ур.${lvl}/${max}</span><button class="btn" style="width:auto;padding:2px 6px;" ${can&&lvl<max?'':'disabled'} onclick="buyUpgrade('${t}')">${costStr}</button></div>`;}).join('');
-        }
-
-        window.setPlayerName=function(){const n=document.getElementById('input-player-name').value.trim();if(n.length<2)return alert('Минимум 2 символа');window.playerName=n;saveAll();window.showWindow('faction');};
-        window.selectFaction=function(name,color,bonus){
-            window.tempFaction={name,color,bonus}; const container=document.getElementById('ship-selection');container.innerHTML='';
-            for(let i=0;i<3;i++){const card=document.createElement('div');card.style.cssText='cursor:pointer;padding:6px;border:2px solid #009944;text-align:center;width:100px;height:120px;display:flex;align-items:center;justify-content:center;';card.appendChild(drawShipSprite(SHIP_SPRITES[`player${i+1}`], i===0?0.8:0.5));card.onclick=()=>{window.tempShipIndex=i;container.querySelectorAll('div').forEach(d=>d.style.borderColor='#009944');card.style.borderColor='#aa9933';document.getElementById('confirm-ship-btn').disabled=false;};container.appendChild(card);}document.getElementById('confirm-ship-btn').disabled=true;window.showWindow('ship');
-        };
-        window.confirmShip=function(){
-            const name=document.getElementById('input-ship-name').value.trim();if(window.tempShipIndex===null||name.length<2)return alert('Выберите корабль и введите имя');
-            window.frac=window.tempFaction.name;window.fracColor=window.tempFaction.color;window.fracBonus=window.tempFaction.bonus;window.selectedShipIndex=window.tempShipIndex;window.shipName=name;
-            ['sd_frac','sd_color','sd_bonus','sd_ship_index','sd_ship_name'].forEach(k=>localStorage.setItem(k,window[k]));saveAll();
-            window.showUI();document.getElementById('content-overlay').style.display='none';
-            const center=getMapCenter();document.getElementById('planet-container').style.left=center.x+'px';document.getElementById('planet-container').style.top=center.y+'px';
-            parkShipOnPlanet();window.generateObjects();updateHangar();updateLeaderboard();
-        };
-        window.switchTab=function(tab){
-            window.currentTab=tab;document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));document.getElementById('nav-'+tab).classList.add('active');
-            document.querySelectorAll('.bg-object').forEach(o=>o.style.display=tab==='map'?'block':'none');
-            if(tab==='map'){document.getElementById('content-overlay').style.display='none';}
-            else{document.getElementById('content-overlay').style.display='flex';
-                if(tab==='hangar'){window.showWindow('hangar');const hangarDiv=document.getElementById('hangar-ship-display');hangarDiv.innerHTML='';hangarDiv.appendChild(window.createPlayerShip(1.0));updateHangar();}
-                else if(tab==='pvp'){window.showWindow('pvp');const playerDiv=document.getElementById('pvp-player-ship-display');playerDiv.innerHTML='';playerDiv.appendChild(window.createPlayerShip(1.0));const enemyDiv=document.getElementById('pvp-enemy-ship-display');enemyDiv.innerHTML='';enemyDiv.appendChild(window.createEnemyShip(Math.floor(Math.random()*3)));updateLeaderboard();}
-                else if(tab==='vip'){window.showWindow('vip');updateVipWindow();}
-            }
-        };
-        function updateVipWindow(){document.getElementById('vip-level').innerText=window.vipLevel;document.getElementById('vip-mult').innerText=window.getMultiplier();}
-        window.upgradeVip=function(){if(window.vipLevel<4){window.vipLevel++;localStorage.setItem('sd_vip',window.vipLevel);saveAll();updateVipWindow();updateTopPanel();}};
-        function getStats(){
-            const base = FACTION_STATS[window.fracBonus] || { shield:20, damage:20, speed:20 };
-            let shield = base.shield + window.upgrades.shield * 2;
-            let damage = base.damage + window.upgrades.damage * 2;
-            let attackSpeed = base.speed * 50;
-            attackSpeed = Math.max(500, attackSpeed - window.upgrades.speed * 30);
-            let critDodge = 5 + window.upgrades.crit * 2;
-            return { shield:Math.max(1,shield), damage:Math.max(1,damage), attackSpeed:Math.max(500,attackSpeed), critDodge:Math.min(critDodge,40) };
-        }
-        window.searchPvP=function(){
-            if(window.pvpInterval||window.pvpTimerInterval)return;let timer=15;document.getElementById('pvp-timer').innerText=timer;document.getElementById('pvp-status').innerText='Бой...';
-            const stats = getStats();
-            let pHP=stats.shield,eHP=8+Math.floor(Math.random()*12),timeLeft=15;
-            document.getElementById('pvp-timer').innerText=timeLeft;
-            document.getElementById('pvp-enemy-ship').innerHTML='';document.getElementById('pvp-enemy-ship').appendChild(window.createEnemyShip(Math.floor(Math.random()*3)));
-            window.pvpTimerInterval=setInterval(()=>{timeLeft--;document.getElementById('pvp-timer').innerText=timeLeft;if(timeLeft<=0)endPvP(pHP,eHP);},1000);
-            window.pvpInterval=setInterval(()=>{
-                let dmg=Math.floor(Math.random()*stats.damage)+1;if(Math.random()*100<stats.critDodge)dmg*=2;
-                eHP-=dmg;document.getElementById('pvp-enemy-hp-text').innerText='HP:'+Math.max(0,eHP);
-                if(eHP<=0){endPvP(pHP,0);return;}
-                setTimeout(()=>{if(eHP<=0)return;let eDmg=Math.floor(Math.random()*5)+2;if(Math.random()*100<stats.critDodge)document.getElementById('pvp-status').innerText='УКЛОН!';else{pHP-=eDmg;document.getElementById('pvp-player-hp-text').innerText='HP:'+Math.max(0,pHP);}if(pHP<=0)endPvP(0,eHP);},500);
-            },Math.max(stats.attackSpeed,500));
-        };
-        function endPvP(pHP,eHP){
-            clearInterval(window.pvpInterval);clearInterval(window.pvpTimerInterval);window.pvpInterval=null;window.pvpTimerInterval=null;
-            let result;if(pHP<=0&&eHP<=0){result='НИЧЬЯ! +2';window.pvpScore+=2;}else if(eHP<=0){result='ПОБЕДА! +15';window.pvpScore+=15;}else if(pHP<=0){result='ПОРАЖЕНИЕ... -12';window.pvpScore=Math.max(0,window.pvpScore-12);}else{result='НИЧЬЯ! +2';window.pvpScore+=2;}
-            document.getElementById('pvp-status').innerText=result;document.getElementById('pvp-timer').innerText='0';updateLeaderboard();saveAll();
-        }
-        function updateLeaderboard(){
-            const idx=window.leaderboard.findIndex(p=>p.name===window.playerName);if(idx>=0)window.leaderboard[idx].score=window.pvpScore;else if(window.playerName)window.leaderboard.push({name:window.playerName,score:window.pvpScore});
-            window.leaderboard.sort((a,b)=>b.score-a.score);window.leaderboard=window.leaderboard.slice(0,15);const list=document.getElementById('leaderboard');
-            if(list)list.innerHTML='<div style="color:#aa9933">ТОП 15</div>'+window.leaderboard.map((p,i)=>`<div>#${i+1} ${p.name}: ${p.score}</div>`).join('');saveAll();
-        };
-        window.goBack=()=>{if(window.currentTab!=='map')window.switchTab('map');};
-
-        // Инициализация
-        function init(){
-            createBackground();setupPixelPlanet();
-            if(window.playerName&&window.frac){window.showUI();document.getElementById('content-overlay').style.display='none';const center=getMapCenter();document.getElementById('planet-container').style.left=center.x+'px';document.getElementById('planet-container').style.top=center.y+'px';parkShipOnPlanet();window.generateObjects();updateHangar();updateLeaderboard();}
-            else if(window.playerName){window.showWindow('faction');}
-            else{window.showWindow('start');}
-        }
-        if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-    </script>
+document.addEventListener('DOMContentLoaded', init);
+</script>
 </body>
 </html>
