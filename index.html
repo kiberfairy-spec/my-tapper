@@ -82,7 +82,7 @@
             z-index: 2;
         }
         .pixel-planet {
-            width: 180px; /* увеличено */
+            width: 180px; /* увеличена */
             height: 110px;
             position: relative;
         }
@@ -207,10 +207,12 @@
         .credits-badge { border-color: #ffcc00; color: #ffcc00; }
         .spice-badge { border-color: #ff66ff; color: #f5f5f5; } /* молочнобелый */
 
+        /* Неоновые кнопки */
         .top-btn {
             background: rgba(0,0,0,0.8);
             border: 1px solid #8a2be2;
-            color: #cc3333;
+            color: #ff66aa;
+            text-shadow: 0 0 5px #ff66aa, 0 0 10px #ff66aa, 0 0 20px #ff66aa;
             padding: 2px 5px;
             font-size: 4px;
             cursor: pointer;
@@ -336,13 +338,14 @@
             border-color: #bb9922;
         }
 
+        /* Окна – общий стиль */
         .window {
             background: rgba(2,2,14,0.95);
             border: 1px solid #00aa44;
             padding: 10px;
             max-width: 320px;
             width: 88%;
-            max-height: 60vh; /* увеличено для прокрутки */
+            max-height: 60vh;
             overflow-y: auto;
             animation: slideUp 0.3s ease-out;
         }
@@ -352,6 +355,30 @@
             margin-bottom: 6px;
             text-align: center;
         }
+        /* Ангар: убираем рамку и делаем прокрутку только для контента */
+        #window-hangar {
+            border: none !important;
+            padding: 0 !important;
+            overflow-y: hidden !important;
+        }
+        #hangar-header {
+            position: sticky;
+            top: 0;
+            background: rgba(2,2,14,0.95);
+            z-index: 1;
+            padding: 10px;
+        }
+        #hangar-content {
+            padding: 0 10px 10px 10px;
+            overflow-y: auto;
+            max-height: calc(60vh - 100px);
+        }
+        /* Корабль в ангаре горизонтально */
+        #hangar-ship-display .ship-horizontal {
+            transform: rotate(90deg);
+            display: inline-block;
+        }
+
         .input-field {
             width: 100%;
             padding: 5px;
@@ -585,15 +612,19 @@
             <button class="btn" id="confirm-ship-btn" onclick="confirmShip()" disabled>ПОДТВЕРДИТЬ</button>
         </div>
 
-        <!-- Ангар -->
-        <div class="window hidden" id="window-hangar">
-            <div class="window-title">АНГАР</div>
-            <div id="hangar-ship-display" style="text-align:center;margin:4px 0;"></div>
-            <div id="hangar-resources" class="flex-row" style="font-size:5px;margin:4px 0;"></div>
-            <div id="upgrades-list"></div>
-            <div style="margin-top:8px;border-top:1px solid #00aa44;padding-top:6px;">
-                <div class="window-title" style="font-size:6px;">АРТЕФАКТЫ</div>
-                <div id="artifact-section"></div>
+        <!-- Ангар (переработан) -->
+        <div class="window" id="window-hangar">
+            <div id="hangar-header">
+                <div class="window-title">АНГАР</div>
+                <div id="hangar-ship-display" style="text-align:center;margin:4px 0;"></div>
+                <div id="hangar-resources" class="flex-row" style="font-size:5px;margin:4px 0;"></div>
+            </div>
+            <div id="hangar-content">
+                <div id="upgrades-list"></div>
+                <div style="margin-top:8px;border-top:1px solid #00aa44;padding-top:6px;">
+                    <div class="window-title" style="font-size:6px;">АРТЕФАКТЫ</div>
+                    <div id="artifact-section"></div>
+                </div>
             </div>
         </div>
 
@@ -720,10 +751,14 @@ function drawShipSprite(matrix, scale=1) {
     wrapper.appendChild(canvas);
     return wrapper;
 }
-window.createPlayerShip = (scale=1) => {
+window.createPlayerShip = (scale=1, rotate=0) => {
     const idx = (window.selectedShipIndex || 0) + 1;
     const matrix = SHIP_SPRITES[`player${idx}`] || [];
-    return drawShipSprite(matrix, scale);
+    const ship = drawShipSprite(matrix, scale);
+    if (rotate !== 0) {
+        ship.style.transform = `rotate(${rotate}deg)`;
+    }
+    return ship;
 };
 window.createEnemyShip = (variant=0) => {
     const s = document.createElement('span'); s.style.fontSize='20px'; s.innerText='👾'; return s;
@@ -780,7 +815,7 @@ const defaultState = {
     faction: null,
     factionColor: '#00aa44',
     factionBonus: null,
-    shipIndex: 0,
+    shipIndex: null, // исправлено: null
     resources: { credits:0, fuel:100, shieldParts:0, weaponParts:0, speedParts:0, spice:0, shards:0 },
     maxFuel: 100,
     upgrades: { damage:0, shield:0, speed:0, luck:0, fuelTank:0 },
@@ -808,7 +843,8 @@ function loadState() {
         s.faction = localStorage.getItem('sd_frac') || null;
         s.factionColor = localStorage.getItem('sd_color') || '#00aa44';
         s.factionBonus = localStorage.getItem('sd_bonus') || null;
-        s.shipIndex = parseInt(localStorage.getItem('sd_ship_index')) || 0;
+        const shipIdx = parseInt(localStorage.getItem('sd_ship_index'));
+        s.shipIndex = isNaN(shipIdx) ? null : shipIdx;
         s.resources.credits = parseInt(localStorage.getItem('sd_credits')) || 0;
         s.resources.fuel = parseInt(localStorage.getItem('sd_fuel')) || 100;
         s.resources.shieldParts = parseInt(localStorage.getItem('sd_shieldParts')) || 0;
@@ -850,7 +886,7 @@ function saveState() {
     localStorage.setItem('sd_frac', s.faction);
     localStorage.setItem('sd_color', s.factionColor);
     localStorage.setItem('sd_bonus', s.factionBonus);
-    localStorage.setItem('sd_ship_index', s.shipIndex);
+    localStorage.setItem('sd_ship_index', s.shipIndex !== null ? s.shipIndex : '');
     localStorage.setItem('sd_credits', s.resources.credits);
     localStorage.setItem('sd_fuel', s.resources.fuel);
     localStorage.setItem('sd_shieldParts', s.resources.shieldParts);
@@ -943,7 +979,7 @@ function createStars() {
 createStars();
 
 const planetColors = {1:'#3c1a5b',2:'#b094fa',3:'#f25cf2',4:'#ff9eff',5:'#e3e8ff'};
-const W=72,H=44; // увеличены размеры планеты
+const W=72,H=44;
 let planetMatrix = Array(H).fill().map(()=>Array(W).fill(0));
 const cX=36,cY=22,rad=18;
 for(let y=0;y<H;y++)for(let x=0;x<W;x++){const dx=x-cX,dy=y-cY;if(dx*dx+dy*dy<=rad*rad){planetMatrix[y][x]=2;if((y>=10&&y<=13)||(y>=18&&y<=22)||(y>=27&&y<=29))planetMatrix[y][x]=3;if((y===9&&x===28)||(y===10&&x===29)||(y===21&&x===24))planetMatrix[y][x]=4;}}
@@ -977,7 +1013,7 @@ function parkShipOnPlanet() {
     const mr = document.getElementById('galaxy-bg').getBoundingClientRect();
     const cx = pr.left - mr.left + pr.width/2;
     const cy = pr.top - mr.top + pr.height/2;
-    const ship = window.createPlayerShip(0.35);
+    const ship = window.createPlayerShip(0.35, 0); // вертикально
     docked.innerHTML = '';
     docked.appendChild(ship);
     docked.style.left = cx + 'px';
@@ -1002,11 +1038,10 @@ function generateObjects() {
     const center = getMapCenter();
     const types = ['asteroid','asteroid','asteroid','pirate','pirate','pirate','wreck','wreck','wreck'];
     types.sort(() => Math.random()-0.5);
-    // Генерируем объекты с проверкой на пересечение
     const placed = [];
-    const minDist = 60; // минимальное расстояние между объектами (в пикселях)
-    const maxDist = 150; // максимальное расстояние от центра
-    const minDistFromCenter = 80; // минимальное расстояние от центра (чтобы не наезжать на планету)
+    const minDist = 60;
+    const maxDist = 150;
+    const minDistFromCenter = 80;
     types.forEach(type => {
         let attempts = 0;
         let x, y, ok;
@@ -1025,7 +1060,7 @@ function generateObjects() {
                 }
             }
             attempts++;
-            if (attempts > 100) break; // избегаем бесконечного цикла
+            if (attempts > 100) break;
         } while (!ok);
         const obj = { type, x, y, element:null };
         const div = document.createElement('div');
@@ -1072,7 +1107,7 @@ function generateLoot() {
     if (nothingChance < 5) nothingChance = 5;
     const r = Math.random() * 100;
     if (r < nothingChance) {
-        addExp(5); // опыт за попытку
+        addExp(5);
         return null;
     }
     const remaining = 100 - nothingChance;
@@ -1126,17 +1161,15 @@ function flyToObject(obj, element) {
     const startY = parseFloat(docked.style.top) || getMapCenter().y;
     docked.style.display = 'none';
     const bg = document.getElementById('galaxy-bg');
-    const shipEl = window.createPlayerShip(0.3);
+    const shipEl = window.createPlayerShip(0.3, 0);
     shipEl.style.position = 'absolute';
     shipEl.style.left = startX + 'px';
     shipEl.style.top = startY + 'px';
-    shipEl.style.transform = 'translate(-50%, -50%) rotate(0deg)'; // изначально горизонтально
+    shipEl.style.transform = 'translate(-50%, -50%) rotate(0deg)';
     shipEl.style.transition = 'all 5s cubic-bezier(0.25,0.1,0.25,1)';
     bg.appendChild(shipEl);
-    // Рассчитываем угол поворота к цели
     const angle = Math.atan2(obj.y - startY, obj.x - startX);
     const deg = angle * 180 / Math.PI;
-    // Нос корабля вправо, поэтому поворот на угол
     shipEl.style.transform = `translate(-50%, -50%) rotate(${deg}deg) scale(0.6)`;
     requestAnimationFrame(() => {
         shipEl.style.left = obj.x + 'px';
@@ -1150,7 +1183,6 @@ function flyToObject(obj, element) {
         updateTopPanel();
         element.style.opacity = '0';
         setTimeout(() => element.remove(), 300);
-        // Возвращаемся
         const returnAngle = Math.atan2(startY - obj.y, startX - obj.x);
         const returnDeg = returnAngle * 180 / Math.PI;
         shipEl.style.transition = 'all 5s cubic-bezier(0.25,0.1,0.25,1)';
@@ -1436,7 +1468,7 @@ function searchPvP() {
 
     const pvpPlayerShip = document.getElementById('pvp-player-ship-display');
     pvpPlayerShip.innerHTML = '';
-    pvpPlayerShip.appendChild(window.createPlayerShip(0.6));
+    pvpPlayerShip.appendChild(window.createPlayerShip(0.6, 0));
     const pvpEnemyShip = document.getElementById('pvp-enemy-ship-display');
     pvpEnemyShip.innerHTML = '';
     pvpEnemyShip.appendChild(window.createEnemyShip(Math.floor(Math.random()*3)));
@@ -1767,6 +1799,11 @@ function selectFaction(name, color, bonus) {
 }
 
 function confirmShip() {
+    // Исправление: проверяем, что корабль выбран
+    if (state.shipIndex === null || state.shipIndex === undefined) {
+        alert('Выберите корабль');
+        return;
+    }
     state.shipName = '';
     saveState();
     showUI();
@@ -1792,12 +1829,15 @@ function switchTab(tab) {
             showWindow('hangar');
             const hangarDiv = document.getElementById('hangar-ship-display');
             hangarDiv.innerHTML = '';
-            hangarDiv.appendChild(window.createPlayerShip(0.8));
+            // Разворачиваем корабль горизонтально (90 градусов)
+            const ship = window.createPlayerShip(0.8, 90);
+            ship.classList.add('ship-horizontal');
+            hangarDiv.appendChild(ship);
             updateHangar();
         } else if (tab === 'pvp') {
             showWindow('pvp');
             document.getElementById('pvp-player-ship-display').innerHTML = '';
-            document.getElementById('pvp-player-ship-display').appendChild(window.createPlayerShip(0.6));
+            document.getElementById('pvp-player-ship-display').appendChild(window.createPlayerShip(0.6, 0));
             document.getElementById('pvp-enemy-ship-display').innerHTML = '';
             document.getElementById('pvp-enemy-ship-display').appendChild(window.createEnemyShip(Math.floor(Math.random()*3)));
             document.getElementById('pvp-player-name').innerText = state.playerName;
