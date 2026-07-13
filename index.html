@@ -117,198 +117,67 @@
         </div>
     </div>
     <script>
-        // ========== НОВАЯ ГРАФИКА, ИСПРАВЛЕННАЯ 15x20 С БОЛЬШИМИ ТАЙЛАМИ ==========
+        // ---------- ГРАФИКА (15x20) ----------
         const PALETTE = {
-            // Игрок (фиолетовые оттенки, объем)
-            'A': '#2E0A4E', 'B': '#5B2C8E', 'C': '#8B5FBF', 'P': '#FF44AA', 'Q': '#44CCFF', 'T': '#88EEFF',
-            // Враг (красные/серые)
-            'D': '#2A2A2A', 'E': '#8B0000', 'F': '#FF4500', 'G': '#FFAA00', 'H': '#FFD700', 'I': '#FFFFFF',
-            '_': null
+            'A':'#2E0A4E','B':'#5B2C8E','C':'#8B5FBF','P':'#FF44AA','Q':'#44CCFF','T':'#88EEFF',
+            'R':'#8B0000','D':'#2A2A2A','E':'#FF4500','F':'#FF6600','G':'#FFAA00','H':'#FFD700',
+            '_':null
         };
-
-        // СТРОГО 15x20 пикселей (15 колонок, 20 строк)
         const SHIP_SPRITES = {
             player1: [
-                "_______A_______",
-                "______ABA______",
-                "_____ABBA_____",
-                "____ABBBBA____",
-                "___ABBBBBA___",
-                "__ABBBBBBA__",
-                "_ABBBBBBBBA_",
-                "ABBBBBBBBBBA",
-                "ABBBBBBBBBBA",
-                "_ABBBBBBBBA_",
-                "__ABBBBBBA__",
-                "___ABBBBBA___",
-                "____ABBBBA____",
-                "_____ABBA_____",
-                "______ABA______",
-                "_______A_______",
-                "______QQQ______",
-                "______QTQ______",
-                "______QTQ______",
-                "______TTT______"
+                "_______A_______","______ABA______","_____ABBA_____","____ABBBA____","___ABBBBBA___",
+                "__ABBBBBBA__","_ABBBBBBBBA_","ABBBBBBBBBBA","ABBBBBBBBBBA","_ABBBBBBBBA_",
+                "__ABBBBBBA__","___ABBBBBA___","____ABBBBA____","_____ABBBA_____","______ABA______",
+                "_______A_______","______QQQ______","______QTQ______","______QTQ______","______TTT______"
             ],
             player2: [
-                "_______A_______",
-                "______ABA______",
-                "_____ABBA_____",
-                "____ABBBBA____",
-                "___ABBBBBA___",
-                "__ABBBBBBA__",
-                "_ABBBBBBBBA_",
-                "ABBBBBPBBBBA",
-                "ABBBBBPBBBBA",
-                "_ABBBBBBBBA_",
-                "__ABBBBBBA__",
-                "___ABBBBBA___",
-                "____ABBBBA____",
-                "_____ABBA_____",
-                "______ABA______",
-                "_______A_______",
-                "______QQQ______",
-                "______QTQ______",
-                "______QTQ______",
-                "______TTT______"
+                "_______A_______","______ABA______","_____ABBA_____","____ABBBA____","___ABBBBBA___",
+                "__ABBBBBBA__","_ABBBBBBBBA_","ABBBBPBBBBBA","ABBBBPBBBBBA","_ABBBBBBBBA_",
+                "__ABBBBBBA__","___ABBBBBA___","____ABBBBA____","_____ABBBA_____","______ABA______",
+                "_______A_______","______QQQ______","______QTQ______","______QTQ______","______TTT______"
             ],
             player3: [
-                "_______A_______",
-                "______ABA______",
-                "_____ABBA_____",
-                "____ABBBBA____",
-                "___ABBBBBA___",
-                "__ABBBBBBA__",
-                "_ABBBBBBBBA_",
-                "ABBBBBCBBBBA",
-                "ABBBBBCBBBBA",
-                "_ABBBBBBBBA_",
-                "__ABBBBBBA__",
-                "___ABBBBBA___",
-                "____ABBBBA____",
-                "_____ABBA_____",
-                "______ABA______",
-                "_______A_______",
-                "______QQQ______",
-                "______QTQ______",
-                "______QTQ______",
-                "______TTT______"
+                "_______A_______","______ABA______","_____ABBA_____","____ABBBA____","___ABBBBBA___",
+                "__ABBBBBBA__","_ABBBBBBBBA_","ABBBCBBBBBA","ABBBCBBBBBA","_ABBBBBBBBA_",
+                "__ABBBBBBA__","___ABBBBBA___","____ABBBBA____","_____ABBBA_____","______ABA______",
+                "_______A_______","______QQQ______","______QTQ______","______QTQ______","______TTT______"
             ],
             enemy1: [
-                "_______D_______",
-                "______DED______",
-                "_____DEED_____",
-                "____DEEED____",
-                "___DEEEEED___",
-                "__DEEEEEED__",
-                "_DEEEEEEED_",
-                "DEEEEEEEEED",
-                "DEEEEEEEEED",
-                "_DEEEEEEED_",
-                "__DEEEEEED__",
-                "___DEEEEED___",
-                "____DEEED____",
-                "_____DEED_____",
-                "______DED______",
-                "_______D_______",
-                "______GGG______",
-                "______GHG______",
-                "______GHG______",
-                "______HHH______"
+                "_______D_______","______DED______","_____DEED_____","____DEEED____","___DEEEEED___",
+                "__DEEEEED__","_DEEEEEEED_","DEEEEEEEEED","DEEEEEEEEED","_DEEEEEEED_",
+                "__DEEEEED__","___DEEEEED___","____DEEED____","_____DEED_____","______DED______",
+                "_______D_______","______GGG______","______GHG______","______GHG______","______HHH______"
             ],
             enemy2: [
-                "_______D_______",
-                "______DED______",
-                "_____DEED_____",
-                "____DEEED____",
-                "___DEEEEED___",
-                "__DEEEEEED__",
-                "_DEEEEEEED_",
-                "DEEEEFEEEEED",
-                "DEEEEFEEEEED",
-                "_DEEEEEEED_",
-                "__DEEEEEED__",
-                "___DEEEEED___",
-                "____DEEED____",
-                "_____DEED_____",
-                "______DED______",
-                "_______D_______",
-                "______GGG______",
-                "______GHG______",
-                "______GHG______",
-                "______HHH______"
+                "_______D_______","______DED______","_____DEED_____","____DEEED____","___DEEEEED___",
+                "__DEEEEED__","_DEEEEEEED_","DEEEFEEEEED","DEEEFEEEEED","_DEEEEEEED_",
+                "__DEEEEED__","___DEEEEED___","____DEEED____","_____DEED_____","______DED______",
+                "_______D_______","______GGG______","______GHG______","______GHG______","______HHH______"
             ],
             enemy3: [
-                "_______D_______",
-                "______DED______",
-                "_____DEED_____",
-                "____DEEED____",
-                "___DEEEEED___",
-                "__DEEEEEED__",
-                "_DEEEEEEED_",
-                "DEEEEHEEEED",
-                "DEEEEHEEEED",
-                "_DEEEEEEED_",
-                "__DEEEEEED__",
-                "___DEEEEED___",
-                "____DEEED____",
-                "_____DEED_____",
-                "______DED______",
-                "_______D_______",
-                "______GGG______",
-                "______GHG______",
-                "______GHG______",
-                "______HHH______"
+                "_______D_______","______DED______","_____DEED_____","____DEEED____","___DEEEEED___",
+                "__DEEEEED__","_DEEEEEEED_","DEEEEEEEEED","DEEEEEEEEED","_DEEEEEEED_",
+                "__DEEEEED__","___DEEEEED___","____DEEED____","_____DEED_____","______DED______",
+                "_______D_______","______GGG______","______GHG______","______GHG______","______HHH______"
             ]
         };
 
-        // Функция с увеличенным тайлом (базовый размер 4 пикселя) для отчетливых ретро-пикселей
-        function drawShipSprite(matrix, scale = 1) {
-            const rows = matrix.length;
-            const cols = matrix[0].length;
-            // Чтобы пиксели были большими и чёткими, устанавливаем базовый тайл 4, и умножаем на коэффициент
-            const tileSize = Math.max(2, Math.round(4 * scale)); 
+        function drawShipSprite(matrix, scale = 2) {
+            const rows = matrix.length; const cols = matrix[0].length;
+            const tileSize = Math.max(2, Math.floor(scale));
             const canvas = document.createElement('canvas');
-            canvas.width = cols * tileSize;
-            canvas.height = rows * tileSize;
-            const ctx = canvas.getContext('2d');
-            ctx.imageSmoothingEnabled = false; // КРИТИЧНО ВАЖНО ДЛЯ ПИКСЕЛЬ-АРТА!
-            for (let y = 0; y < rows; y++) {
-                for (let x = 0; x < cols; x++) {
-                    const key = matrix[y][x];
-                    if (key !== '_') {
-                        ctx.fillStyle = PALETTE[key];
-                        ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
-                    }
-                }
-            }
-            const wrapper = document.createElement('div');
-            wrapper.style.display = 'inline-block';
-            wrapper.style.pointerEvents = 'none'; // Чтобы клики мыши не перехватывались холстом
-            wrapper.appendChild(canvas);
-            return wrapper;
+            canvas.width = cols * tileSize; canvas.height = rows * tileSize;
+            const ctx = canvas.getContext('2d'); ctx.imageSmoothingEnabled = false;
+            for (let y = 0; y < rows; y++) { for (let x = 0; x < cols; x++) { const key = matrix[y][x]; if (key !== '_') { ctx.fillStyle = PALETTE[key]; ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize); } } }
+            const wrapper = document.createElement('div'); wrapper.style.display = 'inline-block'; wrapper.appendChild(canvas); return wrapper;
         }
 
-        window.createPlayerShip = (scale = 1) => {
-            const type = `player${(window.selectedShipIndex || 0) + 1}`;
-            return drawShipSprite(SHIP_SPRITES[type], scale);
-        };
-
-        window.createEnemyShip = (variant = 0, scale = 1) => {
-            const type = `enemy${(variant % 3) + 1}`;
-            return drawShipSprite(SHIP_SPRITES[type], scale);
-        };
-
+        window.createPlayerShip = (scale = 2) => drawShipSprite(SHIP_SPRITES[`player${(window.selectedShipIndex||0)+1}`], scale);
+        window.createEnemyShip = (variant = 0) => drawShipSprite(SHIP_SPRITES[`enemy${(variant%3)+1}`], 2);
         window.createAsteroidEmoji = () => '🪨';
-        window.createWreckEmoji = () => {
-            const wreck = document.createElement('span');
-            wreck.style.fontSize = '30px';
-            wreck.innerText = '🛸';
-            wreck.style.filter = 'grayscale(1) brightness(0.5)';
-            return wreck;
-        };
+        window.createWreckEmoji = () => { const w = document.createElement('span'); w.style.fontSize='30px'; w.innerText='🛸'; w.style.filter='grayscale(1) brightness(0.5)'; return w; };
 
-        // ---------- ОСНОВНАЯ ЛОГИКА ----------
+        // ---------- СОСТОЯНИЕ ----------
         window.playerName = localStorage.getItem('sd_player_name') || '';
         window.shipName = localStorage.getItem('sd_ship_name') || '';
         window.frac = localStorage.getItem('sd_frac') || null;
@@ -316,47 +185,55 @@
         window.fracBonus = localStorage.getItem('sd_bonus') || null;
         window.selectedShipIndex = parseInt(localStorage.getItem('sd_ship_index')) || 0;
         window.resources = {
-            gold: parseInt(localStorage.getItem('sd_gold')) || 0,
-            parts: parseInt(localStorage.getItem('sd_parts')) || 0,
-            spice: parseInt(localStorage.getItem('sd_spice')) || 0,
-            fuel: parseInt(localStorage.getItem('sd_fuel')) || 100
+            credits: parseInt(localStorage.getItem('sd_credits')) || 0,
+            fuel: parseInt(localStorage.getItem('sd_fuel')) || 100,
+            shieldParts: parseInt(localStorage.getItem('sd_shieldParts')) || 0,
+            weaponParts: parseInt(localStorage.getItem('sd_weaponParts')) || 0,
+            speedParts: parseInt(localStorage.getItem('sd_speedParts')) || 0,
+            spice: parseInt(localStorage.getItem('sd_spice')) || 0
         };
-        window.maxFuel = 100;
-        window.fuelRegenRate = 1;
+        window.maxFuel = parseInt(localStorage.getItem('sd_maxFuel')) || 100;
         window.freeRefuelUsed = localStorage.getItem('sd_free_refuel') === 'true';
-        window.spiceData = JSON.parse(localStorage.getItem('sd_spice_data')) || { date: '', collected: 0 };
-        const today = new Date().toDateString();
-        if (window.spiceData.date !== today) { window.spiceData = { date: today, collected: 0 }; localStorage.setItem('sd_spice_data', JSON.stringify(window.spiceData)); }
+        window.upgrades = {
+            damage: parseInt(localStorage.getItem('sd_upg_damage')) || 0,
+            shield: parseInt(localStorage.getItem('sd_upg_shield')) || 0,
+            speed: parseInt(localStorage.getItem('sd_upg_speed')) || 0,
+            luck: parseInt(localStorage.getItem('sd_upg_luck')) || 0,
+            fuelTank: parseInt(localStorage.getItem('sd_upg_fuelTank')) || 0
+        };
+        window.maxUpgradeLevels = { damage:30, shield:30, speed:30, luck:5, fuelTank:10 };
         window.vipLevel = parseInt(localStorage.getItem('sd_vip')) || 0;
         const vipMultipliers = [1, 1.5, 3, 5, 7.5];
         window.getMultiplier = () => vipMultipliers[window.vipLevel] || 1;
         window.pvpScore = parseInt(localStorage.getItem('sd_pvp_score')) || 0;
         window.leaderboard = JSON.parse(localStorage.getItem('sd_leaderboard')) || [];
-        window.upgrades = { shield: parseInt(localStorage.getItem('sd_upg_shield')) || 1, damage: parseInt(localStorage.getItem('sd_upg_damage')) || 0, speed: parseInt(localStorage.getItem('sd_upg_speed')) || 0, crit: parseInt(localStorage.getItem('sd_upg_crit')) || 0 };
-        window.galaxyObjects = [];
-        window.isShipFlying = false;
-        window.pvpInterval = null;
-        window.pvpTimerInterval = null;
-        window.currentTab = 'map';
-        window.tempFaction = null;
-        window.tempShipIndex = null;
+        window.galaxyObjects = []; window.isShipFlying = false;
+        window.pvpInterval = null; window.pvpTimerInterval = null;
+        window.currentTab = 'map'; window.tempFaction = null; window.tempShipIndex = null;
 
         window.saveAll = function() {
-            Object.keys(window.resources).forEach(k => localStorage.setItem('sd_' + k, window.resources[k]));
-            localStorage.setItem('sd_spice_data', JSON.stringify(window.spiceData));
+            Object.keys(window.resources).forEach(k => localStorage.setItem('sd_'+k, window.resources[k]));
+            localStorage.setItem('sd_maxFuel', window.maxFuel);
             localStorage.setItem('sd_free_refuel', window.freeRefuelUsed);
             localStorage.setItem('sd_vip', window.vipLevel);
             localStorage.setItem('sd_pvp_score', window.pvpScore);
             localStorage.setItem('sd_leaderboard', JSON.stringify(window.leaderboard));
             localStorage.setItem('sd_player_name', window.playerName);
             localStorage.setItem('sd_ship_name', window.shipName);
-            Object.keys(window.upgrades).forEach(k => localStorage.setItem('sd_upg_' + k, window.upgrades[k]));
+            Object.keys(window.upgrades).forEach(k => localStorage.setItem('sd_upg_'+k, window.upgrades[k]));
+            ['sd_frac','sd_color','sd_bonus','sd_ship_index'].forEach(k => localStorage.setItem(k, window[k]));
         };
 
-        window.showLoot = function(type, amount) {
+        function updateFuelDisplay() {
+            document.getElementById('fuel-value').innerText = Math.floor(window.resources.fuel) + '/' + window.maxFuel;
+            document.getElementById('refuel-btn').style.display = (window.resources.fuel === 0 && !window.freeRefuelUsed) ? 'inline-block' : 'none';
+        }
+        function updateSpiceDisplay() { document.getElementById('spice-value').innerText = window.resources.spice; }
+
+        window.showLoot = function(name, amount) {
             const feed = document.getElementById('loot-feed');
             const item = document.createElement('span'); item.className = 'loot-item';
-            item.innerText = `+${amount} ${type}`; feed.appendChild(item);
+            item.innerText = `+${amount} ${name}`; feed.appendChild(item);
             setTimeout(() => item.remove(), 3000);
         };
 
@@ -364,7 +241,6 @@
             document.querySelectorAll('.window').forEach(w => w.classList.add('hidden'));
             const win = document.getElementById('window-' + id); if (win) win.classList.remove('hidden');
         };
-
         window.showUI = function() {
             document.getElementById('back-btn').classList.remove('hidden');
             document.getElementById('fuel-counter').classList.remove('hidden');
@@ -372,12 +248,6 @@
             document.getElementById('bottom-panel').classList.remove('hidden');
             updateFuelDisplay(); updateSpiceDisplay();
         };
-
-        function updateFuelDisplay() {
-            document.getElementById('fuel-value').innerText = Math.floor(window.resources.fuel);
-            document.getElementById('refuel-btn').style.display = (window.resources.fuel === 0 && !window.freeRefuelUsed) ? 'inline-block' : 'none';
-        }
-        function updateSpiceDisplay() { document.getElementById('spice-value').innerText = window.spiceData.collected; }
 
         function createBackground() {
             const layer = document.getElementById('stars-layer');
@@ -395,11 +265,12 @@
         createBackground();
 
         function getMapCenter() { const bg = document.getElementById('galaxy-bg'); return { x: bg.offsetWidth/2, y: bg.offsetHeight/2 }; }
-        function createOrbitShip() { const orbit = document.getElementById('player-on-orbit'); orbit.innerHTML=''; orbit.appendChild(window.createPlayerShip(0.5)); orbit.style.display='block'; } // scale 0.5 на карте
+        function createOrbitShip() { const orbit = document.getElementById('player-on-orbit'); orbit.innerHTML=''; orbit.appendChild(window.createPlayerShip(1.2)); orbit.style.display='block'; }
 
         window.generateObjects = function() {
             const bg = document.getElementById('galaxy-bg'); bg.querySelectorAll('.bg-object').forEach(e=>e.remove()); window.galaxyObjects=[];
-            const center = getMapCenter(); const types = ['asteroid','asteroid','asteroid','pirate','pirate','pirate','wreck','wreck','wreck'];
+            const center = getMapCenter();
+            const types = ['asteroid','asteroid','asteroid','pirate','pirate','pirate','wreck','wreck','wreck'];
             types.sort(()=>Math.random()-0.5);
             types.forEach(type=>{
                 const angle = Math.random()*Math.PI*2; const distance = 120+Math.random()*80;
@@ -407,27 +278,36 @@
                 const obj = { type, x, y, element:null };
                 const div = document.createElement('div'); div.className='bg-object'; div.style.left=x+'px'; div.style.top=y+'px'; div.style.pointerEvents='all';
                 if (type==='asteroid') { div.innerHTML = window.createAsteroidEmoji(); }
-                else if (type==='pirate') { div.appendChild(window.createEnemyShip(Math.floor(Math.random()*3), 0.5)); } // Враг на карте 0.5
+                else if (type==='pirate') { div.appendChild(window.createEnemyShip(Math.floor(Math.random()*3))); }
                 else { div.appendChild(window.createWreckEmoji()); }
-                div.onclick = (e) => { e.stopPropagation(); if (window.currentTab==='map' && !window.isShipFlying && window.resources.fuel>=20) window.flyToObject(obj, div); };
+                div.onclick = (e) => { e.stopPropagation(); if (window.currentTab==='map' && !window.isShipFlying && window.resources.fuel>=10) window.flyToObject(obj, div); };
                 bg.appendChild(div); obj.element=div; window.galaxyObjects.push(obj);
             });
         };
 
+        window.generateLoot = function() {
+            const mult = window.getMultiplier();
+            const r = Math.random() * 100;
+            if (r < 55) return null;
+            if (r < 75) { const amt = Math.floor((Math.random()*91+10)*mult); window.resources.credits += amt; return { name:'Кредиты', amount:amt }; }
+            if (r < 85) { const amt = Math.floor((Math.random()*11+5)*mult); window.resources.fuel = Math.min(window.maxFuel, window.resources.fuel+amt); return { name:'Топливо', amount:amt }; }
+            if (r < 90) { const amt = Math.floor((Math.random()*5+1)*mult); window.resources.shieldParts += amt; return { name:'Щит', amount:amt }; }
+            if (r < 95) { const amt = Math.floor((Math.random()*5+1)*mult); window.resources.weaponParts += amt; return { name:'Оружие', amount:amt }; }
+            if (r < 98) { const amt = Math.floor((Math.random()*5+1)*mult); window.resources.speedParts += amt; return { name:'Скорость', amount:amt }; }
+            const amt = Math.floor((Math.random()*3+1)*mult); window.resources.spice += amt; return { name:'Спайс', amount:amt };
+        };
+
         window.flyToObject = function(obj, element) {
-            if (window.isShipFlying || window.resources.fuel<20) return;
-            window.isShipFlying=true; window.resources.fuel-=20; saveAll(); updateFuelDisplay();
+            if (window.isShipFlying || window.resources.fuel < 10) return;
+            window.isShipFlying = true; window.resources.fuel -= 10; saveAll(); updateFuelDisplay();
             const center = getMapCenter(); const bg = document.getElementById('galaxy-bg');
             document.getElementById('player-on-orbit').style.display='none';
-            const shipEl = window.createPlayerShip(0.5); // Корабль в полете (scale 0.5)
+            const shipEl = window.createPlayerShip(1.2);
             shipEl.style.position='absolute'; shipEl.style.left=center.x+'px'; shipEl.style.top=center.y+'px'; shipEl.style.transform='translate(-50%,-50%)'; shipEl.style.transition='all 5s cubic-bezier(0.25,0.1,0.25,1)'; bg.appendChild(shipEl);
             requestAnimationFrame(()=>{ shipEl.style.left=obj.x+'px'; shipEl.style.top=obj.y+'px'; shipEl.style.transform='translate(-50%,-50%) scale(0.8)'; });
             setTimeout(()=>{
-                const mult = window.getMultiplier(); let loot = null;
-                if (obj.type==='asteroid') { const r=Math.random(); if (r<0.5) { const fa=Math.floor(5*mult); window.resources.fuel=Math.min(window.maxFuel,window.resources.fuel+fa); loot={type:'⛽ Топливо',amount:fa}; } else if (r<0.9) { if (window.spiceData.collected<50) { window.spiceData.collected++; window.resources.spice++; loot={type:'💎 Спайс',amount:1}; } } }
-                else if (obj.type==='pirate') { const ga=Math.floor(10*mult); window.resources.gold+=ga; loot={type:'🪙 Золото',amount:ga}; }
-                else if (obj.type==='wreck') { const pa=Math.floor(3*mult); window.resources.parts+=pa; const fr=Math.floor(3*mult); window.resources.fuel=Math.min(window.maxFuel,window.resources.fuel+fr); loot={type:'🔧 Детали',amount:pa}; window.showLoot('⛽ Топливо',fr); }
-                if (loot) window.showLoot(loot.type,loot.amount);
+                const loot = window.generateLoot();
+                if (loot) window.showLoot(loot.name, loot.amount);
                 saveAll(); updateFuelDisplay(); updateSpiceDisplay();
                 element.style.opacity='0'; setTimeout(()=>element.remove(),300);
                 shipEl.style.transition='all 5s cubic-bezier(0.25,0.1,0.25,1)'; shipEl.style.left=center.x+'px'; shipEl.style.top=center.y+'px'; shipEl.style.transform='translate(-50%,-50%) scale(1.2)';
@@ -435,14 +315,76 @@
             },5000);
         };
 
-        setInterval(()=>{ if (window.resources.fuel<window.maxFuel) { window.resources.fuel=Math.min(window.maxFuel,window.resources.fuel+window.fuelRegenRate); saveAll(); updateFuelDisplay(); } },10000);
+        setInterval(()=>{ if (window.resources.fuel < window.maxFuel) { window.resources.fuel = Math.min(window.maxFuel, window.resources.fuel + 1); saveAll(); updateFuelDisplay(); } }, 300000);
 
-        window.freeRefuel = function() { if (window.freeRefuelUsed) return; window.resources.fuel=window.maxFuel; window.freeRefuelUsed=true; saveAll(); updateFuelDisplay(); };
+        window.freeRefuel = function() { if (window.freeRefuelUsed) return; window.resources.fuel = window.maxFuel; window.freeRefuelUsed = true; saveAll(); updateFuelDisplay(); };
+
+        function getUpgradeCost(type) {
+            const lvl = window.upgrades[type];
+            if (type === 'fuelTank') {
+                const credits = Math.floor(100 * Math.pow(2, lvl));
+                const spice = Math.floor(50 * Math.pow(1.5, lvl));
+                return { credits, spice, partsType: null, parts: 0 };
+            } else {
+                const partsType = type === 'shield' ? 'shieldParts' : (type === 'damage' ? 'weaponParts' : (type === 'speed' ? 'speedParts' : 'shieldParts'));
+                const baseParts = 5; const baseCredits = 50;
+                const parts = Math.floor(baseParts * Math.pow(1.5, lvl));
+                const credits = Math.floor(baseCredits * Math.pow(2, lvl));
+                let spice = 0;
+                if (lvl >= 14) spice = (lvl === 14) ? 10 : Math.floor(10 * Math.pow(1.5, lvl - 14));
+                return { credits, spice, partsType, parts };
+            }
+        }
+
+        function canBuyUpgrade(type) {
+            if (window.upgrades[type] >= window.maxUpgradeLevels[type]) return false;
+            const cost = getUpgradeCost(type);
+            if (window.resources.credits < cost.credits) return false;
+            if (cost.spice && window.resources.spice < cost.spice) return false;
+            if (cost.partsType && window.resources[cost.partsType] < cost.parts) return false;
+            return true;
+        }
+
+        window.buyUpgrade = function(type) {
+            if (!canBuyUpgrade(type)) return;
+            const cost = getUpgradeCost(type);
+            window.resources.credits -= cost.credits;
+            if (cost.spice) window.resources.spice -= cost.spice;
+            if (cost.partsType) window.resources[cost.partsType] -= cost.parts;
+            window.upgrades[type]++;
+            if (type === 'fuelTank') {
+                window.maxFuel += 10;
+                window.resources.fuel = Math.min(window.resources.fuel + 10, window.maxFuel);
+            }
+            saveAll(); updateHangar(); updateFuelDisplay();
+        };
+
+        function updateHangar() {
+            document.getElementById('hangar-resources').innerHTML = `
+                🪙${window.resources.credits} ⛽${Math.floor(window.resources.fuel)}/${window.maxFuel}
+                🛡️${window.resources.shieldParts} ⚔️${window.resources.weaponParts} ⚡${window.resources.speedParts} 💎${window.resources.spice}
+            `;
+            const list = document.getElementById('upgrades-list');
+            const types = ['damage','shield','speed','luck','fuelTank'];
+            const names = { damage:'УРОН', shield:'ЗАЩИТА', speed:'СКОРОСТЬ', luck:'УДАЧА', fuelTank:'ТОПЛИВНЫЙ БАК' };
+            list.innerHTML = types.map(t => {
+                const lvl = window.upgrades[t]; const max = window.maxUpgradeLevels[t];
+                const cost = getUpgradeCost(t); const can = canBuyUpgrade(t);
+                let costStr = `${cost.credits}🪙`;
+                if (cost.spice) costStr += ` ${cost.spice}💎`;
+                if (cost.partsType) costStr += ` ${cost.parts} ${cost.partsType==='shieldParts'?'🛡️':(cost.partsType==='weaponParts'?'⚔️':'⚡')}`;
+                return `<div style="display:flex;justify-content:space-between;padding:4px;border:1px solid #009944;margin:2px 0;">
+                    <span>${names[t]} Ур.${lvl}/${max}</span>
+                    <button class="btn" style="width:auto;padding:2px 6px;" ${can && lvl<max?'':'disabled'} onclick="buyUpgrade('${t}')">${costStr}</button>
+                </div>`;
+            }).join('');
+        }
+
         window.setPlayerName = function() { const n=document.getElementById('input-player-name').value.trim(); if(n.length<2)return alert('Минимум 2 символа'); window.playerName=n; saveAll(); window.showWindow('faction'); };
         window.selectFaction = function(name,color,bonus) {
             window.tempFaction={name,color,bonus}; const container=document.getElementById('ship-selection'); container.innerHTML='';
-            for (let i=0;i<3;i++) { const card=document.createElement('div'); card.style.cssText='cursor:pointer;padding:6px;border:2px solid #009944;text-align:center;width:140px;height:160px;display:flex;align-items:center;justify-content:center;';
-                card.appendChild(drawShipSprite(SHIP_SPRITES[`player${i+1}`], 1.2)); // Выбор корабля в меню
+            for (let i=0;i<3;i++) { const card=document.createElement('div'); card.style.cssText='cursor:pointer;padding:6px;border:2px solid #009944;text-align:center;width:100px;height:120px;display:flex;align-items:center;justify-content:center;';
+                card.appendChild(drawShipSprite(SHIP_SPRITES[`player${i+1}`], 2.2));
                 card.onclick=()=>{ window.tempShipIndex=i; container.querySelectorAll('div').forEach(d=>d.style.borderColor='#009944'); card.style.borderColor='#aa9933'; document.getElementById('confirm-ship-btn').disabled=false; }; container.appendChild(card);
             } document.getElementById('confirm-ship-btn').disabled=true; window.showWindow('ship');
         };
@@ -460,19 +402,11 @@
             document.getElementById('loot-feed').style.display=tab==='map'?'flex':'none';
             if(tab==='map'){ document.getElementById('content-overlay').style.display='none'; }
             else { document.getElementById('content-overlay').style.display='flex';
-                if(tab==='hangar'){ window.showWindow('hangar'); const hangarDiv=document.getElementById('hangar-ship-display'); hangarDiv.innerHTML=''; hangarDiv.appendChild(window.createPlayerShip(1.2)); updateHangar(); } // Корабль в Ангаре
-                else if(tab==='pvp'){ window.showWindow('pvp'); const playerDiv=document.getElementById('pvp-player-ship-display'); playerDiv.innerHTML=''; playerDiv.appendChild(window.createPlayerShip(1.2)); const enemyDiv=document.getElementById('pvp-enemy-ship-display'); enemyDiv.innerHTML=''; enemyDiv.appendChild(window.createEnemyShip(Math.floor(Math.random()*3), 1.2)); updateLeaderboard(); } // Враг в PvP
+                if(tab==='hangar'){ window.showWindow('hangar'); const hangarDiv=document.getElementById('hangar-ship-display'); hangarDiv.innerHTML=''; hangarDiv.appendChild(window.createPlayerShip(2.5)); updateHangar(); }
+                else if(tab==='pvp'){ window.showWindow('pvp'); const playerDiv=document.getElementById('pvp-player-ship-display'); playerDiv.innerHTML=''; playerDiv.appendChild(window.createPlayerShip(2.2)); const enemyDiv=document.getElementById('pvp-enemy-ship-display'); enemyDiv.innerHTML=''; enemyDiv.appendChild(window.createEnemyShip(Math.floor(Math.random()*3))); updateLeaderboard(); }
                 else if(tab==='vip'){ window.showWindow('vip'); updateVipWindow(); }
             }
         };
-        function updateHangar() {
-            document.getElementById('hangar-resources').innerHTML = `<span>🪙 ${window.resources.gold}</span><span>🔧 ${window.resources.parts}</span><span>💎 ${window.resources.spice}</span>`;
-            const list=document.getElementById('upgrades-list'); const types=[{key:'shield',name:'Щит',cost:5},{key:'damage',name:'Урон',cost:5},{key:'speed',name:'Скорость',cost:5},{key:'crit',name:'Крит',cost:5}];
-            list.innerHTML = types.map(t=>{ const level=window.upgrades[t.key]; const cost=t.cost*(level+1); const canBuy=window.resources.parts>=cost;
-                return `<div style="display:flex;justify-content:space-between;padding:4px;border:1px solid #009944;margin:2px 0;"><span>${t.name} Ур.${level}</span><button class="btn" style="width:auto;padding:2px 6px;" ${canBuy?'':'disabled'} onclick="buyUpgrade('${t.key}')">${cost}🔧</button></div>`;
-            }).join('');
-        }
-        window.buyUpgrade = function(type) { const cost=5*(window.upgrades[type]+1); if(window.resources.parts>=cost){ window.resources.parts-=cost; window.upgrades[type]++; localStorage.setItem('sd_upg_'+type,window.upgrades[type]); saveAll(); updateHangar(); } };
         function updateVipWindow() { document.getElementById('vip-level').innerText=window.vipLevel; document.getElementById('vip-mult').innerText=window.getMultiplier(); }
         window.upgradeVip = function() { if(window.vipLevel<4){ window.vipLevel++; localStorage.setItem('sd_vip',window.vipLevel); saveAll(); updateVipWindow(); } };
         window.searchPvP = function() {
