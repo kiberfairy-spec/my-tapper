@@ -13,7 +13,7 @@
         }
         body {
             background: #000;
-            color: #cc3333; /* вишнёвый текст */
+            color: #cc3333; /* вишнёвый */
             font-family: 'Press Start 2P', monospace;
             user-select: none;
             -webkit-user-select: none;
@@ -60,10 +60,10 @@
         }
         .background-map {
             position: fixed;
-            top: 50px;
+            top: 70px; /* высота верхней панели */
             left: 0;
             width: 100%;
-            height: calc(100dvh - 50px - 80px);
+            height: calc(100dvh - 70px - 80px);
             z-index: 1;
             pointer-events: none;
         }
@@ -82,14 +82,15 @@
             z-index: 2;
         }
         .pixel-planet {
-            width: 160px;
-            height: 100px;
+            width: 200px; /* увеличена планета */
+            height: 125px;
             position: relative;
         }
         .player-docked {
             position: absolute;
             z-index: 10;
             pointer-events: none;
+            /* корабль будет горизонтально расположен */
         }
         .bg-object {
             position: absolute;
@@ -98,91 +99,120 @@
             transition: opacity 0.3s;
             transform: translate(-50%, -50%);
             cursor: pointer;
+            /* увеличены размеры */
+            font-size: 40px;
         }
+        /* Верхняя панель – две строки */
         .top-panel {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            height: 50px;
+            z-index: 100;
+            pointer-events: none;
+            background: rgba(0,0,0,0.85);
+            border-bottom: 1px solid #00aa44;
+            padding: 4px 8px;
+            display: flex;
+            flex-direction: column;
+            height: 70px;
+        }
+        .top-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 5px 10px;
-            z-index: 100;
-            pointer-events: none;
-            border-bottom: 1px solid #00aa44; /* зелёная черта */
+            flex-wrap: nowrap;
+            gap: 4px;
+            pointer-events: all;
+            padding-bottom: 2px;
+            height: 50px;
         }
-        .top-left {
+        .top-row .left {
             display: flex;
             align-items: center;
-            gap: 8px;
-            pointer-events: all;
+            gap: 6px;
+            flex-shrink: 0;
         }
         .avatar-circle {
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             background: #222;
             border: 2px solid #00aa44;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            font-size: 16px;
             color: #cc3333;
             font-weight: bold;
         }
         .player-name {
-            font-size: 8px;
+            font-size: 9px;
             color: #cc3333;
+            white-space: nowrap;
+        }
+        .level-badge {
+            font-size: 7px;
+            color: #cc3333;
+            border: 1px solid #00aa44;
+            padding: 1px 4px;
+            background: #111;
         }
         .vip-badge {
             background: rgba(0,0,0,0.8);
             border: 2px solid #ffaa00;
             color: #ffaa00;
-            padding: 2px 6px;
+            padding: 1px 6px;
             font-size: 6px;
             pointer-events: all;
             text-align: center;
+            background: #222;
+            border-radius: 4px;
         }
-        .resources-panel {
+        .top-row .resources {
             display: flex;
-            gap: 4px;
+            gap: 6px;
             align-items: center;
-            pointer-events: all;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
+            justify-content: center;
+            flex: 1;
         }
         .resource-badge {
             background: rgba(0,0,0,0.85);
             border: 2px solid #00aa44;
             color: #cc3333;
-            padding: 2px 4px;
-            font-size: 6px;
+            padding: 1px 4px;
+            font-size: 7px;
             pointer-events: all;
             text-align: center;
+            white-space: nowrap;
         }
         .fuel-badge { border-color: #4488ff; color: #4488ff; }
         .credits-badge { border-color: #ffcc00; color: #ffcc00; }
-        .spice-badge { border-color: #ff66ff; color: #ff66ff; }
+        .spice-badge { border-color: #ffddcc; color: #f5f5dc; /* молочнобелый */ }
         .shards-badge { border-color: #66ff99; color: #66ff99; }
 
-        /* Кнопки под чертой (справа) */
-        .top-actions {
+        /* Кнопки под чертой – справа, вертикально */
+        .bottom-row {
             display: flex;
-            gap: 6px;
-            align-items: center;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 2px;
             pointer-events: all;
-            margin-left: 10px;
+            padding-top: 2px;
+            border-top: 1px solid #00aa44;
         }
         .top-btn {
             background: rgba(0,0,0,0.8);
             border: 1px solid #8a2be2; /* фиолетовый */
             color: #cc3333;
-            padding: 2px 6px;
-            font-size: 5px;
+            padding: 1px 6px;
+            font-size: 4px;
             cursor: pointer;
             font-family: 'Press Start 2P', monospace;
             white-space: nowrap;
+            width: 100%;
+            text-align: right;
         }
         .top-btn:active { opacity: 0.7; }
 
@@ -190,7 +220,7 @@
             background: #4488ff;
             color: #fff;
             border: none;
-            padding: 2px 6px;
+            padding: 1px 6px;
             font-size: 5px;
             cursor: pointer;
             font-family: 'Press Start 2P', monospace;
@@ -201,12 +231,11 @@
             background: #aa3333;
             color: #fff;
             border: none;
-            padding: 2px 6px;
+            padding: 1px 6px;
             font-size: 5px;
             cursor: pointer;
             font-family: 'Press Start 2P', monospace;
             pointer-events: all;
-            margin-left: 4px;
         }
         .back-btn {
             width: 28px;
@@ -239,10 +268,10 @@
         }
         .loot-item {
             font-family: 'Press Start 2P', monospace;
-            font-size: 6px;
+            font-size: 5px;
             color: #ffcc00;
             background: rgba(0,0,0,0.8);
-            padding: 3px 6px;
+            padding: 2px 5px;
             animation: fadeInOut 2.5s ease-in-out forwards;
         }
         @keyframes fadeInOut {
@@ -254,7 +283,7 @@
 
         .content-overlay {
             position: fixed;
-            top: 50px;
+            top: 70px;
             left: 0;
             right: 0;
             bottom: 80px;
@@ -288,7 +317,7 @@
             color: #cc3333;
             padding: 5px 8px;
             font-family: 'Press Start 2P', monospace;
-            font-size: 6px;
+            font-size: 5px;
             cursor: pointer;
             transition: all 0.2s;
             text-align: center;
@@ -304,7 +333,7 @@
         .window {
             background: rgba(2,2,14,0.95);
             border: 1px solid #00aa44;
-            padding: 12px;
+            padding: 10px;
             max-width: 320px;
             width: 88%;
             max-height: 55vh;
@@ -313,30 +342,30 @@
         }
         .window-title {
             color: #bb9922;
-            font-size: 8px;
-            margin-bottom: 8px;
+            font-size: 7px;
+            margin-bottom: 6px;
             text-align: center;
         }
         .input-field {
             width: 100%;
-            padding: 6px;
+            padding: 5px;
             margin: 4px 0;
             background: #040410;
             border: 2px solid #00aa44;
             color: #cc3333;
             font-family: 'Press Start 2P', monospace;
-            font-size: 7px;
+            font-size: 6px;
             text-align: center;
         }
         .btn {
             width: 100%;
-            padding: 6px;
+            padding: 5px;
             margin: 4px 0;
             background: #040c04;
             border: 2px solid #00aa44;
             color: #cc3333;
             font-family: 'Press Start 2P', monospace;
-            font-size: 7px;
+            font-size: 6px;
             cursor: pointer;
             transition: all 0.2s;
         }
@@ -349,14 +378,14 @@
         .btn-small {
             width: auto;
             padding: 2px 4px;
-            font-size: 5px;
+            font-size: 4px;
         }
         .btn-purple {
             border-color: #8a2be2;
             color: #cc3333;
         }
         .hidden { display: none !important; }
-        .flex-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+        .flex-row { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
         .upgrade-row {
             display: flex;
             justify-content: space-between;
@@ -364,29 +393,29 @@
             border: 1px solid #00aa44;
             margin: 2px 0;
             align-items: center;
-            font-size: 6px;
+            font-size: 5px;
         }
         .artifact-card {
             border: 2px solid #00aa44;
             padding: 4px;
-            margin: 3px;
+            margin: 2px;
             cursor: pointer;
             text-align: center;
-            min-width: 60px;
-            font-size: 6px;
+            min-width: 50px;
+            font-size: 5px;
         }
         .artifact-card.selected { border-color: #ffaa00; }
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 4px;
-            margin: 6px 0;
+            gap: 3px;
+            margin: 4px 0;
         }
         .calendar-day {
             border: 1px solid #8a2be2;
-            padding: 4px;
+            padding: 3px;
             text-align: center;
-            font-size: 5px;
+            font-size: 4px;
             color: #cc3333;
             background: #111;
             cursor: default;
@@ -404,10 +433,10 @@
             background: transparent;
             border: none;
             color: #cc3333;
-            font-size: 5px;
+            font-size: 4px;
             cursor: pointer;
             font-family: 'Press Start 2P', monospace;
-            padding: 2px;
+            padding: 1px;
         }
         .calendar-day button:disabled { opacity: 0.5; }
 
@@ -426,38 +455,67 @@
             align-items: center;
             justify-content: center;
             text-align: center;
+            padding: 4px;
         }
-        .pvp-side .hp-bar {
-            width: 80%;
+        .pvp-side .bar-container {
+            width: 90%;
+            margin: 2px 0;
+        }
+        .pvp-side .bar-label {
+            font-size: 5px;
+            color: #cc3333;
+        }
+        .pvp-side .bar {
             height: 8px;
             background: #333;
             border: 1px solid #00aa44;
-            margin: 4px 0;
+            position: relative;
+            overflow: hidden;
         }
-        .pvp-side .hp-fill {
+        .pvp-side .bar-fill {
             height: 100%;
-            background: #00aa44;
             transition: width 0.2s;
         }
-        .pvp-vs { font-size: 12px; color: #aa3333; }
+        .pvp-side .shield-fill { background: #4488ff; }
+        .pvp-side .hp-fill { background: #00aa44; }
+        .pvp-vs { font-size: 14px; color: #aa3333; }
 
         .mini-game-placeholder {
             text-align: center;
-            font-size: 8px;
+            font-size: 7px;
             color: #cc3333;
         }
 
-        /* Усиления (бусты) */
         .boost-card {
             border: 1px solid #8a2be2;
-            padding: 6px;
-            margin: 4px;
+            padding: 4px;
+            margin: 3px;
             text-align: center;
-            font-size: 6px;
+            font-size: 5px;
             background: #0a0a1a;
             cursor: pointer;
         }
         .boost-card.selected { border-color: #ffaa00; }
+
+        /* Анимация удара */
+        .hit-flash {
+            animation: hitFlash 0.3s;
+        }
+        @keyframes hitFlash {
+            0% { filter: brightness(1); }
+            50% { filter: brightness(3) drop-shadow(0 0 10px #ffaa00); }
+            100% { filter: brightness(1); }
+        }
+        .ship-shake {
+            animation: shake 0.15s;
+        }
+        @keyframes shake {
+            0% { transform: translate(0,0); }
+            25% { transform: translate(-2px,2px); }
+            50% { transform: translate(2px,-2px); }
+            75% { transform: translate(-2px,-2px); }
+            100% { transform: translate(0,0); }
+        }
     </style>
 </head>
 <body>
@@ -470,25 +528,27 @@
         </div>
     </div>
 
-    <!-- Верхняя панель -->
+    <!-- Верхняя панель – две строки -->
     <div class="top-panel">
-        <div class="top-left">
-            <div class="avatar-circle" id="avatar-circle">?</div>
-            <span class="player-name" id="player-name">Игрок</span>
-            <div class="vip-badge" id="vip-badge">⭐ VIP 0</div>
-            <button class="dev-reset-btn" id="dev-reset-btn" onclick="devReset()">🔄 СБРОС</button>
+        <div class="top-row">
+            <div class="left">
+                <div class="avatar-circle" id="avatar-circle">?</div>
+                <span class="player-name" id="player-name">Игрок</span>
+                <span class="level-badge" id="level-badge">Lv 1</span>
+                <div class="vip-badge" id="vip-badge">⭐ VIP 0</div>
+                <button class="dev-reset-btn" id="dev-reset-btn" onclick="devReset()">🔄 СБРОС</button>
+            </div>
+            <div class="resources" id="resources-panel">
+                <div class="resource-badge spice-badge">💎 <span id="spice-value">0</span></div>
+                <div class="resource-badge fuel-badge">⛽ <span id="fuel-value">100/100</span></div>
+                <div class="resource-badge credits-badge">🪙 <span id="credits-value">0</span></div>
+                <button class="refuel-btn" id="refuel-btn" onclick="freeRefuel()">БЕСПЛ. ЗАПРАВКА</button>
+            </div>
         </div>
-        <div class="resources-panel">
-            <div class="resource-badge credits-badge">🪙 <span id="credits-value">0</span></div>
-            <div class="resource-badge fuel-badge">⛽ <span id="fuel-value">100/100</span></div>
-            <div class="resource-badge spice-badge">💎 <span id="spice-value">0</span></div>
-            <div class="resource-badge shards-badge">🧩 <span id="shards-value">0</span></div>
-            <button class="refuel-btn" id="refuel-btn" onclick="freeRefuel()">БЕСПЛ. ЗАПРАВКА</button>
-        </div>
-        <div class="top-actions">
-            <button class="top-btn" onclick="openCheckin()">📅 ЧЕКИН</button>
+        <div class="bottom-row">
             <button class="top-btn" onclick="openBattlePass()">🎫 БАТЛ-ПАСС</button>
             <button class="top-btn" onclick="openBoosts()">⚡ УСИЛЕНИЯ</button>
+            <button class="top-btn" onclick="openCheckin()">📅 ЧЕКИН</button>
         </div>
     </div>
 
@@ -517,10 +577,10 @@
         <div class="window hidden" id="window-hangar">
             <div class="window-title">АНГАР</div>
             <div id="hangar-ship-display" style="text-align:center;margin:4px 0;"></div>
-            <div id="hangar-resources" class="flex-row" style="font-size:6px;margin:4px 0;"></div>
+            <div id="hangar-resources" class="flex-row" style="font-size:5px;margin:4px 0;"></div>
             <div id="upgrades-list"></div>
             <div style="margin-top:8px;border-top:1px solid #00aa44;padding-top:6px;">
-                <div class="window-title" style="font-size:7px;">АРТЕФАКТЫ</div>
+                <div class="window-title" style="font-size:6px;">АРТЕФАКТЫ</div>
                 <div id="artifact-section"></div>
             </div>
         </div>
@@ -532,21 +592,35 @@
                 <div class="pvp-side" id="pvp-left">
                     <div id="pvp-player-ship-display"></div>
                     <div style="font-size:6px;margin:2px 0;" id="pvp-player-name">Вы</div>
-                    <div class="hp-bar"><div class="hp-fill" id="pvp-player-hp" style="width:100%;"></div></div>
-                    <div class="pvp-stats" id="pvp-player-stats" style="font-size:5px;">Урон:0 Защ:0 Ск:0</div>
+                    <div class="bar-container">
+                        <div class="bar-label">Щит</div>
+                        <div class="bar"><div class="bar-fill shield-fill" id="pvp-player-shield" style="width:100%;"></div></div>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-label">ХП</div>
+                        <div class="bar"><div class="bar-fill hp-fill" id="pvp-player-hp" style="width:100%;"></div></div>
+                    </div>
+                    <div class="pvp-stats" id="pvp-player-stats" style="font-size:4px;">Урон:0 Защ:0 Ск:0</div>
                 </div>
                 <div class="pvp-vs">VS</div>
                 <div class="pvp-side" id="pvp-right">
                     <div id="pvp-enemy-ship-display"></div>
                     <div style="font-size:6px;margin:2px 0;" id="pvp-enemy-name">Противник</div>
-                    <div class="hp-bar"><div class="hp-fill" id="pvp-enemy-hp" style="width:100%;"></div></div>
-                    <div class="pvp-stats" id="pvp-enemy-stats" style="font-size:5px;">Урон:0 Защ:0 Ск:0</div>
+                    <div class="bar-container">
+                        <div class="bar-label">Щит</div>
+                        <div class="bar"><div class="bar-fill shield-fill" id="pvp-enemy-shield" style="width:100%;"></div></div>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-label">ХП</div>
+                        <div class="bar"><div class="bar-fill hp-fill" id="pvp-enemy-hp" style="width:100%;"></div></div>
+                    </div>
+                    <div class="pvp-stats" id="pvp-enemy-stats" style="font-size:4px;">Урон:0 Защ:0 Ск:0</div>
                 </div>
             </div>
             <div style="text-align:center;font-size:7px;color:#aa9933" id="pvp-timer">10</div>
             <div style="text-align:center;font-size:5px" id="pvp-status">Нажмите НАЙТИ БОЙ</div>
             <button class="btn" onclick="searchPvP()">НАЙТИ БОЙ</button>
-            <div class="leaderboard" id="leaderboard" style="max-height:100px;overflow-y:auto;font-size:5px;margin-top:6px;"></div>
+            <div class="leaderboard" id="leaderboard" style="max-height:80px;overflow-y:auto;font-size:4px;margin-top:6px;"></div>
         </div>
 
         <!-- МиниИгры -->
@@ -559,16 +633,16 @@
         <div class="window hidden" id="window-checkin">
             <div class="window-title">ЕЖЕДНЕВНЫЙ ЧЕКИН</div>
             <div id="checkin-calendar"></div>
-            <div style="font-size:5px;margin-top:6px;color:#888;">При пропуске дня прогресс сбрасывается</div>
+            <div style="font-size:4px;margin-top:4px;color:#888;">При пропуске дня прогресс сбрасывается</div>
             <button class="btn btn-purple" onclick="claimCheckin()">ЗАБРАТЬ</button>
         </div>
 
         <!-- Батл-пасс -->
         <div class="window hidden" id="window-battlepass">
             <div class="window-title">БАТЛ-ПАСС (30 дней)</div>
-            <div style="font-size:6px;margin:4px 0;">Цена: 10 USDT</div>
+            <div style="font-size:5px;margin:4px 0;">Цена: 10 USDT</div>
             <div id="bp-calendar"></div>
-            <div style="font-size:5px;margin-top:6px;" id="bp-status">Не куплен</div>
+            <div style="font-size:4px;margin-top:6px;" id="bp-status">Не куплен</div>
             <button class="btn btn-purple" onclick="buyBattlePass()">КУПИТЬ</button>
             <button class="btn btn-purple" onclick="claimBP()">ЗАБРАТЬ</button>
         </div>
@@ -576,7 +650,7 @@
         <!-- Усиления (бусты) -->
         <div class="window hidden" id="window-boosts">
             <div class="window-title">УСИЛЕНИЯ</div>
-            <div style="font-size:6px;margin:4px 0;">Выберите тип и длительность</div>
+            <div style="font-size:5px;margin:4px 0;">Выберите тип и длительность</div>
             <div id="boost-selection"></div>
             <button class="btn btn-purple" onclick="buyBoost()">КУПИТЬ</button>
         </div>
@@ -596,7 +670,6 @@
 //  1. КОНСТАНТЫ И ДАННЫЕ
 // ----------------------------------------------------------------------
 
-// Палитры и спрайты (из исходного кода, оставляем)
 const PALETTE = { 'A':'#2E0A4E','B':'#5B2C8E','C':'#8B5FBF','P':'#FF44AA','Q':'#44CCFF', 'R':'#8B0000','D':'#2A2A2A','E':'#FF4500','F':'#FF6600','G':'#FFAA00','H':'#FFD700', '_':null };
 const UFO_PALETTE = { 1:'#14143d',2:'#346cbd',3:'#7cb5ec',4:'#e1f3ff',5:'#73737c',6:'#ffffff',7:'#ff9000' };
 const player1Matrix = [
@@ -605,7 +678,8 @@ const player1Matrix = [
 function createUfoMatrix() { return []; }
 const SHIP_SPRITES = { player1: player1Matrix, player2: createUfoMatrix(), player3: [] };
 
-function drawShipSprite(matrix, scale=1) {
+// Функция отрисовки корабля (с возможностью поворота)
+function drawShipSprite(matrix, scale=1, rotation=0) {
     if (!matrix || matrix.length===0) {
         const s = document.createElement('span'); s.style.fontSize='30px'; s.innerText='🚀'; return s;
     }
@@ -632,26 +706,25 @@ function drawShipSprite(matrix, scale=1) {
     wrapper.style.display = 'inline-block';
     wrapper.style.pointerEvents = 'none';
     wrapper.style.imageRendering = 'pixelated';
+    wrapper.style.transform = `rotate(${rotation}deg)`;
     wrapper.appendChild(canvas);
     return wrapper;
 }
-window.createPlayerShip = (scale=1) => {
+window.createPlayerShip = (scale=1, rotation=0) => {
     const idx = (window.selectedShipIndex || 0) + 1;
     const matrix = SHIP_SPRITES[`player${idx}`] || [];
-    return drawShipSprite(matrix, scale);
+    return drawShipSprite(matrix, scale, rotation);
 };
 window.createEnemyShip = (variant=0) => {
     const s = document.createElement('span'); s.style.fontSize='30px'; s.innerText='👾'; return s;
 };
 
-// Фракции
 const FACTION_STATS = {
     tank:   { shield:40, damage:20, speed:15 },
     dps:    { shield:15, damage:25, speed:35 },
     sniper: { shield:20, damage:40, speed:15 }
 };
 
-// Артефакты
 const ARTIFACTS = [
     { id:'phantom_blade', name:'Клинок Фантома', desc:'+5% урона/ур', effect:'damage', perLevel:5 },
     { id:'shield_imperishability', name:'Щит Нерушимости', desc:'+5% защиты/ур', effect:'shield', perLevel:5 },
@@ -660,16 +733,14 @@ const ARTIFACTS = [
     { id:'eye_of_foresight', name:'Глаз Предвидения', desc:'3% шанс уклонения/ур', effect:'dodge', perLevel:3 }
 ];
 
-// Бусты (усиления)
 const BOOST_TYPES = [
     { id:'mining', name:'Добыча', desc:'+50% ко всем ресурсам' },
     { id:'fuel', name:'Топливо', desc:'Восстановление в 2 раза быстрее' },
     { id:'pvp', name:'PvP', desc:'+20% к урону и защите в бою' }
 ];
-const BOOST_DURATIONS = [3, 5, 7]; // дни
-const BOOST_PRICES = { 3:3, 5:5, 7:7 }; // USDT за один буст
+const BOOST_DURATIONS = [3, 5, 7];
+const BOOST_PRICES = { 3:3, 5:5, 7:7 };
 
-// Награды чекина (7 дней)
 const CHECKIN_REWARDS = [
     { day:1, credits:10, fuel:3, parts:0, spice:0 },
     { day:2, credits:15, fuel:4, parts:1, spice:0 },
@@ -680,7 +751,6 @@ const CHECKIN_REWARDS = [
     { day:7, credits:100, fuel:20, parts:5, spice:5 }
 ];
 
-// Награды батл-пасса (30 дней)
 function getBPReward(day) {
     if (day <= 5) return { credits:50, fuel:10, parts:2, spice:0 };
     if (day <= 10) return { credits:80, fuel:15, parts:4, spice:2 };
@@ -691,12 +761,12 @@ function getBPReward(day) {
 }
 
 // ----------------------------------------------------------------------
-//  2. СОСТОЯНИЕ ИГРОКА (localStorage)
+//  2. СОСТОЯНИЕ
 // ----------------------------------------------------------------------
 
 const defaultState = {
     playerName: '',
-    shipName: '', // не используется, оставлено для совместимости
+    shipName: '',
     faction: null,
     factionColor: '#00aa44',
     factionBonus: null,
@@ -709,20 +779,18 @@ const defaultState = {
     pvpScore: 0,
     leaderboard: [],
     freeRefuelUsed: false,
-    // Чекин
-    checkinDay: 1,          // текущий день в цикле (1-7)
-    checkinLastClaim: null, // дата последнего получения
+    checkinDay: 1,
+    checkinLastClaim: null,
     checkinClaimedToday: false,
-    // Батл-пасс
     bpPaid: false,
-    bpDay: 1,               // текущий день батл-пасса (1-30)
+    bpDay: 1,
     bpLastClaim: null,
     bpClaimedToday: false,
-    // Бусты
-    boosts: [] // массив { type, expires: timestamp }
+    boosts: [],
+    xp: 0,
+    level: 1
 };
 
-// Загрузка
 function loadState() {
     const s = defaultState;
     try {
@@ -750,17 +818,16 @@ function loadState() {
         s.pvpScore = parseInt(localStorage.getItem('sd_pvp_score')) || 0;
         s.leaderboard = JSON.parse(localStorage.getItem('sd_leaderboard')) || [];
         s.freeRefuelUsed = localStorage.getItem('sd_free_refuel') === 'true';
-        // Чекин
         s.checkinDay = parseInt(localStorage.getItem('sd_checkin_day')) || 1;
         s.checkinLastClaim = localStorage.getItem('sd_checkin_last') || null;
         s.checkinClaimedToday = localStorage.getItem('sd_checkin_today') === 'true';
-        // Батл-пасс
         s.bpPaid = localStorage.getItem('sd_bp_paid') === 'true';
         s.bpDay = parseInt(localStorage.getItem('sd_bp_day')) || 1;
         s.bpLastClaim = localStorage.getItem('sd_bp_last') || null;
         s.bpClaimedToday = localStorage.getItem('sd_bp_today') === 'true';
-        // Бусты
         s.boosts = JSON.parse(localStorage.getItem('sd_boosts')) || [];
+        s.xp = parseInt(localStorage.getItem('sd_xp')) || 0;
+        s.level = parseInt(localStorage.getItem('sd_level')) || 1;
     } catch(e) {}
     return s;
 }
@@ -793,21 +860,20 @@ function saveState() {
     localStorage.setItem('sd_pvp_score', s.pvpScore);
     localStorage.setItem('sd_leaderboard', JSON.stringify(s.leaderboard));
     localStorage.setItem('sd_free_refuel', s.freeRefuelUsed);
-    // Чекин
     localStorage.setItem('sd_checkin_day', s.checkinDay);
     localStorage.setItem('sd_checkin_last', s.checkinLastClaim);
     localStorage.setItem('sd_checkin_today', s.checkinClaimedToday);
-    // Батл-пасс
     localStorage.setItem('sd_bp_paid', s.bpPaid);
     localStorage.setItem('sd_bp_day', s.bpDay);
     localStorage.setItem('sd_bp_last', s.bpLastClaim);
     localStorage.setItem('sd_bp_today', s.bpClaimedToday);
-    // Бусты
     localStorage.setItem('sd_boosts', JSON.stringify(s.boosts));
+    localStorage.setItem('sd_xp', s.xp);
+    localStorage.setItem('sd_level', s.level);
 }
 
 // ----------------------------------------------------------------------
-//  3. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+//  3. ВСПОМОГАТЕЛЬНЫЕ
 // ----------------------------------------------------------------------
 
 function updateTopPanel() {
@@ -816,13 +882,12 @@ function updateTopPanel() {
     document.getElementById('credits-value').innerText = Math.floor(r.credits);
     document.getElementById('fuel-value').innerText = Math.floor(r.fuel)+'/'+state.maxFuel;
     document.getElementById('spice-value').innerText = r.spice;
-    document.getElementById('shards-value').innerText = r.shards;
     const refuelBtn = document.getElementById('refuel-btn');
     refuelBtn.style.display = (r.fuel === 0 && !state.freeRefuelUsed) ? 'inline-block' : 'none';
-    // Аватарка
     const avatar = document.getElementById('avatar-circle');
     avatar.innerText = state.playerName ? state.playerName[0].toUpperCase() : '?';
     document.getElementById('player-name').innerText = state.playerName || 'Игрок';
+    document.getElementById('level-badge').innerText = `Lv ${state.level}`;
 }
 
 function showLoot(name, amount) {
@@ -845,7 +910,6 @@ function showUI() {
     updateTopPanel();
 }
 
-// Звёздный фон
 function createStars() {
     const layer = document.getElementById('stars-layer');
     for (let i=0; i<400; i++) {
@@ -867,7 +931,6 @@ function createStars() {
 }
 createStars();
 
-// Планета
 const planetColors = {1:'#3c1a5b',2:'#b094fa',3:'#f25cf2',4:'#ff9eff',5:'#e3e8ff'};
 const W=64,H=40;
 let planetMatrix = Array(H).fill().map(()=>Array(W).fill(0));
@@ -876,7 +939,7 @@ for(let y=0;y<H;y++)for(let x=0;x<W;x++){const dx=x-cX,dy=y-cY;if(dx*dx+dy*dy<=r
 function drawPlanet() {
     const container = document.getElementById('pixel-planet');
     container.innerHTML = '';
-    const ps = 2.5;
+    const ps = 3.0; // увеличен размер пикселя для большей планеты
     const canvas = document.createElement('canvas');
     canvas.width = W*ps; canvas.height = H*ps;
     const ctx = canvas.getContext('2d');
@@ -903,36 +966,68 @@ function parkShipOnPlanet() {
     const mr = document.getElementById('galaxy-bg').getBoundingClientRect();
     const cx = pr.left - mr.left + pr.width/2;
     const cy = pr.top - mr.top + pr.height/2;
-    const ship = window.createPlayerShip(0.35);
+    const ship = window.createPlayerShip(0.4, 0); // горизонтально, нос вправо (rotation 0)
     docked.innerHTML = '';
     docked.appendChild(ship);
     docked.style.left = cx + 'px';
-    docked.style.top = (cy + 18) + 'px';
+    docked.style.top = (cy + 30) + 'px'; // чуть ниже центра
     docked.style.transform = 'translate(-50%, -50%)';
     docked.style.display = 'block';
 }
 
 // ----------------------------------------------------------------------
-//  4. КАРТА ДОБЫЧИ (PvE)
+//  4. ДОБЫЧА (PvE) с генерацией объектов без пересечения
 // ----------------------------------------------------------------------
 
 let galaxyObjects = [];
 let isShipFlying = false;
 const FUEL_COST_PER_FLIGHT = 10;
-const FUEL_REGENERATION_INTERVAL = 4 * 60 * 1000; // 4 минуты
+const FUEL_REGENERATION_INTERVAL = 4 * 60 * 1000;
 
 function generateObjects() {
     const bg = document.getElementById('galaxy-bg');
     bg.querySelectorAll('.bg-object').forEach(e => e.remove());
     galaxyObjects = [];
     const center = getMapCenter();
+    const planetRadius = 100; // радиус планеты
+    const minDistFromPlanet = planetRadius + 60; // минимальное расстояние от центра планеты
+    const maxDistFromPlanet = 250; // максимальное расстояние
     const types = ['asteroid','asteroid','asteroid','pirate','pirate','pirate','wreck','wreck','wreck'];
     types.sort(() => Math.random()-0.5);
+
+    // Функция проверки пересечения с уже созданными объектами
+    function isOverlapping(x, y, minDistance = 60) {
+        for (let obj of galaxyObjects) {
+            const dx = x - obj.x;
+            const dy = y - obj.y;
+            if (Math.sqrt(dx*dx + dy*dy) < minDistance) return true;
+        }
+        return false;
+    }
+
     types.forEach(type => {
-        const angle = Math.random()*Math.PI*2;
-        const dist = 120 + Math.random()*80;
-        const x = center.x + Math.cos(angle)*dist;
-        const y = center.y + Math.sin(angle)*dist;
+        let attempts = 0;
+        let x, y, angle, dist;
+        let found = false;
+        while (!found && attempts < 100) {
+            angle = Math.random() * Math.PI * 2;
+            dist = minDistFromPlanet + Math.random() * (maxDistFromPlanet - minDistFromPlanet);
+            x = center.x + Math.cos(angle) * dist;
+            y = center.y + Math.sin(angle) * dist;
+            // Проверяем, чтобы объект не выходил за границы карты
+            if (x < 20 || x > bg.offsetWidth - 20 || y < 20 || y > bg.offsetHeight - 20) continue;
+            if (!isOverlapping(x, y, 70)) { // расстояние между объектами не менее 70px
+                found = true;
+            }
+            attempts++;
+        }
+        if (!found) {
+            // fallback: размещаем случайно
+            angle = Math.random() * Math.PI * 2;
+            dist = minDistFromPlanet + Math.random() * (maxDistFromPlanet - minDistFromPlanet);
+            x = center.x + Math.cos(angle) * dist;
+            y = center.y + Math.sin(angle) * dist;
+        }
         const obj = { type, x, y, element:null };
         const div = document.createElement('div');
         div.className = 'bg-object';
@@ -1001,6 +1096,19 @@ function generateLoot() {
     }
 }
 
+// Добавляем опыт за действия
+function addXP(amount) {
+    state.xp += amount;
+    // Повышаем уровень каждые 100 XP
+    while (state.xp >= state.level * 100 && state.level < 100) {
+        state.xp -= state.level * 100;
+        state.level++;
+    }
+    if (state.level >= 100) state.xp = 0;
+    saveState();
+    updateTopPanel();
+}
+
 function flyToObject(obj, element) {
     if (isShipFlying) return;
     if (state.resources.fuel < FUEL_COST_PER_FLIGHT) return;
@@ -1014,29 +1122,36 @@ function flyToObject(obj, element) {
     const startY = parseFloat(docked.style.top) || getMapCenter().y;
     docked.style.display = 'none';
     const bg = document.getElementById('galaxy-bg');
-    const shipEl = window.createPlayerShip(0.45);
+
+    // Создаём корабль, повёрнутый носом к цели
+    const angle = Math.atan2(obj.y - startY, obj.x - startX) * (180 / Math.PI);
+    const shipEl = window.createPlayerShip(0.5, angle);
     shipEl.style.position = 'absolute';
     shipEl.style.left = startX + 'px';
     shipEl.style.top = startY + 'px';
     shipEl.style.transform = 'translate(-50%, -50%)';
     shipEl.style.transition = 'all 5s cubic-bezier(0.25,0.1,0.25,1)';
     bg.appendChild(shipEl);
+
     requestAnimationFrame(() => {
         shipEl.style.left = obj.x + 'px';
         shipEl.style.top = obj.y + 'px';
-        shipEl.style.transform = 'translate(-50%, -50%) scale(0.8)';
+        // Поворот сохраняется, корабль летит носом вперёд
     });
     setTimeout(() => {
         const loot = generateLoot();
         if (loot) showLoot(loot.name, loot.amount);
+        // Опыт за добычу
+        addXP(10);
         saveState();
         updateTopPanel();
         element.style.opacity = '0';
         setTimeout(() => element.remove(), 300);
-        shipEl.style.transition = 'all 5s cubic-bezier(0.25,0.1,0.25,1)';
+        // Возврат на базу
+        const returnAngle = Math.atan2(startY - obj.y, startX - obj.x) * (180 / Math.PI);
         shipEl.style.left = startX + 'px';
         shipEl.style.top = startY + 'px';
-        shipEl.style.transform = 'translate(-50%, -50%) scale(0.45)';
+        shipEl.style.transform = 'translate(-50%, -50%) rotate(' + returnAngle + 'deg)';
         setTimeout(() => {
             shipEl.remove();
             galaxyObjects = galaxyObjects.filter(o => o !== obj);
@@ -1047,7 +1162,6 @@ function flyToObject(obj, element) {
     }, 5000);
 }
 
-// Восстановление топлива с учётом буста
 function getFuelRegenInterval() {
     const boost = state.boosts.find(b => b.type === 'fuel' && b.expires > Date.now());
     return boost ? 2 * 60 * 1000 : 4 * 60 * 1000;
@@ -1069,7 +1183,7 @@ function freeRefuel() {
 }
 
 // ----------------------------------------------------------------------
-//  5. АНГАР (СИСТЕМА ПРОКАЧКИ)
+//  5. АНГАР
 // ----------------------------------------------------------------------
 
 function getUpgradeCost(type) {
@@ -1116,6 +1230,7 @@ function buyUpgrade(type) {
         state.maxFuel += 10;
         state.resources.fuel = Math.min(state.resources.fuel + 10, state.maxFuel);
     }
+    addXP(5);
     saveState();
     updateHangar();
     updateTopPanel();
@@ -1173,6 +1288,7 @@ function upgradeArtifact(artifactId) {
     state.resources.spice -= cost.spice;
     state.artifact.id = artifactId;
     state.artifact.level = level + 1;
+    addXP(8);
     saveState();
     updateHangar();
 }
@@ -1186,17 +1302,17 @@ function unequipArtifact() {
 
 function updateArtifactSection() {
     const container = document.getElementById('artifact-section');
-    let html = `<div style="font-size:5px;margin:4px 0;">Экипирован: ${state.artifact.id ? ARTIFACTS.find(a=>a.id===state.artifact.id).name + ' (ур.'+state.artifact.level+')' : 'нет'}</div>`;
+    let html = `<div style="font-size:4px;margin:4px 0;">Экипирован: ${state.artifact.id ? ARTIFACTS.find(a=>a.id===state.artifact.id).name + ' (ур.'+state.artifact.level+')' : 'нет'}</div>`;
     html += `<div class="flex-row">`;
     ARTIFACTS.forEach(art => {
         const isEquipped = state.artifact.id === art.id;
         const level = isEquipped ? state.artifact.level : 0;
         const canUpgrade = isEquipped && level < 5 && getArtifactCost(level);
         html += `<div class="artifact-card ${isEquipped?'selected':''}" onclick="upgradeArtifact('${art.id}')">
-            <div style="font-size:6px;">${art.name}</div>
-            <div style="font-size:4px;">${art.desc}</div>
-            <div style="font-size:4px;">ур.${level}/5</div>
-            ${canUpgrade ? `<div style="font-size:4px;">${getArtifactCost(level).shards}🧩 ${getArtifactCost(level).spice}💎</div>` : ''}
+            <div style="font-size:5px;">${art.name}</div>
+            <div style="font-size:3px;">${art.desc}</div>
+            <div style="font-size:3px;">ур.${level}/5</div>
+            ${canUpgrade ? `<div style="font-size:3px;">${getArtifactCost(level).shards}🧩 ${getArtifactCost(level).spice}💎</div>` : ''}
         </div>`;
     });
     html += `</div>`;
@@ -1207,7 +1323,7 @@ function updateArtifactSection() {
 }
 
 // ----------------------------------------------------------------------
-//  7. PvP (КОСМОБИТВА)
+//  7. PvP
 // ----------------------------------------------------------------------
 
 function getFinalStats() {
@@ -1224,7 +1340,6 @@ function getFinalStats() {
         else if (art.effect === 'speed') speed *= (1 + bonus/100);
     }
     let critChance = 5 + state.upgrades.luck * 2;
-    // Буст PvP
     const pvpBoost = state.boosts.find(b => b.type === 'pvp' && b.expires > Date.now());
     if (pvpBoost) {
         damage *= 1.2;
@@ -1253,7 +1368,10 @@ function generateEnemyStats() {
 
 function simulatePvP(playerStats, enemyStats) {
     const HP = 1000;
-    let pHP = HP, eHP = HP;
+    let pShield = playerStats.shield;
+    let pHP = HP;
+    let eShield = enemyStats.shield;
+    let eHP = HP;
     let pNext = 0, eNext = 0;
     const myDelay = 100 / playerStats.speed;
     const enemyDelay = 100 / enemyStats.speed;
@@ -1262,30 +1380,44 @@ function simulatePvP(playerStats, enemyStats) {
     const enemyVampireChance = (Math.random() < 0.2) ? 5 : 0;
     const enemyDodgeChance = (Math.random() < 0.2) ? 5 : 0;
 
+    let history = [];
+
     for (let t = 0; t < 10; t += 0.1) {
         if (t >= pNext) {
             let dmg = Math.max(0, playerStats.damage - enemyStats.shield * 0.5);
             if (Math.random() * 100 < playerStats.critChance) dmg *= 1.5;
             if (enemyDodgeChance && Math.random() * 100 < enemyDodgeChance) dmg = 0;
-            eHP -= dmg;
+            if (eShield > 0) {
+                let shieldDmg = Math.min(dmg, eShield);
+                eShield -= shieldDmg;
+                dmg -= shieldDmg;
+            }
+            if (dmg > 0) eHP -= dmg;
             if (myVampireChance && Math.random() * 100 < myVampireChance) {
                 pHP = Math.min(HP, pHP + HP * 0.1);
             }
+            history.push({ time: t, type: 'player_hit' });
             pNext = t + myDelay;
         }
         if (t >= eNext) {
             let dmg = Math.max(0, enemyStats.damage - playerStats.shield * 0.5);
             if (Math.random() * 100 < enemyStats.critChance) dmg *= 1.5;
             if (myDodgeChance && Math.random() * 100 < myDodgeChance) dmg = 0;
-            pHP -= dmg;
+            if (pShield > 0) {
+                let shieldDmg = Math.min(dmg, pShield);
+                pShield -= shieldDmg;
+                dmg -= shieldDmg;
+            }
+            if (dmg > 0) pHP -= dmg;
             if (enemyVampireChance && Math.random() * 100 < enemyVampireChance) {
                 eHP = Math.min(HP, eHP + HP * 0.1);
             }
+            history.push({ time: t, type: 'enemy_hit' });
             eNext = t + enemyDelay;
         }
         if (pHP <= 0 || eHP <= 0) break;
     }
-    return { pHP, eHP };
+    return { pHP, pShield, eHP, eShield, history };
 }
 
 let pvpInterval = null;
@@ -1296,37 +1428,91 @@ function searchPvP() {
     if (pvpInterval) return;
     const playerStats = getFinalStats();
     const enemyStats = generateEnemyStats();
-    // Отображаем врага
-    document.getElementById('pvp-enemy-ship-display').innerHTML = '';
-    document.getElementById('pvp-enemy-ship-display').appendChild(window.createEnemyShip(Math.floor(Math.random()*3)));
-    document.getElementById('pvp-enemy-stats').innerText = `Урон:${Math.floor(enemyStats.damage)} Защ:${Math.floor(enemyStats.shield)} Ск:${Math.floor(enemyStats.speed)}`;
+
+    const pvpPlayerShip = document.getElementById('pvp-player-ship-display');
+    pvpPlayerShip.innerHTML = '';
+    pvpPlayerShip.appendChild(window.createPlayerShip(0.6, 0));
+    const pvpEnemyShip = document.getElementById('pvp-enemy-ship-display');
+    pvpEnemyShip.innerHTML = '';
+    pvpEnemyShip.appendChild(window.createEnemyShip(Math.floor(Math.random()*3)));
+
+    document.getElementById('pvp-enemy-name').innerText = 'Противник';
+    document.getElementById('pvp-player-name').innerText = state.playerName;
     document.getElementById('pvp-player-stats').innerText = `Урон:${Math.floor(playerStats.damage)} Защ:${Math.floor(playerStats.shield)} Ск:${Math.floor(playerStats.speed)}`;
+    document.getElementById('pvp-enemy-stats').innerText = `Урон:${Math.floor(enemyStats.damage)} Защ:${Math.floor(enemyStats.shield)} Ск:${Math.floor(enemyStats.speed)}`;
     document.getElementById('pvp-status').innerText = 'Бой...';
     let timer = 10;
     document.getElementById('pvp-timer').innerText = timer;
 
     const result = simulatePvP(playerStats, enemyStats);
-    let outcome;
-    if (result.pHP <= 0 && result.eHP <= 0) outcome = 'НИЧЬЯ! +2';
-    else if (result.eHP <= 0) outcome = 'ПОБЕДА! +15';
-    else if (result.pHP <= 0) outcome = 'ПОРАЖЕНИЕ... -12';
-    else outcome = 'НИЧЬЯ! +2';
+    let step = 0;
+    const totalSteps = result.history.length;
+    const maxTime = 10;
 
-    // Анимация (просто показываем результат через таймер)
+    function updateBars() {
+        const pShieldPct = Math.max(0, (result.pShield / playerStats.shield) * 100);
+        const pHPPct = Math.max(0, (result.pHP / 1000) * 100);
+        const eShieldPct = Math.max(0, (result.eShield / enemyStats.shield) * 100);
+        const eHPPct = Math.max(0, (result.eHP / 1000) * 100);
+        document.getElementById('pvp-player-shield').style.width = pShieldPct + '%';
+        document.getElementById('pvp-player-hp').style.width = pHPPct + '%';
+        document.getElementById('pvp-enemy-shield').style.width = eShieldPct + '%';
+        document.getElementById('pvp-enemy-hp').style.width = eHPPct + '%';
+    }
+
+    function animateHit(type) {
+        if (type === 'player_hit') {
+            const enemyShip = document.getElementById('pvp-enemy-ship-display').firstChild;
+            if (enemyShip) {
+                enemyShip.classList.add('hit-flash', 'ship-shake');
+                setTimeout(() => {
+                    enemyShip.classList.remove('hit-flash', 'ship-shake');
+                }, 300);
+            }
+        } else if (type === 'enemy_hit') {
+            const playerShip = document.getElementById('pvp-player-ship-display').firstChild;
+            if (playerShip) {
+                playerShip.classList.add('hit-flash', 'ship-shake');
+                setTimeout(() => {
+                    playerShip.classList.remove('hit-flash', 'ship-shake');
+                }, 300);
+            }
+        }
+    }
+
+    let timeIdx = 0;
     pvpTimerInterval = setInterval(() => {
         timer--;
         document.getElementById('pvp-timer').innerText = timer;
+        const targetTime = maxTime - timer;
+        while (timeIdx < result.history.length && result.history[timeIdx].time <= targetTime) {
+            animateHit(result.history[timeIdx].type);
+            timeIdx++;
+        }
+        updateBars();
         if (timer <= 0) {
             clearInterval(pvpTimerInterval);
             pvpTimerInterval = null;
+            let outcome;
+            if (result.pHP <= 0 && result.eHP <= 0) outcome = 'НИЧЬЯ! +2';
+            else if (result.eHP <= 0) outcome = 'ПОБЕДА! +15';
+            else if (result.pHP <= 0) outcome = 'ПОРАЖЕНИЕ... -12';
+            else if (result.pHP > result.eHP) outcome = 'ПОБЕДА! +15';
+            else if (result.pHP < result.eHP) outcome = 'ПОРАЖЕНИЕ... -12';
+            else outcome = 'НИЧЬЯ! +2';
             document.getElementById('pvp-status').innerText = outcome;
-            // Обновляем рейтинг
-            if (outcome.includes('ПОБЕДА')) state.pvpScore += 15;
-            else if (outcome.includes('ПОРАЖЕНИЕ')) state.pvpScore = Math.max(0, state.pvpScore - 12);
-            else state.pvpScore += 2;
+            if (outcome.includes('ПОБЕДА')) {
+                state.pvpScore += 15;
+                addXP(20);
+            } else if (outcome.includes('ПОРАЖЕНИЕ')) {
+                state.pvpScore = Math.max(0, state.pvpScore - 12);
+                addXP(5);
+            } else {
+                state.pvpScore += 2;
+                addXP(8);
+            }
             updateLeaderboard();
             saveState();
-            // Сброс интервалов
             if (pvpInterval) { clearInterval(pvpInterval); pvpInterval = null; }
         }
     }, 1000);
@@ -1345,7 +1531,7 @@ function updateLeaderboard() {
 }
 
 // ----------------------------------------------------------------------
-//  8. ЧЕКИН (7 дней)
+//  8. ЧЕКИН
 // ----------------------------------------------------------------------
 
 function openCheckin() {
@@ -1362,7 +1548,7 @@ function renderCheckin() {
         const today = (i === state.checkinDay && !state.checkinClaimedToday);
         html += `<div class="calendar-day ${claimed?'claimed':''} ${today?'today':''}">
             <div>День ${i}</div>
-            <div style="font-size:4px;">${reward.credits}🪙 ${reward.fuel}⛽ ${reward.parts>0?reward.parts+'🧩':''} ${reward.spice>0?reward.spice+'💎':''}</div>
+            <div style="font-size:3px;">${reward.credits}🪙 ${reward.fuel}⛽ ${reward.parts>0?reward.parts+'🧩':''} ${reward.spice>0?reward.spice+'💎':''}</div>
             ${claimed ? '✅' : (today ? '<button onclick="claimCheckin()">ЗАБРАТЬ</button>' : '🔒')}
         </div>`;
     }
@@ -1375,13 +1561,11 @@ function claimCheckin() {
         alert('Вы уже забрали награду сегодня');
         return;
     }
-    // Проверяем, не пропущен ли день
     const now = Date.now();
     const last = state.checkinLastClaim ? new Date(state.checkinLastClaim) : null;
     if (last) {
         const diffDays = Math.floor((now - last) / (24*60*60*1000));
         if (diffDays > 1) {
-            // Сброс прогресса
             state.checkinDay = 1;
             state.checkinClaimedToday = false;
             state.checkinLastClaim = null;
@@ -1394,7 +1578,6 @@ function claimCheckin() {
             return;
         }
     }
-    // Забираем награду
     const reward = CHECKIN_REWARDS[state.checkinDay-1];
     state.resources.credits += reward.credits;
     state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + reward.fuel);
@@ -1407,12 +1590,12 @@ function claimCheckin() {
     state.checkinClaimedToday = true;
     state.checkinLastClaim = now;
     if (state.checkinDay === 7) {
-        // Сброс цикла
         state.checkinDay = 1;
         state.checkinClaimedToday = false;
     } else {
         state.checkinDay++;
     }
+    addXP(12);
     saveState();
     updateTopPanel();
     renderCheckin();
@@ -1420,7 +1603,7 @@ function claimCheckin() {
 }
 
 // ----------------------------------------------------------------------
-//  9. БАТЛ-ПАСС (30 дней)
+//  9. БАТЛ-ПАСС
 // ----------------------------------------------------------------------
 
 function openBattlePass() {
@@ -1435,7 +1618,7 @@ function renderBP() {
         const reward = getBPReward(i);
         const claimed = (state.bpDay > i) || (state.bpDay === i && state.bpClaimedToday);
         const today = (i === state.bpDay && !state.bpClaimedToday);
-        html += `<div class="calendar-day ${claimed?'claimed':''} ${today?'today':''}" style="font-size:4px;">
+        html += `<div class="calendar-day ${claimed?'claimed':''} ${today?'today':''}" style="font-size:3px;">
             <div>День ${i}</div>
             <div>${reward.credits}🪙 ${reward.fuel}⛽ ${reward.parts}🧩 ${reward.spice}💎</div>
             ${claimed ? '✅' : (today ? '<button onclick="claimBP()">ЗАБРАТЬ</button>' : '🔒')}
@@ -1448,7 +1631,6 @@ function renderBP() {
 
 function buyBattlePass() {
     if (state.bpPaid) { alert('Уже куплен'); return; }
-    // Имитация покупки за USDT
     state.bpPaid = true;
     saveState();
     renderBP();
@@ -1458,7 +1640,6 @@ function buyBattlePass() {
 function claimBP() {
     if (!state.bpPaid) { alert('Сначала купите батл-пасс'); return; }
     if (state.bpClaimedToday) { alert('Уже забрали сегодня'); return; }
-    // Проверяем день
     const now = Date.now();
     const last = state.bpLastClaim ? new Date(state.bpLastClaim) : null;
     if (last) {
@@ -1467,8 +1648,6 @@ function claimBP() {
             alert('Уже сегодня забирали');
             return;
         } else if (diffDays > 1) {
-            // Пропуск дней – можно либо сбросить, либо дать только текущий
-            // По концепции – бонус сгорает, даём только текущий день
             state.bpDay = Math.min(30, state.bpDay + diffDays);
         }
     }
@@ -1483,11 +1662,8 @@ function claimBP() {
     state.resources.spice += reward.spice;
     state.bpClaimedToday = true;
     state.bpLastClaim = now;
-    if (state.bpDay === 30) {
-        // Можно показать завершение
-    } else {
-        state.bpDay++;
-    }
+    if (state.bpDay < 30) state.bpDay++;
+    addXP(15);
     saveState();
     updateTopPanel();
     renderBP();
@@ -1495,7 +1671,7 @@ function claimBP() {
 }
 
 // ----------------------------------------------------------------------
-//  10. УСИЛЕНИЯ (БУСТЫ)
+//  10. УСИЛЕНИЯ
 // ----------------------------------------------------------------------
 
 let selectedBoostType = null;
@@ -1508,19 +1684,17 @@ function openBoosts() {
 
 function renderBoosts() {
     const container = document.getElementById('boost-selection');
-    // Типы
-    let html = '<div style="font-size:6px;margin:4px 0;">Тип усиления:</div><div class="flex-row">';
+    let html = '<div style="font-size:5px;margin:4px 0;">Тип усиления:</div><div class="flex-row">';
     BOOST_TYPES.forEach(bt => {
         const active = state.boosts.some(b => b.type === bt.id && b.expires > Date.now());
         html += `<div class="boost-card ${selectedBoostType===bt.id?'selected':''}" onclick="selectBoostType('${bt.id}')">
             <div>${bt.name}</div>
-            <div style="font-size:4px;">${bt.desc}</div>
+            <div style="font-size:3px;">${bt.desc}</div>
             ${active ? '<div style="color:#00aa44;">АКТИВНО</div>' : ''}
         </div>`;
     });
     html += '</div>';
-    // Длительность
-    html += '<div style="font-size:6px;margin:4px 0;">Длительность:</div><div class="flex-row">';
+    html += '<div style="font-size:5px;margin:4px 0;">Длительность:</div><div class="flex-row">';
     BOOST_DURATIONS.forEach(d => {
         const price = BOOST_PRICES[d];
         html += `<div class="boost-card ${selectedBoostDuration===d?'selected':''}" onclick="selectBoostDuration(${d})">
@@ -1547,9 +1721,9 @@ function buyBoost() {
         return;
     }
     const price = BOOST_PRICES[selectedBoostDuration];
-    // Имитация покупки за USDT
     const expires = Date.now() + selectedBoostDuration * 24 * 60 * 60 * 1000;
     state.boosts.push({ type: selectedBoostType, expires: expires });
+    addXP(10);
     saveState();
     renderBoosts();
     alert(`Усиление "${BOOST_TYPES.find(b=>b.id===selectedBoostType).name}" на ${selectedBoostDuration} дней активировано!`);
@@ -1558,7 +1732,7 @@ function buyBoost() {
 }
 
 // ----------------------------------------------------------------------
-//  11. ИНИЦИАЛИЗАЦИЯ И НАВИГАЦИЯ
+//  11. ИНИЦИАЛИЗАЦИЯ
 // ----------------------------------------------------------------------
 
 function setPlayerName() {
@@ -1574,14 +1748,13 @@ function selectFaction(name, color, bonus) {
     state.factionColor = color;
     state.factionBonus = bonus;
     saveState();
-    // Выбор корабля
     const container = document.getElementById('ship-selection');
     container.innerHTML = '';
     for (let i=0; i<3; i++) {
         const card = document.createElement('div');
         card.style.cssText = 'cursor:pointer;padding:6px;border:2px solid #00aa44;text-align:center;width:100px;height:120px;display:flex;align-items:center;justify-content:center;';
         const matrix = SHIP_SPRITES[`player${i+1}`] || [];
-        card.appendChild(drawShipSprite(matrix, i===0?0.8:0.5));
+        card.appendChild(drawShipSprite(matrix, i===0?0.8:0.5, 0));
         card.onclick = () => {
             state.shipIndex = i;
             container.querySelectorAll('div').forEach(d => d.style.borderColor = '#00aa44');
@@ -1595,7 +1768,7 @@ function selectFaction(name, color, bonus) {
 }
 
 function confirmShip() {
-    state.shipName = ''; // имя корабля не используется
+    state.shipName = '';
     saveState();
     showUI();
     document.getElementById('content-overlay').style.display = 'none';
@@ -1620,15 +1793,21 @@ function switchTab(tab) {
             showWindow('hangar');
             const hangarDiv = document.getElementById('hangar-ship-display');
             hangarDiv.innerHTML = '';
-            hangarDiv.appendChild(window.createPlayerShip(1.0));
+            hangarDiv.appendChild(window.createPlayerShip(0.8, 0));
             updateHangar();
         } else if (tab === 'pvp') {
             showWindow('pvp');
             document.getElementById('pvp-player-ship-display').innerHTML = '';
-            document.getElementById('pvp-player-ship-display').appendChild(window.createPlayerShip(1.0));
+            document.getElementById('pvp-player-ship-display').appendChild(window.createPlayerShip(0.6, 0));
             document.getElementById('pvp-enemy-ship-display').innerHTML = '';
             document.getElementById('pvp-enemy-ship-display').appendChild(window.createEnemyShip(Math.floor(Math.random()*3)));
             document.getElementById('pvp-player-name').innerText = state.playerName;
+            document.getElementById('pvp-player-shield').style.width = '100%';
+            document.getElementById('pvp-player-hp').style.width = '100%';
+            document.getElementById('pvp-enemy-shield').style.width = '100%';
+            document.getElementById('pvp-enemy-hp').style.width = '100%';
+            document.getElementById('pvp-timer').innerText = '10';
+            document.getElementById('pvp-status').innerText = 'Нажмите НАЙТИ БОЙ';
             updateLeaderboard();
         } else if (tab === 'minigames') {
             showWindow('minigames');
@@ -1647,7 +1826,6 @@ function devReset() {
     }
 }
 
-// Запуск
 function init() {
     createStars();
     drawPlanet();
