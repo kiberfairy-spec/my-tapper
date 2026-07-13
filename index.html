@@ -82,7 +82,7 @@
             z-index: 2;
         }
         .pixel-planet {
-            width: 180px; /* увеличена */
+            width: 180px;
             height: 110px;
             position: relative;
         }
@@ -98,7 +98,7 @@
             transition: opacity 0.3s;
             transform: translate(-50%, -50%);
             cursor: pointer;
-            font-size: 28px; /* размер объектов */
+            font-size: 28px;
         }
         /* Верхняя панель – две строки */
         .top-panel {
@@ -205,7 +205,7 @@
         }
         .fuel-badge { border-color: #4488ff; color: #4488ff; }
         .credits-badge { border-color: #ffcc00; color: #ffcc00; }
-        .spice-badge { border-color: #ff66ff; color: #f5f5f5; } /* молочнобелый */
+        .spice-badge { border-color: #ff66ff; color: #f5f5f5; }
 
         /* Неоновые кнопки */
         .top-btn {
@@ -507,7 +507,7 @@
         }
         .pvp-side .bar-fill {
             height: 100%;
-            transition: width 0.2s;
+            transition: width 0.1s;
         }
         .pvp-side .shield-fill { background: #4488ff; }
         .pvp-side .hp-fill { background: #00aa44; }
@@ -548,6 +548,17 @@
             50% { transform: translate(2px,-2px); }
             75% { transform: translate(-2px,-2px); }
             100% { transform: translate(0,0); }
+        }
+        /* Лазерные выстрелы */
+        .laser-shot {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #ffaa00;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #ffaa00, 0 0 20px #ffaa00;
+            pointer-events: none;
+            z-index: 20;
         }
     </style>
 </head>
@@ -633,7 +644,7 @@
             <div class="window-title">КОСМОБИТВА</div>
             <div class="pvp-split">
                 <div class="pvp-side" id="pvp-left">
-                    <div id="pvp-player-ship-display"></div>
+                    <div id="pvp-player-ship-display" style="position:relative;"></div>
                     <div style="font-size:6px;margin:2px 0;" id="pvp-player-name">Вы</div>
                     <div class="bar-container">
                         <div class="bar-label">Щит</div>
@@ -647,7 +658,7 @@
                 </div>
                 <div class="pvp-vs">VS</div>
                 <div class="pvp-side" id="pvp-right">
-                    <div id="pvp-enemy-ship-display"></div>
+                    <div id="pvp-enemy-ship-display" style="position:relative;"></div>
                     <div style="font-size:6px;margin:2px 0;" id="pvp-enemy-name">Противник</div>
                     <div class="bar-container">
                         <div class="bar-label">Щит</div>
@@ -815,7 +826,7 @@ const defaultState = {
     faction: null,
     factionColor: '#00aa44',
     factionBonus: null,
-    shipIndex: null, // исправлено: null
+    shipIndex: null,
     resources: { credits:0, fuel:100, shieldParts:0, weaponParts:0, speedParts:0, spice:0, shards:0 },
     maxFuel: 100,
     upgrades: { damage:0, shield:0, speed:0, luck:0, fuelTank:0 },
@@ -1013,7 +1024,7 @@ function parkShipOnPlanet() {
     const mr = document.getElementById('galaxy-bg').getBoundingClientRect();
     const cx = pr.left - mr.left + pr.width/2;
     const cy = pr.top - mr.top + pr.height/2;
-    const ship = window.createPlayerShip(0.35, 0); // вертикально
+    const ship = window.createPlayerShip(0.35, 0);
     docked.innerHTML = '';
     docked.appendChild(ship);
     docked.style.left = cx + 'px';
@@ -1419,7 +1430,8 @@ function simulatePvP(playerStats, enemyStats) {
 
     let history = [];
 
-    for (let t = 0; t < 10; t += 0.1) {
+    for (let t = 0; t < 10; t += 0.05) { // меньший шаг для более плавной анимации
+        // Атака игрока
         if (t >= pNext) {
             let dmg = Math.max(0, playerStats.damage - enemyStats.shield * 0.5);
             if (Math.random() * 100 < playerStats.critChance) dmg *= 1.5;
@@ -1436,6 +1448,7 @@ function simulatePvP(playerStats, enemyStats) {
             history.push({ time: t, type: 'player_hit' });
             pNext = t + myDelay;
         }
+        // Атака врага
         if (t >= eNext) {
             let dmg = Math.max(0, enemyStats.damage - playerStats.shield * 0.5);
             if (Math.random() * 100 < enemyStats.critChance) dmg *= 1.5;
@@ -1498,16 +1511,29 @@ function searchPvP() {
     }
 
     function animateHit(type) {
+        // Создаём лазерный выстрел
+        let fromX, fromY, toX, toY;
+        const leftShip = document.getElementById('pvp-player-ship-display');
+        const rightShip = document.getElementById('pvp-enemy-ship-display');
         if (type === 'player_hit') {
-            const enemyShip = document.getElementById('pvp-enemy-ship-display').firstChild;
+            fromX = leftShip.getBoundingClientRect().right;
+            fromY = leftShip.getBoundingClientRect().top + leftShip.offsetHeight/2;
+            toX = rightShip.getBoundingClientRect().left;
+            toY = rightShip.getBoundingClientRect().top + rightShip.offsetHeight/2;
+            // Вспышка на враге
+            const enemyShip = rightShip.firstChild;
             if (enemyShip) {
                 enemyShip.classList.add('hit-flash', 'ship-shake');
                 setTimeout(() => {
                     enemyShip.classList.remove('hit-flash', 'ship-shake');
                 }, 300);
             }
-        } else if (type === 'enemy_hit') {
-            const playerShip = document.getElementById('pvp-player-ship-display').firstChild;
+        } else {
+            fromX = rightShip.getBoundingClientRect().left;
+            fromY = rightShip.getBoundingClientRect().top + rightShip.offsetHeight/2;
+            toX = leftShip.getBoundingClientRect().right;
+            toY = leftShip.getBoundingClientRect().top + leftShip.offsetHeight/2;
+            const playerShip = leftShip.firstChild;
             if (playerShip) {
                 playerShip.classList.add('hit-flash', 'ship-shake');
                 setTimeout(() => {
@@ -1515,6 +1541,23 @@ function searchPvP() {
                 }, 300);
             }
         }
+        // Создаём лазер
+        const laser = document.createElement('div');
+        laser.className = 'laser-shot';
+        laser.style.left = fromX + 'px';
+        laser.style.top = fromY + 'px';
+        document.body.appendChild(laser);
+        // Анимируем перемещение к цели
+        const dx = toX - fromX;
+        const dy = toY - fromY;
+        laser.style.transition = 'all 0.15s linear';
+        requestAnimationFrame(() => {
+            laser.style.left = toX + 'px';
+            laser.style.top = toY + 'px';
+        });
+        setTimeout(() => {
+            laser.remove();
+        }, 200);
     }
 
     let timeIdx = 0;
@@ -1799,7 +1842,6 @@ function selectFaction(name, color, bonus) {
 }
 
 function confirmShip() {
-    // Исправление: проверяем, что корабль выбран
     if (state.shipIndex === null || state.shipIndex === undefined) {
         alert('Выберите корабль');
         return;
@@ -1820,16 +1862,19 @@ function confirmShip() {
 function switchTab(tab) {
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('nav-'+tab).classList.add('active');
-    document.querySelectorAll('.bg-object').forEach(o => o.style.display = (tab === 'map') ? 'block' : 'none');
     if (tab === 'map') {
+        // Показываем карту
         document.getElementById('content-overlay').style.display = 'none';
+        // Убеждаемся, что объекты и корабль видны
+        document.querySelectorAll('.bg-object').forEach(o => o.style.display = 'block');
+        parkShipOnPlanet(); // перепарковываем, если нужно
     } else {
         document.getElementById('content-overlay').style.display = 'flex';
+        document.querySelectorAll('.bg-object').forEach(o => o.style.display = 'none');
         if (tab === 'hangar') {
             showWindow('hangar');
             const hangarDiv = document.getElementById('hangar-ship-display');
             hangarDiv.innerHTML = '';
-            // Разворачиваем корабль горизонтально (90 градусов)
             const ship = window.createPlayerShip(0.8, 90);
             ship.classList.add('ship-horizontal');
             hangarDiv.appendChild(ship);
@@ -1868,7 +1913,7 @@ function devReset() {
 function init() {
     createStars();
     drawPlanet();
-    if (state.faction && state.playerName) {
+    if (state.faction && state.playerName && state.shipIndex !== null) {
         showUI();
         document.getElementById('content-overlay').style.display = 'none';
         const center = getMapCenter();
