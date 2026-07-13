@@ -22,7 +22,7 @@
         .background-map { position:fixed; top:0; left:0; width:100%; height:calc(100dvh - 80px); z-index:1; pointer-events:none; }
         .galaxy-bg { position:relative; width:100%; height:100%; overflow:hidden; background:transparent; }
         .planet-container { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:2; }
-        .pixel-planet { width:128px; height:80px; position:relative; }
+        .pixel-planet { width:160px; height:100px; position:relative; }
         .player-docked { position:absolute; z-index:10; pointer-events:none; }
         .bg-object { position:absolute; z-index:2; pointer-events:none; transition:opacity 0.3s; transform:translate(-50%,-50%); cursor:pointer; }
         .top-panel { position:fixed; top:0; left:0; right:0; height:50px; display:flex; justify-content:space-between; align-items:center; padding:5px 10px; z-index:100; pointer-events:none; }
@@ -33,7 +33,7 @@
         .credits-badge { border-color:#ffcc00; color:#ffcc00; }
         .spice-badge { border-color:#ff66ff; color:#ff66ff; }
         .refuel-btn { background:#4488ff; color:#fff; border:none; padding:4px 8px; font-size:7px; cursor:pointer; font-family:'Press Start 2P',monospace; pointer-events:all; margin-left:5px; display:none; }
-        .dev-reset-btn { background:#aa3333; color:#fff; border:none; padding:4px 8px; font-size:7px; cursor:pointer; font-family:'Press Start 2P',monospace; pointer-events:all; margin-left:5px; display:none; }
+        .dev-reset-btn { background:#aa3333; color:#fff; border:none; padding:4px 8px; font-size:7px; cursor:pointer; font-family:'Press Start 2P',monospace; pointer-events:all; margin-left:5px; display:inline-block; }
         .back-btn { width:34px; height:34px; background:rgba(0,20,0,0.9); border:2px solid #00aa44; color:#00dd55; font-size:15px; cursor:pointer; display:none; align-items:center; justify-content:center; font-family:'Press Start 2P',monospace; pointer-events:all; }
         .loot-feed { position:fixed; bottom:85px; left:50%; transform:translateX(-50%); z-index:200; pointer-events:none; display:flex; align-items:center; justify-content:center; gap:6px; flex-wrap:wrap; min-height:26px; }
         .loot-item { font-family:'Press Start 2P',monospace; font-size:7px; color:#ffcc00; background:rgba(0,0,0,0.8); padding:4px 8px; animation:fadeInOut 2.5s ease-in-out forwards; }
@@ -127,7 +127,7 @@
         </div>
     </div>
     <script>
-        // ---------- ПЛАНЕТА ----------
+        // ---------- ПЛАНЕТА (увеличена) ----------
         const planetColors = { 1:'#3c1a5b', 2:'#b094fa', 3:'#f25cf2', 4:'#ff9eff', 5:'#e3e8ff' };
         const WIDTH = 64, HEIGHT = 40;
         const planetMatrix = Array(HEIGHT).fill().map(()=>Array(WIDTH).fill(0));
@@ -137,24 +137,145 @@
         const finalMatrix=JSON.parse(JSON.stringify(planetMatrix));
         for(let y=1;y<HEIGHT-1;y++){for(let x=1;x<WIDTH-1;x++){if(planetMatrix[y][x]===0){if(planetMatrix[y-1][x]>1||planetMatrix[y+1][x]>1||planetMatrix[y][x-1]>1||planetMatrix[y][x+1]>1)finalMatrix[y][x]=1;}}}
         function drawPlanet(ctx,matrix,pixelSize){for(let y=0;y<matrix.length;y++){for(let x=0;x<matrix[0].length;x++){const c=matrix[y][x];if(c){ctx.fillStyle=planetColors[c];ctx.fillRect(x*pixelSize,y*pixelSize,pixelSize,pixelSize);}}}}
-        function setupPixelPlanet(){const pc=document.querySelector('.pixel-planet');if(!pc)return;pc.innerHTML='';const w=document.createElement('div');w.style.cssText='width:100%;height:100%;display:flex;align-items:center;justify-content:center;';const ps=2;const canvas=document.createElement('canvas');canvas.width=WIDTH*ps;canvas.height=HEIGHT*ps;const ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;canvas.style.imageRendering='pixelated';drawPlanet(ctx,finalMatrix,ps);canvas.style.cssText='display:block;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;';w.appendChild(canvas);w.style.animation='rotate 60s linear infinite';pc.appendChild(w);}
+        function setupPixelPlanet(){
+            const pc=document.querySelector('.pixel-planet');if(!pc)return;pc.innerHTML='';
+            const w=document.createElement('div');w.style.cssText='width:100%;height:100%;display:flex;align-items:center;justify-content:center;';
+            const ps=2.5; // увеличено с 2
+            const canvas=document.createElement('canvas');canvas.width=WIDTH*ps;canvas.height=HEIGHT*ps;
+            const ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;canvas.style.imageRendering='pixelated';
+            drawPlanet(ctx,finalMatrix,ps);
+            canvas.style.cssText='display:block;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;';
+            w.appendChild(canvas);w.style.animation='rotate 60s linear infinite';pc.appendChild(w);
+        }
 
         // ---------- КОРАБЛИ ----------
+        // Палитра для первого корабля (буквенная)
         const PALETTE = { 'A':'#2E0A4E','B':'#5B2C8E','C':'#8B5FBF','P':'#FF44AA','Q':'#44CCFF', 'R':'#8B0000','D':'#2A2A2A','E':'#FF4500','F':'#FF6600','G':'#FFAA00','H':'#FFD700', '_':null };
-        const SHIP_SPRITES = {
-            player1: [ "__________A___________","_________AAA__________","_________AAA__________","________AAAAA_________","________AACAA_________","________ACCCA_________","________ACCCA_________","________AAAAA_________","________APBBA_________","________ABBBB_________","________ABBBB_________","_______AABABAA_______","_______ABBABB_______","_______ABBCBA_______","_______ABBCBA_______","_____AAABBABBAAA_____","____ABBABBBBBABB____","___ABBBABBBBBABBBA___","__ABBBBABBBBBABBBB__","_ABBBBBAPBBBPABBBBB_","ABBBBBBAAAAAAABBBBBBA","ABQQBBBABBBBBABBBQQBA","AAAAAAAAABBBBBAAAAAAAAA","_______AAAAAAA_______","________AAAAA_________","_______AAA_AAA_______","_______AAA_AAA_______","________QQ_QQ_________","________QQ_QQ_________","________QB_QB_________","_________Q__Q________","_________Q__Q________" ],
-            player2: [], player3: [], enemy1: [], enemy2: [], enemy3: []
+        // Палитра для НЛО
+        const UFO_PALETTE = {
+            1:'#14143d', 2:'#346cbd', 3:'#7cb5ec', 4:'#e1f3ff', 5:'#73737c', 6:'#ffffff', 7:'#ff9000'
         };
-        function drawShipSprite(matrix,scale=1){if(!matrix||matrix.length===0){const s=document.createElement('span');s.style.fontSize='30px';s.innerText='🚀';return s;}const rows=matrix.length,cols=matrix[0].length,tileSize=Math.max(2,Math.round(6*scale));const canvas=document.createElement('canvas');canvas.width=cols*tileSize;canvas.height=rows*tileSize;const ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;canvas.style.imageRendering='pixelated';canvas.style.imageRendering='crisp-edges';for(let y=0;y<rows;y++){for(let x=0;x<cols;x++){const k=matrix[y][x];if(k!=='_'){ctx.fillStyle=PALETTE[k]||'#888';ctx.fillRect(x*tileSize,y*tileSize,tileSize,tileSize);}}}const wrapper=document.createElement('div');wrapper.style.display='inline-block';wrapper.style.pointerEvents='none';wrapper.style.imageRendering='pixelated';wrapper.appendChild(canvas);return wrapper;}
-        window.createPlayerShip=(scale=1)=>drawShipSprite(SHIP_SPRITES[`player${(window.selectedShipIndex||0)+1}`],scale);
+
+        // Первый корабль (player1)
+        const player1Matrix = [
+            "__________A___________","_________AAA__________","_________AAA__________","________AAAAA_________","________AACAA_________","________ACCCA_________","________ACCCA_________","________AAAAA_________","________APBBA_________","________ABBBB_________","________ABBBB_________","_______AABABAA_______","_______ABBABB_______","_______ABBCBA_______","_______ABBCBA_______","_____AAABBABBAAA_____","____ABBABBBBBABB____","___ABBBABBBBBABBBA___","__ABBBBABBBBBABBBB__","_ABBBBBAPBBBPABBBBB_","ABBBBBBAAAAAAABBBBBBA","ABQQBBBABBBBBABBBQQBA","AAAAAAAAABBBBBAAAAAAAAA","_______AAAAAAA_______","________AAAAA_________","_______AAA_AAA_______","_______AAA_AAA_______","________QQ_QQ_________","________QQ_QQ_________","________QB_QB_________","_________Q__Q________","_________Q__Q________"
+        ];
+
+        // Генерация НЛО (player2)
+        const UFO_W = 52, UFO_H = 34;
+        const ufoMatrix = Array(UFO_H).fill().map(()=>Array(UFO_W).fill(0));
+        const ufoCenterX = 26, domeCenterY = 22, domeRadius = 20;
+        for (let y=0; y<UFO_H; y++) {
+            for (let x=0; x<UFO_W; x++) {
+                const dx = x - ufoCenterX, dy = y - domeCenterY;
+                const distSq = dx*dx + dy*dy;
+                if (distSq <= domeRadius*domeRadius && y <= 21) {
+                    ufoMatrix[y][x] = 2;
+                    if (dx > 4 && distSq > 12*12) ufoMatrix[y][x] = 3;
+                    if (dx > 10 && distSq > 17*17) ufoMatrix[y][x] = 4;
+                    if (dx < -4 && distSq < 15*15) ufoMatrix[y][x] = 1;
+                }
+                if (y >= 21 && y <= 24 && Math.abs(dx) <= 24 - (y-21)*2) {
+                    ufoMatrix[y][x] = 1;
+                    if (y === 22) ufoMatrix[y][x] = 2;
+                }
+                if (y >= 25 && y <= 26 && Math.abs(dx) <= 16) ufoMatrix[y][x] = 5;
+            }
+        }
+        const lightPositionsX = [10, 18, 26, 34, 42];
+        lightPositionsX.forEach(px => {
+            if (px>=0 && px<UFO_W) {
+                ufoMatrix[22][px] = 6;
+                if (ufoMatrix[22][px-1] !== undefined) ufoMatrix[22][px-1] = 7;
+                if (ufoMatrix[22][px+1] !== undefined) ufoMatrix[22][px+1] = 7;
+                if (ufoMatrix[21] && ufoMatrix[21][px] !== undefined) ufoMatrix[21][px] = 7;
+                if (ufoMatrix[23] && ufoMatrix[23][px] !== undefined) ufoMatrix[23][px] = 7;
+            }
+        });
+        for (let y=26; y<34; y++) {
+            const step = y-26;
+            if (step<6 && Math.abs(ufoCenterX-ufoCenterX)<=2) {
+                ufoMatrix[y][ufoCenterX] = 5;
+                ufoMatrix[y][ufoCenterX-1] = 1;
+                ufoMatrix[y][ufoCenterX+1] = 1;
+            }
+            const leftX = 14 - step*1.2;
+            ufoMatrix[y][Math.round(leftX)] = 5;
+            ufoMatrix[y][Math.round(leftX)-1] = 1;
+            const rightX = 38 + step*1.2;
+            ufoMatrix[y][Math.round(rightX)] = 5;
+            ufoMatrix[y][Math.round(rightX)+1] = 1;
+        }
+        const finalUfoMatrix = JSON.parse(JSON.stringify(ufoMatrix));
+        for (let y=1; y<UFO_H-1; y++) {
+            for (let x=1; x<UFO_W-1; x++) {
+                if (ufoMatrix[y][x] === 0) {
+                    if (ufoMatrix[y-1][x] || ufoMatrix[y+1][x] || ufoMatrix[y][x-1] || ufoMatrix[y][x+1]) {
+                        finalUfoMatrix[y][x] = 1;
+                    }
+                }
+            }
+        }
+
+        const SHIP_SPRITES = {
+            player1: player1Matrix,
+            player2: finalUfoMatrix, // числовая матрица
+            player3: [], // заглушка
+            enemy1: [], enemy2: [], enemy3: []
+        };
+
+        function drawShipSprite(matrix, scale=1) {
+            if (!matrix || matrix.length === 0) {
+                const s = document.createElement('span'); s.style.fontSize='30px'; s.innerText='🚀'; return s;
+            }
+            const rows = matrix.length, cols = matrix[0].length;
+            const tileSize = Math.max(2, Math.round(6 * scale));
+            const canvas = document.createElement('canvas');
+            canvas.width = cols * tileSize;
+            canvas.height = rows * tileSize;
+            const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = false;
+            canvas.style.imageRendering = 'pixelated';
+            canvas.style.imageRendering = 'crisp-edges';
+
+            // Определяем тип матрицы: если первый элемент строка или число
+            const isNumeric = typeof matrix[0][0] === 'number';
+
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < cols; x++) {
+                    const key = matrix[y][x];
+                    if (key === '_' || key === 0 || key === undefined) continue;
+                    let color;
+                    if (isNumeric) {
+                        color = UFO_PALETTE[key] || '#888';
+                    } else {
+                        color = PALETTE[key] || '#888';
+                    }
+                    ctx.fillStyle = color;
+                    ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+                }
+            }
+            const wrapper = document.createElement('div');
+            wrapper.style.display = 'inline-block';
+            wrapper.style.pointerEvents = 'none';
+            wrapper.style.imageRendering = 'pixelated';
+            wrapper.appendChild(canvas);
+            return wrapper;
+        }
+
+        window.createPlayerShip = (scale=1) => {
+            const index = (window.selectedShipIndex || 0) + 1;
+            const matrix = SHIP_SPRITES[`player${index}`];
+            return drawShipSprite(matrix, scale);
+        };
         window.createEnemyShip=(variant=0)=>{const type=`enemy${(variant%3)+1}`;const m=SHIP_SPRITES[type];if(m&&m.length>0)return drawShipSprite(m,0.8);const s=document.createElement('span');s.style.fontSize='30px';s.innerText='👾';return s;};
         window.createAsteroidEmoji=()=>'🪨'; window.createWreckEmoji=()=>{const w=document.createElement('span');w.style.fontSize='30px';w.innerText='🛸';w.style.filter='grayscale(1) brightness(0.5)';return w;};
 
         // ---------- БАЗОВЫЕ СТАТЫ ФРАКЦИЙ ----------
         const FACTION_STATS = {
-            tank:     { shield:40, damage:20, speed:15 },
-            dps:      { shield:15, damage:25, speed:35 },
-            sniper:   { shield:20, damage:40, speed:15 }
+            tank:   { shield:40, damage:20, speed:15 },
+            dps:    { shield:15, damage:25, speed:35 },
+            sniper: { shield:20, damage:40, speed:15 }
         };
 
         // ---------- СОСТОЯНИЕ ----------
@@ -186,13 +307,11 @@
             document.getElementById('fuel-value').innerText=Math.floor(window.resources.fuel)+'/'+window.maxFuel;
             document.getElementById('spice-value').innerText=window.resources.spice;
             document.getElementById('refuel-btn').style.display=(window.resources.fuel===0&&!window.freeRefuelUsed)?'inline-block':'none';
-            document.getElementById('dev-reset-btn').style.display='inline-block';
         }
         window.showLoot=function(name,amount){const feed=document.getElementById('loot-feed');const item=document.createElement('span');item.className='loot-item';item.innerText=`+${amount} ${name}`;feed.appendChild(item);setTimeout(()=>item.remove(),2500);};
         window.showWindow=function(id){document.querySelectorAll('.window').forEach(w=>w.classList.add('hidden'));const win=document.getElementById('window-'+id);if(win)win.classList.remove('hidden');};
         window.showUI=function(){document.getElementById('back-btn').style.display='flex';document.getElementById('bottom-panel').classList.remove('hidden');updateTopPanel();};
 
-        // Кнопка сброса
         window.devReset = function(){
             if(confirm('СБРОСИТЬ ВЕСЬ ПРОГРЕСС? ЭТО НЕОБРАТИМО.')){
                 localStorage.clear();
@@ -212,11 +331,11 @@
             const mapRect = document.getElementById('galaxy-bg').getBoundingClientRect();
             const planetCenterX = planetRect.left - mapRect.left + planetRect.width/2;
             const planetCenterY = planetRect.top - mapRect.top + planetRect.height/2;
-            const ship = window.createPlayerShip(0.45);
+            const ship = window.createPlayerShip(0.35); // уменьшено
             docked.innerHTML = '';
             docked.appendChild(ship);
             docked.style.left = (planetCenterX) + 'px';
-            docked.style.top = (planetCenterY + 15) + 'px';
+            docked.style.top = (planetCenterY + 18) + 'px';
             docked.style.transform = 'translate(-50%, -50%)';
             docked.style.display = 'block';
         }
@@ -246,14 +365,14 @@
             const startY = parseFloat(docked.style.top) || getMapCenter().y;
             docked.style.display = 'none';
             const bg=document.getElementById('galaxy-bg');
-            const shipEl=window.createPlayerShip(0.6);
+            const shipEl=window.createPlayerShip(0.45); // уменьшено для полета
             shipEl.style.position='absolute';shipEl.style.left=startX+'px';shipEl.style.top=startY+'px';shipEl.style.transform='translate(-50%,-50%)';shipEl.style.transition='all 5s cubic-bezier(0.25,0.1,0.25,1)';bg.appendChild(shipEl);
             requestAnimationFrame(()=>{shipEl.style.left=obj.x+'px';shipEl.style.top=obj.y+'px';shipEl.style.transform='translate(-50%,-50%) scale(0.8)';});
             setTimeout(()=>{
                 const loot=window.generateLoot(); if(loot)window.showLoot(loot.name,loot.amount);
                 saveAll();updateTopPanel();
                 element.style.opacity='0';setTimeout(()=>element.remove(),300);
-                shipEl.style.transition='all 5s cubic-bezier(0.25,0.1,0.25,1)';shipEl.style.left=startX+'px';shipEl.style.top=startY+'px';shipEl.style.transform='translate(-50%,-50%) scale(0.6)';
+                shipEl.style.transition='all 5s cubic-bezier(0.25,0.1,0.25,1)';shipEl.style.left=startX+'px';shipEl.style.top=startY+'px';shipEl.style.transform='translate(-50%,-50%) scale(0.45)';
                 setTimeout(()=>{shipEl.remove();window.galaxyObjects=window.galaxyObjects.filter(o=>o!==obj);window.isShipFlying=false;parkShipOnPlanet();if(document.querySelectorAll('.bg-object').length===0)window.generateObjects();},5000);
             },5000);
         };
@@ -278,7 +397,7 @@
         window.setPlayerName=function(){const n=document.getElementById('input-player-name').value.trim();if(n.length<2)return alert('Минимум 2 символа');window.playerName=n;saveAll();window.showWindow('faction');};
         window.selectFaction=function(name,color,bonus){
             window.tempFaction={name,color,bonus}; const container=document.getElementById('ship-selection');container.innerHTML='';
-            for(let i=0;i<3;i++){const card=document.createElement('div');card.style.cssText='cursor:pointer;padding:6px;border:2px solid #009944;text-align:center;width:100px;height:120px;display:flex;align-items:center;justify-content:center;';card.appendChild(drawShipSprite(SHIP_SPRITES[`player${i+1}`],0.8));card.onclick=()=>{window.tempShipIndex=i;container.querySelectorAll('div').forEach(d=>d.style.borderColor='#009944');card.style.borderColor='#aa9933';document.getElementById('confirm-ship-btn').disabled=false;};container.appendChild(card);}document.getElementById('confirm-ship-btn').disabled=true;window.showWindow('ship');
+            for(let i=0;i<3;i++){const card=document.createElement('div');card.style.cssText='cursor:pointer;padding:6px;border:2px solid #009944;text-align:center;width:100px;height:120px;display:flex;align-items:center;justify-content:center;';card.appendChild(drawShipSprite(SHIP_SPRITES[`player${i+1}`], i===0?0.8:0.5));card.onclick=()=>{window.tempShipIndex=i;container.querySelectorAll('div').forEach(d=>d.style.borderColor='#009944');card.style.borderColor='#aa9933';document.getElementById('confirm-ship-btn').disabled=false;};container.appendChild(card);}document.getElementById('confirm-ship-btn').disabled=true;window.showWindow('ship');
         };
         window.confirmShip=function(){
             const name=document.getElementById('input-ship-name').value.trim();if(window.tempShipIndex===null||name.length<2)return alert('Выберите корабль и введите имя');
@@ -300,20 +419,14 @@
         };
         function updateVipWindow(){document.getElementById('vip-level').innerText=window.vipLevel;document.getElementById('vip-mult').innerText=window.getMultiplier();}
         window.upgradeVip=function(){if(window.vipLevel<4){window.vipLevel++;localStorage.setItem('sd_vip',window.vipLevel);saveAll();updateVipWindow();updateTopPanel();}};
-        // Новая функция getStats с использованием базовых статов фракции
         function getStats(){
             const base = FACTION_STATS[window.fracBonus] || { shield:20, damage:20, speed:20 };
             let shield = base.shield + window.upgrades.shield * 2;
             let damage = base.damage + window.upgrades.damage * 2;
-            let attackSpeed = base.speed * 50; // переводим в миллисекунды (скорость атаки: 1 ед = 50ms)
+            let attackSpeed = base.speed * 50;
             attackSpeed = Math.max(500, attackSpeed - window.upgrades.speed * 30);
             let critDodge = 5 + window.upgrades.crit * 2;
-            return {
-                shield: Math.max(1, shield),
-                damage: Math.max(1, damage),
-                attackSpeed: Math.max(500, attackSpeed),
-                critDodge: Math.min(critDodge, 40)
-            };
+            return { shield:Math.max(1,shield), damage:Math.max(1,damage), attackSpeed:Math.max(500,attackSpeed), critDodge:Math.min(critDodge,40) };
         }
         window.searchPvP=function(){
             if(window.pvpInterval||window.pvpTimerInterval)return;let timer=15;document.getElementById('pvp-timer').innerText=timer;document.getElementById('pvp-status').innerText='Бой...';
