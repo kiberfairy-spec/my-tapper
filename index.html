@@ -117,175 +117,95 @@
         </div>
     </div>
     <script>
-        // ========== НОВАЯ ПИКСЕЛЬНАЯ ГРАФИКА (Star Wars стиль, 24x20) ==========
+        // ========== ПИКСЕЛЬНАЯ ГРАФИКА (вид сверху, 8x8) ==========
         const PALETTE = {
-            'Y':'#FFAA00', 'O':'#FF8800', 'B':'#2244CC', 'P':'#FF44AA',
-            'R':'#DD2222', 'G':'#22CC44', 'W':'#FFFFFF', 'D':'#444455',
-            'V':'#8844AA', 'S':'#8899AA', 'T':null
+            'Y': '#FFAA00', // желтый
+            'B': '#3355CC', // синий
+            'O': '#FF6600', // оранжевый
+            'W': '#FFFFFF', // белый
+            'G': '#667788', // серый
+            'R': '#CC2222', // красный
+            '_': null       // прозрачный
         };
 
-        // Размер спрайта: 24 столбца x 20 строк
         const SHIP_SPRITES = {
-            // ----- Игрок -----
-            player1: [ // X-wing
-                "TTTTTTTTYYYYTTTTTTTTTTTTT",
-                "TTTTTTTYYYYYYTTTTTTTTTTTT",
-                "TTTTTTYYYYYYYYTTTTTTTTTTT",
-                "TTTTTYYYBBBBYYYTTTTTTTTTT",
-                "TTTTTYYBBBBBBYYTTTTTTTTTT",
-                "TTTTTYYBBBBBBYYTTTTTTTTTT",
-                "TTTTYYYYYYYYYYYYTTTTTTTTT",
-                "TTTTYYYOOYYOOYYYTTTTTTTTT",
-                "TTTTYYYOOYYOOYYYTTTTTTTTT",
-                "TTTTYYYYYYYYYYYYTTTTTTTTT",
-                "TTTTTYYRRRRRRYYTTTTTTTTTT",
-                "TTTTTYYRRRRRRYYTTTTTTTTTT",
-                "TTTTTTYYRRRRYYTTTTTTTTTTT",
-                "TTTTTTTYYYYYYTTTTTTTTTTTT",
-                "TTTTTTTTYYYYTTTTTTTTTTTTT",
-                "TTTTTTTTTWWTTTTTTTTTTTTTT",
-                "TTTTTTTTTWWTTTTTTTTTTTTTT",
-                "TTTTTTTTTWWTTTTTTTTTTTTTT",
-                "TTTTTTTTTWWTTTTTTTTTTTTTT",
-                "TTTTTTTTTWWTTTTTTTTTTTTTT"
+            player1: [
+                "_YYYY___",
+                "YYYYYY__",
+                "YBBYYYY_",
+                "YBBYYYY_",
+                "YYYYYYY_",
+                "_YOOYY__",
+                "__WWYY__",
+                "__WW____"
             ],
-            player2: [ // Y-wing
-                "TTTTTTTYYYYYYTTTTTTTTTTT",
-                "TTTTTTYYYYYYYYTTTTTTTTTT",
-                "TTTTTYYYYYYYYYYTTTTTTTTT",
-                "TTTTTYYBBBBBBYYTTTTTTTTT",
-                "TTTTTYYBBBBBBYYTTTTTTTTT",
-                "TTTTTYYBBBBBBYYTTTTTTTTT",
-                "TTTTTTYYYYYYYYTTTTTTTTTT",
-                "TTTTTTTYYYYYYTTTTTTTTTTT",
-                "TTTTTTTTOOOTTTOOTTTTTTTT",
-                "TTTTTTTTOOOOOOOOTTTTTTTT",
-                "TTTTTTTTOOOOOOOOTTTTTTTT",
-                "TTTTTTTTTOOOOOTTTTTTTTTT",
-                "TTTTTTTTTTRRTTTTTTTTTTTT",
-                "TTTTTTTTTTRRTTTTTTTTTTTT",
-                "TTTTTTTTTTRRTTTTTTTTTTTT",
-                "TTTTTTTTTTWWTTTTTTTTTTTT",
-                "TTTTTTTTTTWWTTTTTTTTTTTT",
-                "TTTTTTTTTTWWTTTTTTTTTTTT",
-                "TTTTTTTTTTWWTTTTTTTTTTTT",
-                "TTTTTTTTTTWWTTTTTTTTTTTT"
+            player2: [
+                "__YYY___",
+                "_YYYYY__",
+                "YYBBYY__",
+                "YYBBYYY_",
+                "YYYYYYY_",
+                "_YOOYY__",
+                "__WWY___",
+                "__WW____"
             ],
-            player3: [ // Millennium Falcon
-                "TTTTTTTYYYYYYTTTTTTTTTTT",
-                "TTTTTTYYYYYYYYTTTTTTTTTT",
-                "TTTTTYYYYYYYYYYTTTTTTTTT",
-                "TTTTYYYYBBBBYYYYTTTTTTTT",
-                "TTTTYYYBBBBBBYYYTTTTTTTT",
-                "TTTTYYYBBBBBBYYYTTTTTTTT",
-                "TTTTYYYYYYYYYYYYTTTTTTTT",
-                "TTTTYYYYYYYYYYYYTTTTTTTT",
-                "TTTTTYYOOYYOOYYTTTTTTTTT",
-                "TTTTTYYOOYYOOYYTTTTTTTTT",
-                "TTTTTYYOOYYOOYYTTTTTTTTT",
-                "TTTTTTYYYYYYYYTTTTTTTTTT",
-                "TTTTTTTYYYYYYTTTTTTTTTTT",
-                "TTTTTTTTYYYYTTTTTTTTTTTT",
-                "TTTTTTTTTWWTTTTTTTTTTTTT",
-                "TTTTTTTTTWWTTTTTTTTTTTTT",
-                "TTTTTTTTTWWTTTTTTTTTTTTT",
-                "TTTTTTTTTWWTTTTTTTTTTTTT",
-                "TTTTTTTTTWWTTTTTTTTTTTTT",
-                "TTTTTTTTTWWTTTTTTTTTTTTT"
+            player3: [
+                "_YYYY___",
+                "YYYYYY__",
+                "YBBYYYY_",
+                "YBBYYYY_",
+                "YYYYYYY_",
+                "_YYOYY__",
+                "__WWY___",
+                "__WW____"
             ],
-            // ----- Враги -----
-            enemy1: [ // TIE Fighter
-                "TTTTTTTDDDDDDTTTTTTTTTTT",
-                "TTTTTTDDDDDDDDTTTTTTTTTT",
-                "TTTTTDDDDDDDDDDTTTTTTTTT",
-                "TTTTTDDVVVVVVDDTTTTTTTTT",
-                "TTTTTDDVVVVVVDDTTTTTTTTT",
-                "TTTTTDDVVVVVVDDTTTTTTTTT",
-                "TTTTTTDDDDDDDDTTTTTTTTTT",
-                "TTTTTTTDDDDDDTTTTTTTTTTT",
-                "TTTTTTTTRRRRTTTTTTTTTTTT",
-                "TTTTTTTTRRRRTTTTTTTTTTTT",
-                "TTTTTTTTRRRRTTTTTTTTTTTT",
-                "TTTTTTTTRRRRTTTTTTTTTTTT",
-                "TTTTTTTTTTRTTTTTTTTTTTTT",
-                "TTTTTTTTTTRTTTTTTTTTTTTT",
-                "TTTTTTTTTTWWTTTTTTTTTTTT",
-                "TTTTTTTTTTWWTTTTTTTTTTTT",
-                "TTTTTTTTTTWWTTTTTTTTTTTT",
-                "TTTTTTTTTTWWTTTTTTTTTTTT",
-                "TTTTTTTTTTWWTTTTTTTTTTTT",
-                "TTTTTTTTTTWWTTTTTTTTTTTT"
+            enemy1: [
+                "_GGGG___",
+                "GGGGGG__",
+                "GRRGGGG_",
+                "GRRGGGG_",
+                "GGGGGGG_",
+                "_GOOGG__",
+                "__WWGG__",
+                "__WW____"
             ],
-            enemy2: [ // TIE Interceptor
-                "TTTTTTTDDDDTTTTTTTTTTTTT",
-                "TTTTTTDDDDDDTTTTTTTTTTTT",
-                "TTTTTDDDDDDDDTTTTTTTTTTT",
-                "TTTTDDVVVVVVDDTTTTTTTTTT",
-                "TTTTDDVVVVVVDDTTTTTTTTTT",
-                "TTTTTDDDDDDDDTTTTTTTTTTT",
-                "TTTTTTDDDDDDTTTTTTTTTTTT",
-                "TTTTTTTRRRRTTTTTTTTTTTTT",
-                "TTTTTTTRRRRTTTTTTTTTTTTT",
-                "TTTTTTTRRRRTTTTTTTTTTTTT",
-                "TTTTTTTTRRTTTTTTTTTTTTTT",
-                "TTTTTTTTTRTTTTTTTTTTTTTT",
-                "TTTTTTTTTRTTTTTTTTTTTTTT",
-                "TTTTTTTTTTRTTTTTTTTTTTTT",
-                "TTTTTTTTTTWWTTTTTTTTTTTT",
-                "TTTTTTTTTTWWTTTTTTTTTTTT",
-                "TTTTTTTTTTWWTTTTTTTTTTTT",
-                "TTTTTTTTTTWWTTTTTTTTTTTT",
-                "TTTTTTTTTTWWTTTTTTTTTTTT",
-                "TTTTTTTTTTWWTTTTTTTTTTTT"
+            enemy2: [
+                "__GGG___",
+                "_GGGGG__",
+                "GGRRGGG_",
+                "GGRRGGG_",
+                "GGGGGGG_",
+                "_GOOGG__",
+                "__WWG___",
+                "__WW____"
             ],
-            enemy3: [ // TIE Bomber
-                "TTTTTTTDDDDDDTTTTTTTTTTT",
-                "TTTTTTDDDDDDDDTTTTTTTTTT",
-                "TTTTTDDDDDDDDDDTTTTTTTTT",
-                "TTTTTDDVVVVVVDDTTTTTTTTT",
-                "TTTTTDDVVVVVVDDTTTTTTTTT",
-                "TTTTTDDVVVVVVDDTTTTTTTTT",
-                "TTTTTTDDDDDDDDTTTTTTTTTT",
-                "TTTTTTTDDDDDDTTTTTTTTTTT",
-                "TTTTTTTTRRRRTTTTTTTTTTTT",
-                "TTTTTTTTRRRRTTTTTTTTTTTT",
-                "TTTTTTTTRRRRTTTTTTTTTTTT",
-                "TTTTTTTTRRRRTTTTTTTTTTTT",
-                "TTTTTTTTTTRTTTTTTTTTTTTT",
-                "TTTTTTTTTTRTTTTTTTTTTTTT",
-                "TTTTTTTTTTWWTTTTTTTTTTTT",
-                "TTTTTTTTTTWWTTTTTTTTTTTT",
-                "TTTTTTTTTTWWTTTTTTTTTTTT",
-                "TTTTTTTTTTWWTTTTTTTTTTTT",
-                "TTTTTTTTTTWWTTTTTTTTTTTT",
-                "TTTTTTTTTTWWTTTTTTTTTTTT"
+            enemy3: [
+                "__GG____",
+                "_GGGG___",
+                "GGRGGG__",
+                "GGRGGG__",
+                "GGGGGG__",
+                "_GOGG___",
+                "__WG____",
+                "__W_____"
             ]
         };
 
-        function drawShipSprite(type, scale = 1) {
-            const matrix = SHIP_SPRITES[type];
-            if (!matrix) {
-                const span = document.createElement('span');
-                span.style.fontSize = '30px';
-                span.innerText = '🚀';
-                return span;
-            }
+        function drawShipSprite(matrix, scale = 4) {
             const rows = matrix.length;
             const cols = matrix[0].length;
-            const px = Math.max(2, Math.floor(scale * 3)); // масштаб: scale * 3 пикселя на клетку
+            const tileSize = Math.max(2, Math.floor(scale));
             const canvas = document.createElement('canvas');
-            canvas.width = cols * px;
-            canvas.height = rows * px;
-            canvas.style.imageRendering = 'pixelated';
+            canvas.width = cols * tileSize;
+            canvas.height = rows * tileSize;
             const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = false; // убираем размытие
             for (let y = 0; y < rows; y++) {
-                const row = matrix[y];
                 for (let x = 0; x < cols; x++) {
-                    const colorKey = row[x];
-                    const color = PALETTE[colorKey];
-                    if (color) {
-                        ctx.fillStyle = color;
-                        ctx.fillRect(x * px, y * px, px, px);
+                    const key = matrix[y][x];
+                    if (key !== '_') {
+                        ctx.fillStyle = PALETTE[key];
+                        ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
                     }
                 }
             }
@@ -295,14 +215,14 @@
             return wrapper;
         }
 
-        window.createPlayerShip = (scale = 1) => {
+        window.createPlayerShip = (scale = 4) => {
             const type = `player${(window.selectedShipIndex || 0) + 1}`;
-            return drawShipSprite(type, scale);
+            return drawShipSprite(SHIP_SPRITES[type], scale);
         };
 
         window.createEnemyShip = (variant = 0) => {
             const type = `enemy${(variant % 3) + 1}`;
-            return drawShipSprite(type, 1.2);
+            return drawShipSprite(SHIP_SPRITES[type], 4);
         };
 
         window.createAsteroidEmoji = () => '🪨';
@@ -314,7 +234,7 @@
             return wreck;
         };
 
-        // ---------- ОСНОВНАЯ ЛОГИКА (без изменений, кроме масштабов) ----------
+        // ---------- ОСНОВНАЯ ЛОГИКА (без изменений в механиках) ----------
         window.playerName = localStorage.getItem('sd_player_name') || '';
         window.shipName = localStorage.getItem('sd_ship_name') || '';
         window.frac = localStorage.getItem('sd_frac') || null;
@@ -401,7 +321,7 @@
         createBackground();
 
         function getMapCenter() { const bg = document.getElementById('galaxy-bg'); return { x: bg.offsetWidth/2, y: bg.offsetHeight/2 }; }
-        function createOrbitShip() { const orbit = document.getElementById('player-on-orbit'); orbit.innerHTML=''; orbit.appendChild(window.createPlayerShip(0.9)); orbit.style.display='block'; }
+        function createOrbitShip() { const orbit = document.getElementById('player-on-orbit'); orbit.innerHTML=''; orbit.appendChild(window.createPlayerShip(3)); orbit.style.display='block'; }
 
         window.generateObjects = function() {
             const bg = document.getElementById('galaxy-bg'); bg.querySelectorAll('.bg-object').forEach(e=>e.remove()); window.galaxyObjects=[];
@@ -425,7 +345,7 @@
             window.isShipFlying=true; window.resources.fuel-=20; saveAll(); updateFuelDisplay();
             const center = getMapCenter(); const bg = document.getElementById('galaxy-bg');
             document.getElementById('player-on-orbit').style.display='none';
-            const shipEl = window.createPlayerShip(0.9);
+            const shipEl = window.createPlayerShip(3);
             shipEl.style.position='absolute'; shipEl.style.left=center.x+'px'; shipEl.style.top=center.y+'px'; shipEl.style.transform='translate(-50%,-50%)'; shipEl.style.transition='all 5s cubic-bezier(0.25,0.1,0.25,1)'; bg.appendChild(shipEl);
             requestAnimationFrame(()=>{ shipEl.style.left=obj.x+'px'; shipEl.style.top=obj.y+'px'; shipEl.style.transform='translate(-50%,-50%) scale(0.8)'; });
             setTimeout(()=>{
@@ -436,7 +356,7 @@
                 if (loot) window.showLoot(loot.type,loot.amount);
                 saveAll(); updateFuelDisplay(); updateSpiceDisplay();
                 element.style.opacity='0'; setTimeout(()=>element.remove(),300);
-                shipEl.style.transition='all 5s cubic-bezier(0.25,0.1,0.25,1)'; shipEl.style.left=center.x+'px'; shipEl.style.top=center.y+'px'; shipEl.style.transform='translate(-50%,-50%) scale(0.9)';
+                shipEl.style.transition='all 5s cubic-bezier(0.25,0.1,0.25,1)'; shipEl.style.left=center.x+'px'; shipEl.style.top=center.y+'px'; shipEl.style.transform='translate(-50%,-50%) scale(3)';
                 setTimeout(()=>{ shipEl.remove(); window.galaxyObjects=window.galaxyObjects.filter(o=>o!==obj); window.isShipFlying=false; createOrbitShip(); if (document.querySelectorAll('.bg-object').length===0) window.generateObjects(); },5000);
             },5000);
         };
@@ -448,7 +368,7 @@
         window.selectFaction = function(name,color,bonus) {
             window.tempFaction={name,color,bonus}; const container=document.getElementById('ship-selection'); container.innerHTML='';
             for (let i=0;i<3;i++) { const card=document.createElement('div'); card.style.cssText='cursor:pointer;padding:6px;border:2px solid #009944;text-align:center;width:80px;height:90px;display:flex;align-items:center;justify-content:center;';
-                card.appendChild(drawShipSprite(`player${i+1}`,1.5));
+                card.appendChild(drawShipSprite(SHIP_SPRITES[`player${i+1}`], 4));
                 card.onclick=()=>{ window.tempShipIndex=i; container.querySelectorAll('div').forEach(d=>d.style.borderColor='#009944'); card.style.borderColor='#aa9933'; document.getElementById('confirm-ship-btn').disabled=false; }; container.appendChild(card);
             } document.getElementById('confirm-ship-btn').disabled=true; window.showWindow('ship');
         };
@@ -466,8 +386,8 @@
             document.getElementById('loot-feed').style.display=tab==='map'?'flex':'none';
             if(tab==='map'){ document.getElementById('content-overlay').style.display='none'; }
             else { document.getElementById('content-overlay').style.display='flex';
-                if(tab==='hangar'){ window.showWindow('hangar'); const hangarDiv=document.getElementById('hangar-ship-display'); hangarDiv.innerHTML=''; hangarDiv.appendChild(window.createPlayerShip(2.2)); updateHangar(); }
-                else if(tab==='pvp'){ window.showWindow('pvp'); const playerDiv=document.getElementById('pvp-player-ship-display'); playerDiv.innerHTML=''; playerDiv.appendChild(window.createPlayerShip(1.8)); const enemyDiv=document.getElementById('pvp-enemy-ship-display'); enemyDiv.innerHTML=''; enemyDiv.appendChild(window.createEnemyShip(Math.floor(Math.random()*3))); updateLeaderboard(); }
+                if(tab==='hangar'){ window.showWindow('hangar'); const hangarDiv=document.getElementById('hangar-ship-display'); hangarDiv.innerHTML=''; hangarDiv.appendChild(window.createPlayerShip(5)); updateHangar(); }
+                else if(tab==='pvp'){ window.showWindow('pvp'); const playerDiv=document.getElementById('pvp-player-ship-display'); playerDiv.innerHTML=''; playerDiv.appendChild(window.createPlayerShip(4)); const enemyDiv=document.getElementById('pvp-enemy-ship-display'); enemyDiv.innerHTML=''; enemyDiv.appendChild(window.createEnemyShip(Math.floor(Math.random()*3))); updateLeaderboard(); }
                 else if(tab==='vip'){ window.showWindow('vip'); updateVipWindow(); }
             }
         };
