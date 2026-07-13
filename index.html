@@ -23,29 +23,77 @@
         .background-map { position:fixed; top:0; left:0; width:100%; height:calc(100dvh - 80px); z-index:1; pointer-events:none; }
         .galaxy-bg { position:relative; width:100%; height:100%; overflow:hidden; background:transparent; }
         .planet-container { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:2; }
-        .pixel-planet { width:130px; height:130px; position:relative; animation:rotate 60s linear infinite; }
-        .pixel-planet canvas { display:block; width:100%; height:100%; image-rendering:crisp-edges; image-rendering:pixelated; }
+        /* Новый контейнер планеты — просто задаём размер, обрезка будет в JS */
+        .pixel-planet {
+            width:130px; height:130px; position:relative;
+        }
         .player-orbit { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:5; pointer-events:none; }
         .player-on-orbit { position:absolute; animation:orbitAnim 22s linear infinite; }
         .bg-object { position:absolute; z-index:2; pointer-events:none; transition:opacity 0.3s; transform:translate(-50%,-50%); cursor:pointer; }
-        .top-panel { position:fixed; top:0; left:0; right:0; height:50px; display:flex; justify-content:space-between; align-items:center; padding:5px 10px; z-index:100; pointer-events:none; }
-        .vip-badge { background:rgba(0,0,0,0.8); border:2px solid #ffaa00; color:#ffaa00; padding:4px 8px; font-size:7px; pointer-events:all; text-align:center; }
+        .top-panel {
+            position:fixed; top:0; left:0; right:0; height:50px;
+            display:flex; justify-content:space-between; align-items:center;
+            padding:5px 10px; z-index:100; pointer-events:none;
+        }
+        .vip-badge {
+            background:rgba(0,0,0,0.8); border:2px solid #ffaa00; color:#ffaa00;
+            padding:4px 8px; font-size:7px; pointer-events:all; text-align:center;
+        }
         .resources-panel { display:flex; gap:5px; align-items:center; }
-        .resource-badge { background:rgba(0,0,0,0.85); border:2px solid #bb9922; color:#bb9922; padding:4px 6px; font-size:7px; pointer-events:all; text-align:center; }
+        .resource-badge {
+            background:rgba(0,0,0,0.85); border:2px solid #bb9922; color:#bb9922;
+            padding:4px 6px; font-size:7px; pointer-events:all; text-align:center;
+        }
         .fuel-badge { border-color:#4488ff; color:#4488ff; }
         .credits-badge { border-color:#ffcc00; color:#ffcc00; }
         .spice-badge { border-color:#ff66ff; color:#ff66ff; }
-        .refuel-btn { background:#4488ff; color:#fff; border:none; padding:4px 8px; font-size:7px; cursor:pointer; font-family:'Press Start 2P',monospace; pointer-events:all; margin-left:5px; display:none; }
-        .back-btn { width:34px; height:34px; background:rgba(0,20,0,0.9); border:2px solid #00aa44; color:#00dd55; font-size:15px; cursor:pointer; display:none; align-items:center; justify-content:center; font-family:'Press Start 2P',monospace; pointer-events:all; }
-        .loot-feed { position:fixed; bottom:85px; left:50%; transform:translateX(-50%); z-index:200; pointer-events:none; display:flex; align-items:center; justify-content:center; gap:6px; flex-wrap:wrap; min-height:26px; }
-        .loot-item { font-family:'Press Start 2P',monospace; font-size:7px; color:#ffcc00; background:rgba(0,0,0,0.8); padding:4px 8px; animation:fadeInOut 2.5s ease-in-out forwards; }
-        @keyframes fadeInOut { 0%{opacity:0;transform:translateY(10px)} 15%{opacity:1;transform:translateY(0)} 80%{opacity:1;transform:translateY(0)} 100%{opacity:0;transform:translateY(-10px)} }
-        .content-overlay { position:fixed; top:50px; left:0; right:0; bottom:80px; z-index:50; pointer-events:none; display:flex; align-items:center; justify-content:center; }
-        .content-overlay>* { pointer-events:all; }
-        .bottom-panel { position:fixed; bottom:0; left:0; right:0; height:80px; background:rgba(2,2,10,0.96); border-top:2px solid #009944; display:flex; justify-content:space-around; align-items:center; z-index:100; padding:4px; }
-        .nav-btn { background:#040c04; border:2px solid #006633; color:#00aa44; padding:5px 8px; font-family:'Press Start 2P',monospace; font-size:6px; cursor:pointer; transition:all 0.2s; text-align:center; flex:1; margin:0 2px; max-width:90px; }
+        .refuel-btn {
+            background:#4488ff; color:#fff; border:none; padding:4px 8px; font-size:7px;
+            cursor:pointer; font-family:'Press Start 2P',monospace; pointer-events:all;
+            margin-left:5px; display:none;
+        }
+        .back-btn {
+            width:34px; height:34px; background:rgba(0,20,0,0.9); border:2px solid #00aa44; color:#00dd55;
+            font-size:15px; cursor:pointer; display:none; align-items:center; justify-content:center;
+            font-family:'Press Start 2P',monospace; pointer-events:all;
+        }
+        .loot-feed {
+            position:fixed; bottom:85px; left:50%; transform:translateX(-50%);
+            z-index:200; pointer-events:none;
+            display:flex; align-items:center; justify-content:center; gap:6px; flex-wrap:wrap;
+            min-height:26px;
+        }
+        .loot-item {
+            font-family:'Press Start 2P',monospace; font-size:7px; color:#ffcc00;
+            background:rgba(0,0,0,0.8); padding:4px 8px;
+            animation:fadeInOut 2.5s ease-in-out forwards;
+        }
+        @keyframes fadeInOut {
+            0% { opacity:0; transform:translateY(10px); }
+            15% { opacity:1; transform:translateY(0); }
+            80% { opacity:1; transform:translateY(0); }
+            100% { opacity:0; transform:translateY(-10px); }
+        }
+        .content-overlay {
+            position:fixed; top:50px; left:0; right:0; bottom:80px; z-index:50;
+            pointer-events:none; display:flex; align-items:center; justify-content:center;
+        }
+        .content-overlay > * { pointer-events:all; }
+        .bottom-panel {
+            position:fixed; bottom:0; left:0; right:0; height:80px;
+            background:rgba(2,2,10,0.96); border-top:2px solid #009944;
+            display:flex; justify-content:space-around; align-items:center; z-index:100; padding:4px;
+        }
+        .nav-btn {
+            background:#040c04; border:2px solid #006633; color:#00aa44; padding:5px 8px;
+            font-family:'Press Start 2P',monospace; font-size:6px; cursor:pointer; transition:all 0.2s;
+            text-align:center; flex:1; margin:0 2px; max-width:90px;
+        }
         .nav-btn.active { background:#061806; border-color:#bb9922; }
-        .window { background:rgba(2,2,14,0.94); border:2px solid #009944; padding:14px; max-width:320px; width:88%; max-height:55vh; overflow-y:auto; animation:slideUp 0.3s ease-out; }
+        .window {
+            background:rgba(2,2,14,0.94); border:2px solid #009944; padding:14px;
+            max-width:320px; width:88%; max-height:55vh; overflow-y:auto; animation:slideUp 0.3s ease-out;
+        }
         .input-field { width:100%; padding:8px; margin:6px 0; background:#040410; border:2px solid #009944; color:#00bb44; font-family:'Press Start 2P',monospace; font-size:8px; text-align:center; }
         .btn { width:100%; padding:8px; margin:5px 0; background:#040c04; border:2px solid #009944; color:#00bb44; font-family:'Press Start 2P',monospace; font-size:8px; cursor:pointer; transition:all 0.2s; }
         .btn:disabled { background:#161616; color:#333; border-color:#333; cursor:not-allowed; }
@@ -129,15 +177,10 @@
         </div>
     </div>
     <script>
-        // ---------- ПЛАНЕТА ----------
+        // ---------- ПЛАНЕТА (ИДЕАЛЬНЫЙ КРУГ) ----------
         const PLANET_PALETTE = {
-            '_': null,
-            'B': '#6AF5FA',
-            'C': '#009CAD',
-            'G': '#11D47D',
-            'D': '#009363',
-            'E': '#005238',
-            'F': '#59F2A8'
+            '_': null, 'B': '#6AF5FA', 'C': '#009CAD',
+            'G': '#11D47D', 'D': '#009363', 'E': '#005238', 'F': '#59F2A8'
         };
         const PLANET_MATRIX = [
             "__________________",
@@ -711,8 +754,18 @@
             createBackground();
             const container = document.getElementById('pixel-planet');
             if (container) {
+                const wrapper = document.createElement('div');
+                wrapper.style.width = '100%';
+                wrapper.style.height = '100%';
+                wrapper.style.borderRadius = '50%';
+                wrapper.style.overflow = 'hidden';
+                wrapper.style.animation = 'rotate 60s linear infinite';
+                const newPlanetCanvas = drawPlanet(PLANET_MATRIX, 6.5);
+                newPlanetCanvas.style.width = '100%';
+                newPlanetCanvas.style.height = '100%';
+                wrapper.appendChild(newPlanetCanvas);
                 container.innerHTML = '';
-                container.appendChild(drawPlanet(PLANET_MATRIX, 6.5));
+                container.appendChild(wrapper);
             }
             if (window.playerName && window.frac) {
                 window.showUI();
