@@ -23,77 +23,28 @@
         .background-map { position:fixed; top:0; left:0; width:100%; height:calc(100dvh - 80px); z-index:1; pointer-events:none; }
         .galaxy-bg { position:relative; width:100%; height:100%; overflow:hidden; background:transparent; }
         .planet-container { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:2; }
-        /* Новый контейнер планеты — просто задаём размер, обрезка будет в JS */
-        .pixel-planet {
-            width:130px; height:130px; position:relative;
-        }
+        .pixel-planet { width:130px; height:130px; position:relative; }
         .player-orbit { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:5; pointer-events:none; }
         .player-on-orbit { position:absolute; animation:orbitAnim 22s linear infinite; }
         .bg-object { position:absolute; z-index:2; pointer-events:none; transition:opacity 0.3s; transform:translate(-50%,-50%); cursor:pointer; }
-        .top-panel {
-            position:fixed; top:0; left:0; right:0; height:50px;
-            display:flex; justify-content:space-between; align-items:center;
-            padding:5px 10px; z-index:100; pointer-events:none;
-        }
-        .vip-badge {
-            background:rgba(0,0,0,0.8); border:2px solid #ffaa00; color:#ffaa00;
-            padding:4px 8px; font-size:7px; pointer-events:all; text-align:center;
-        }
+        .top-panel { position:fixed; top:0; left:0; right:0; height:50px; display:flex; justify-content:space-between; align-items:center; padding:5px 10px; z-index:100; pointer-events:none; }
+        .vip-badge { background:rgba(0,0,0,0.8); border:2px solid #ffaa00; color:#ffaa00; padding:4px 8px; font-size:7px; pointer-events:all; text-align:center; }
         .resources-panel { display:flex; gap:5px; align-items:center; }
-        .resource-badge {
-            background:rgba(0,0,0,0.85); border:2px solid #bb9922; color:#bb9922;
-            padding:4px 6px; font-size:7px; pointer-events:all; text-align:center;
-        }
+        .resource-badge { background:rgba(0,0,0,0.85); border:2px solid #bb9922; color:#bb9922; padding:4px 6px; font-size:7px; pointer-events:all; text-align:center; }
         .fuel-badge { border-color:#4488ff; color:#4488ff; }
         .credits-badge { border-color:#ffcc00; color:#ffcc00; }
         .spice-badge { border-color:#ff66ff; color:#ff66ff; }
-        .refuel-btn {
-            background:#4488ff; color:#fff; border:none; padding:4px 8px; font-size:7px;
-            cursor:pointer; font-family:'Press Start 2P',monospace; pointer-events:all;
-            margin-left:5px; display:none;
-        }
-        .back-btn {
-            width:34px; height:34px; background:rgba(0,20,0,0.9); border:2px solid #00aa44; color:#00dd55;
-            font-size:15px; cursor:pointer; display:none; align-items:center; justify-content:center;
-            font-family:'Press Start 2P',monospace; pointer-events:all;
-        }
-        .loot-feed {
-            position:fixed; bottom:85px; left:50%; transform:translateX(-50%);
-            z-index:200; pointer-events:none;
-            display:flex; align-items:center; justify-content:center; gap:6px; flex-wrap:wrap;
-            min-height:26px;
-        }
-        .loot-item {
-            font-family:'Press Start 2P',monospace; font-size:7px; color:#ffcc00;
-            background:rgba(0,0,0,0.8); padding:4px 8px;
-            animation:fadeInOut 2.5s ease-in-out forwards;
-        }
-        @keyframes fadeInOut {
-            0% { opacity:0; transform:translateY(10px); }
-            15% { opacity:1; transform:translateY(0); }
-            80% { opacity:1; transform:translateY(0); }
-            100% { opacity:0; transform:translateY(-10px); }
-        }
-        .content-overlay {
-            position:fixed; top:50px; left:0; right:0; bottom:80px; z-index:50;
-            pointer-events:none; display:flex; align-items:center; justify-content:center;
-        }
+        .refuel-btn { background:#4488ff; color:#fff; border:none; padding:4px 8px; font-size:7px; cursor:pointer; font-family:'Press Start 2P',monospace; pointer-events:all; margin-left:5px; display:none; }
+        .back-btn { width:34px; height:34px; background:rgba(0,20,0,0.9); border:2px solid #00aa44; color:#00dd55; font-size:15px; cursor:pointer; display:none; align-items:center; justify-content:center; font-family:'Press Start 2P',monospace; pointer-events:all; }
+        .loot-feed { position:fixed; bottom:85px; left:50%; transform:translateX(-50%); z-index:200; pointer-events:none; display:flex; align-items:center; justify-content:center; gap:6px; flex-wrap:wrap; min-height:26px; }
+        .loot-item { font-family:'Press Start 2P',monospace; font-size:7px; color:#ffcc00; background:rgba(0,0,0,0.8); padding:4px 8px; animation:fadeInOut 2.5s ease-in-out forwards; }
+        @keyframes fadeInOut { 0%{opacity:0;transform:translateY(10px)} 15%{opacity:1;transform:translateY(0)} 80%{opacity:1;transform:translateY(0)} 100%{opacity:0;transform:translateY(-10px)} }
+        .content-overlay { position:fixed; top:50px; left:0; right:0; bottom:80px; z-index:50; pointer-events:none; display:flex; align-items:center; justify-content:center; }
         .content-overlay > * { pointer-events:all; }
-        .bottom-panel {
-            position:fixed; bottom:0; left:0; right:0; height:80px;
-            background:rgba(2,2,10,0.96); border-top:2px solid #009944;
-            display:flex; justify-content:space-around; align-items:center; z-index:100; padding:4px;
-        }
-        .nav-btn {
-            background:#040c04; border:2px solid #006633; color:#00aa44; padding:5px 8px;
-            font-family:'Press Start 2P',monospace; font-size:6px; cursor:pointer; transition:all 0.2s;
-            text-align:center; flex:1; margin:0 2px; max-width:90px;
-        }
+        .bottom-panel { position:fixed; bottom:0; left:0; right:0; height:80px; background:rgba(2,2,10,0.96); border-top:2px solid #009944; display:flex; justify-content:space-around; align-items:center; z-index:100; padding:4px; }
+        .nav-btn { background:#040c04; border:2px solid #006633; color:#00aa44; padding:5px 8px; font-family:'Press Start 2P',monospace; font-size:6px; cursor:pointer; transition:all 0.2s; text-align:center; flex:1; margin:0 2px; max-width:90px; }
         .nav-btn.active { background:#061806; border-color:#bb9922; }
-        .window {
-            background:rgba(2,2,14,0.94); border:2px solid #009944; padding:14px;
-            max-width:320px; width:88%; max-height:55vh; overflow-y:auto; animation:slideUp 0.3s ease-out;
-        }
+        .window { background:rgba(2,2,14,0.94); border:2px solid #009944; padding:14px; max-width:320px; width:88%; max-height:55vh; overflow-y:auto; animation:slideUp 0.3s ease-out; }
         .input-field { width:100%; padding:8px; margin:6px 0; background:#040410; border:2px solid #009944; color:#00bb44; font-family:'Press Start 2P',monospace; font-size:8px; text-align:center; }
         .btn { width:100%; padding:8px; margin:5px 0; background:#040c04; border:2px solid #009944; color:#00bb44; font-family:'Press Start 2P',monospace; font-size:8px; cursor:pointer; transition:all 0.2s; }
         .btn:disabled { background:#161616; color:#333; border-color:#333; cursor:not-allowed; }
@@ -177,56 +128,47 @@
         </div>
     </div>
     <script>
-        // ---------- ПЛАНЕТА (ИДЕАЛЬНЫЙ КРУГ) ----------
-        const PLANET_PALETTE = {
-            '_': null, 'B': '#6AF5FA', 'C': '#009CAD',
-            'G': '#11D47D', 'D': '#009363', 'E': '#005238', 'F': '#59F2A8'
-        };
+        // ---------- ПЛАНЕТА (Жесткая обрезка) ----------
+        const PLANET_PALETTE = { '_': null, 'B': '#6AF5FA', 'C': '#009CAD', 'G': '#11D47D', 'D': '#009363', 'E': '#005238', 'F': '#59F2A8' };
         const PLANET_MATRIX = [
-            "__________________",
-            "_______BBBB_______",
-            "______BBBBBB______",
-            "_____BBCCCCBB_____",
-            "____BBGGCBGCGBB____",
-            "___BBGCGGBGGCGBB___",
-            "__BBGCGGBBGGGCBB__",
-            "__BBGGCBBBGGGCBB__",
-            "_BBGGGCBBBGGGCBB_",
-            "_BBGGGCBBBGGGCBB_",
-            "_BBGGGCBBBGGGCBB_",
-            "_BBGGGCBBBGGGCBB_",
-            "_BBGGGGCBBGGGCBB_",
-            "__BBGGGGGBGGCBB__",
-            "__BBGGGGGGGGCBB__",
-            "___BBGGGGGGCBB___",
-            "____BBGGCGCBB____",
-            "_____BBCCBB_____",
-            "_______BB_______",
-            "__________________"
+            "__________________", "_______BBBB_______", "______BBBBBB______",
+            "_____BBCCCCBB_____", "____BBGGCBGCGBB____", "___BBGCGGBGGCGBB___",
+            "__BBGCGGBBGGGCBB__", "__BBGGCBBBGGGCBB__", "_BBGGGCBBBGGGCBB_",
+            "_BBGGGCBBBGGGCBB_", "_BBGGGCBBBGGGCBB_", "_BBGGGCBBBGGGCBB_",
+            "_BBGGGGCBBGGGCBB_", "__BBGGGGGBGGCBB__", "__BBGGGGGGGGCBB__",
+            "___BBGGGGGGCBB___", "____BBGGCGCBB____", "_____BBCCBB_____",
+            "_______BB_______", "__________________"
         ];
 
-        function drawPlanet(matrix, tileSize = 6.5) {
-            const rows = matrix.length;
-            const cols = matrix[0].length;
+        function setupPixelPlanet() {
+            const planetContainer = document.querySelector('.pixel-planet');
+            if (!planetContainer) return;
+            planetContainer.innerHTML = '';
+            const wrapper = document.createElement('div');
+            wrapper.style.cssText = 'width:130px;height:130px;border-radius:50%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;background:transparent;';
+            const tileSize = 6.5;
             const canvas = document.createElement('canvas');
-            canvas.width = Math.round(cols * tileSize);
-            canvas.height = Math.round(rows * tileSize);
+            canvas.width = Math.round(20 * tileSize);
+            canvas.height = Math.round(20 * tileSize);
             const ctx = canvas.getContext('2d');
             ctx.imageSmoothingEnabled = false;
             canvas.style.imageRendering = 'pixelated';
-            for (let y = 0; y < rows; y++) {
-                for (let x = 0; x < cols; x++) {
-                    const key = matrix[y][x];
+            for (let y = 0; y < PLANET_MATRIX.length; y++) {
+                for (let x = 0; x < PLANET_MATRIX[0].length; x++) {
+                    const key = PLANET_MATRIX[y][x];
                     if (key !== '_') {
                         ctx.fillStyle = PLANET_PALETTE[key];
                         ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
                     }
                 }
             }
-            return canvas;
+            canvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;';
+            wrapper.appendChild(canvas);
+            wrapper.style.animation = 'rotate 60s linear infinite';
+            planetContainer.appendChild(wrapper);
         }
 
-        // ---------- КОРАБЛИ ----------
+        // ---------- КОРАБЛИ (Увеличенный тайл и pixelated) ----------
         const PALETTE = {
             'A':'#2E0A4E','B':'#5B2C8E','C':'#8B5FBF','P':'#FF44AA','Q':'#44CCFF','T':'#88EEFF',
             'R':'#8B0000','D':'#2A2A2A','E':'#FF4500','F':'#FF6600','G':'#FFAA00','H':'#FFD700',
@@ -271,15 +213,17 @@
             ]
         };
 
-        function drawShipSprite(matrix, scale = 2) {
+        function drawShipSprite(matrix, scale = 1) {
             const rows = matrix.length;
             const cols = matrix[0].length;
-            const tileSize = Math.max(2, Math.floor(scale));
+            const tileSize = Math.max(2, Math.round(6 * scale));
             const canvas = document.createElement('canvas');
             canvas.width = cols * tileSize;
             canvas.height = rows * tileSize;
             const ctx = canvas.getContext('2d');
             ctx.imageSmoothingEnabled = false;
+            canvas.style.imageRendering = 'pixelated';
+            canvas.style.imageRendering = 'crisp-edges';
             for (let y = 0; y < rows; y++) {
                 for (let x = 0; x < cols; x++) {
                     const key = matrix[y][x];
@@ -291,20 +235,16 @@
             }
             const wrapper = document.createElement('div');
             wrapper.style.display = 'inline-block';
+            wrapper.style.pointerEvents = 'none';
+            wrapper.style.imageRendering = 'pixelated';
             wrapper.appendChild(canvas);
             return wrapper;
         }
 
-        window.createPlayerShip = (scale = 2) => drawShipSprite(SHIP_SPRITES[`player${(window.selectedShipIndex||0)+1}`], scale);
-        window.createEnemyShip = (variant = 0) => drawShipSprite(SHIP_SPRITES[`enemy${(variant%3)+1}`], 2);
+        window.createPlayerShip = (scale = 1) => drawShipSprite(SHIP_SPRITES[`player${(window.selectedShipIndex||0)+1}`], scale);
+        window.createEnemyShip = (variant = 0) => drawShipSprite(SHIP_SPRITES[`enemy${(variant%3)+1}`], 0.8);
         window.createAsteroidEmoji = () => '🪨';
-        window.createWreckEmoji = () => {
-            const w = document.createElement('span');
-            w.style.fontSize='30px';
-            w.innerText='🛸';
-            w.style.filter='grayscale(1) brightness(0.5)';
-            return w;
-        };
+        window.createWreckEmoji = () => { const w = document.createElement('span'); w.style.fontSize='30px'; w.innerText='🛸'; w.style.filter='grayscale(1) brightness(0.5)'; return w; };
 
         // ---------- СОСТОЯНИЕ ----------
         window.playerName = localStorage.getItem('sd_player_name') || '';
@@ -336,13 +276,9 @@
         window.getMultiplier = () => vipMultipliers[window.vipLevel] || 1;
         window.pvpScore = parseInt(localStorage.getItem('sd_pvp_score')) || 0;
         window.leaderboard = JSON.parse(localStorage.getItem('sd_leaderboard')) || [];
-        window.galaxyObjects = [];
-        window.isShipFlying = false;
-        window.pvpInterval = null;
-        window.pvpTimerInterval = null;
-        window.currentTab = 'map';
-        window.tempFaction = null;
-        window.tempShipIndex = null;
+        window.galaxyObjects = []; window.isShipFlying = false;
+        window.pvpInterval = null; window.pvpTimerInterval = null;
+        window.currentTab = 'map'; window.tempFaction = null; window.tempShipIndex = null;
 
         window.saveAll = function() {
             Object.keys(window.resources).forEach(k => localStorage.setItem('sd_'+k, window.resources[k]));
@@ -368,19 +304,15 @@
 
         window.showLoot = function(name, amount) {
             const feed = document.getElementById('loot-feed');
-            const item = document.createElement('span');
-            item.className = 'loot-item';
-            item.innerText = `+${amount} ${name}`;
-            feed.appendChild(item);
+            const item = document.createElement('span'); item.className = 'loot-item';
+            item.innerText = `+${amount} ${name}`; feed.appendChild(item);
             setTimeout(() => item.remove(), 2500);
         };
 
         window.showWindow = function(id) {
             document.querySelectorAll('.window').forEach(w => w.classList.add('hidden'));
-            const win = document.getElementById('window-' + id);
-            if (win) win.classList.remove('hidden');
+            const win = document.getElementById('window-' + id); if (win) win.classList.remove('hidden');
         };
-
         window.showUI = function() {
             document.getElementById('back-btn').style.display = 'flex';
             document.getElementById('bottom-panel').classList.remove('hidden');
@@ -390,70 +322,35 @@
         function createBackground() {
             const layer = document.getElementById('stars-layer');
             for (let i = 0; i < 400; i++) {
-                const s = document.createElement('div');
-                s.className = 'star';
+                const s = document.createElement('div'); s.className = 'star';
                 const r = Math.random();
-                if (r < 0.1) s.classList.add('bright');
-                else if (r < 0.3) s.classList.add('medium');
-                else if (r < 0.6) s.classList.add('dim');
-                else s.classList.add('tiny');
-                s.style.left = Math.random()*100+'%';
-                s.style.top = Math.random()*100+'%';
+                if (r < 0.1) s.classList.add('bright'); else if (r < 0.3) s.classList.add('medium'); else if (r < 0.6) s.classList.add('dim'); else s.classList.add('tiny');
+                s.style.left = Math.random()*100+'%'; s.style.top = Math.random()*100+'%';
                 const sz = Math.random()<0.08?2.5:(Math.random()<0.2?1.8:(Math.random()<0.5?1.2:0.6));
-                s.style.width = sz+'px';
-                s.style.height = sz+'px';
-                s.style.setProperty('--duration',(Math.random()*3+1.5)+'s');
-                s.style.setProperty('--delay',Math.random()*2+'s');
+                s.style.width=sz+'px'; s.style.height=sz+'px';
+                s.style.setProperty('--duration',(Math.random()*3+1.5)+'s'); s.style.setProperty('--delay',Math.random()*2+'s');
                 layer.appendChild(s);
             }
         }
+        createBackground();
 
-        function getMapCenter() {
-            const bg = document.getElementById('galaxy-bg');
-            return { x: bg.offsetWidth/2, y: bg.offsetHeight/2 };
-        }
-
-        function createOrbitShip() {
-            const orbit = document.getElementById('player-on-orbit');
-            orbit.innerHTML = '';
-            orbit.appendChild(window.createPlayerShip(1.2));
-            orbit.style.display = 'block';
-        }
+        function getMapCenter() { const bg = document.getElementById('galaxy-bg'); return { x: bg.offsetWidth/2, y: bg.offsetHeight/2 }; }
+        function createOrbitShip() { const orbit = document.getElementById('player-on-orbit'); orbit.innerHTML=''; orbit.appendChild(window.createPlayerShip(0.8)); orbit.style.display='block'; }
 
         window.generateObjects = function() {
-            const bg = document.getElementById('galaxy-bg');
-            bg.querySelectorAll('.bg-object').forEach(e=>e.remove());
-            window.galaxyObjects = [];
-            const center = getMapCenter();
-            const types = ['asteroid','asteroid','asteroid','pirate','pirate','pirate','wreck','wreck','wreck'];
+            const bg = document.getElementById('galaxy-bg'); bg.querySelectorAll('.bg-object').forEach(e=>e.remove()); window.galaxyObjects=[];
+            const center = getMapCenter(); const types = ['asteroid','asteroid','asteroid','pirate','pirate','pirate','wreck','wreck','wreck'];
             types.sort(()=>Math.random()-0.5);
-            types.forEach(type => {
-                const angle = Math.random()*Math.PI*2;
-                const distance = 120+Math.random()*80;
-                const x = center.x + Math.cos(angle)*distance;
-                const y = center.y + Math.sin(angle)*distance;
+            types.forEach(type=>{
+                const angle = Math.random()*Math.PI*2; const distance = 120+Math.random()*80;
+                const x = center.x + Math.cos(angle)*distance; const y = center.y + Math.sin(angle)*distance;
                 const obj = { type, x, y, element:null };
-                const div = document.createElement('div');
-                div.className = 'bg-object';
-                div.style.left = x+'px';
-                div.style.top = y+'px';
-                div.style.pointerEvents = 'all';
-                if (type === 'asteroid') {
-                    div.innerHTML = window.createAsteroidEmoji();
-                } else if (type === 'pirate') {
-                    div.appendChild(window.createEnemyShip(Math.floor(Math.random()*3)));
-                } else {
-                    div.appendChild(window.createWreckEmoji());
-                }
-                div.onclick = (e) => {
-                    e.stopPropagation();
-                    if (window.currentTab === 'map' && !window.isShipFlying && window.resources.fuel >= 10) {
-                        window.flyToObject(obj, div);
-                    }
-                };
-                bg.appendChild(div);
-                obj.element = div;
-                window.galaxyObjects.push(obj);
+                const div = document.createElement('div'); div.className='bg-object'; div.style.left=x+'px'; div.style.top=y+'px'; div.style.pointerEvents='all';
+                if (type==='asteroid') { div.innerHTML = window.createAsteroidEmoji(); }
+                else if (type==='pirate') { div.appendChild(window.createEnemyShip(Math.floor(Math.random()*3))); }
+                else { div.appendChild(window.createWreckEmoji()); }
+                div.onclick = (e) => { e.stopPropagation(); if (window.currentTab==='map' && !window.isShipFlying && window.resources.fuel>=10) window.flyToObject(obj, div); };
+                bg.appendChild(div); obj.element=div; window.galaxyObjects.push(obj);
             });
         };
 
@@ -461,93 +358,35 @@
             const mult = window.getMultiplier();
             const r = Math.random() * 100;
             if (r < 55) return null;
-            if (r < 75) {
-                const amt = Math.floor((Math.random()*91+10)*mult);
-                window.resources.credits += amt;
-                return { name:'Кредиты', amount:amt };
-            }
-            if (r < 85) {
-                const amt = Math.floor((Math.random()*11+5)*mult);
-                window.resources.fuel = Math.min(window.maxFuel, window.resources.fuel + amt);
-                return { name:'Топливо', amount:amt };
-            }
-            if (r < 90) {
-                const amt = Math.floor((Math.random()*5+1)*mult);
-                window.resources.shieldParts += amt;
-                return { name:'Щит', amount:amt };
-            }
-            if (r < 95) {
-                const amt = Math.floor((Math.random()*5+1)*mult);
-                window.resources.weaponParts += amt;
-                return { name:'Оружие', amount:amt };
-            }
-            if (r < 98) {
-                const amt = Math.floor((Math.random()*5+1)*mult);
-                window.resources.speedParts += amt;
-                return { name:'Скорость', amount:amt };
-            }
-            const amt = Math.floor((Math.random()*3+1)*mult);
-            window.resources.spice += amt;
-            return { name:'Спайс', amount:amt };
+            if (r < 75) { const amt = Math.floor((Math.random()*91+10)*mult); window.resources.credits += amt; return { name:'Кредиты', amount:amt }; }
+            if (r < 85) { const amt = Math.floor((Math.random()*11+5)*mult); window.resources.fuel = Math.min(window.maxFuel, window.resources.fuel+amt); return { name:'Топливо', amount:amt }; }
+            if (r < 90) { const amt = Math.floor((Math.random()*5+1)*mult); window.resources.shieldParts += amt; return { name:'Щит', amount:amt }; }
+            if (r < 95) { const amt = Math.floor((Math.random()*5+1)*mult); window.resources.weaponParts += amt; return { name:'Оружие', amount:amt }; }
+            if (r < 98) { const amt = Math.floor((Math.random()*5+1)*mult); window.resources.speedParts += amt; return { name:'Скорость', amount:amt }; }
+            const amt = Math.floor((Math.random()*3+1)*mult); window.resources.spice += amt; return { name:'Спайс', amount:amt };
         };
 
         window.flyToObject = function(obj, element) {
             if (window.isShipFlying || window.resources.fuel < 10) return;
-            window.isShipFlying = true;
-            window.resources.fuel -= 10;
-            saveAll();
-            updateTopPanel();
-            const center = getMapCenter();
-            const bg = document.getElementById('galaxy-bg');
-            document.getElementById('player-on-orbit').style.display = 'none';
-            const shipEl = window.createPlayerShip(1.2);
-            shipEl.style.position = 'absolute';
-            shipEl.style.left = center.x + 'px';
-            shipEl.style.top = center.y + 'px';
-            shipEl.style.transform = 'translate(-50%,-50%)';
-            shipEl.style.transition = 'all 5s cubic-bezier(0.25,0.1,0.25,1)';
-            bg.appendChild(shipEl);
-            requestAnimationFrame(() => {
-                shipEl.style.left = obj.x + 'px';
-                shipEl.style.top = obj.y + 'px';
-                shipEl.style.transform = 'translate(-50%,-50%) scale(0.8)';
-            });
-            setTimeout(() => {
+            window.isShipFlying = true; window.resources.fuel -= 10; saveAll(); updateTopPanel();
+            const center = getMapCenter(); const bg = document.getElementById('galaxy-bg');
+            document.getElementById('player-on-orbit').style.display='none';
+            const shipEl = window.createPlayerShip(0.8);
+            shipEl.style.position='absolute'; shipEl.style.left=center.x+'px'; shipEl.style.top=center.y+'px'; shipEl.style.transform='translate(-50%,-50%)'; shipEl.style.transition='all 5s cubic-bezier(0.25,0.1,0.25,1)'; bg.appendChild(shipEl);
+            requestAnimationFrame(()=>{ shipEl.style.left=obj.x+'px'; shipEl.style.top=obj.y+'px'; shipEl.style.transform='translate(-50%,-50%) scale(0.8)'; });
+            setTimeout(()=>{
                 const loot = window.generateLoot();
                 if (loot) window.showLoot(loot.name, loot.amount);
-                saveAll();
-                updateTopPanel();
-                element.style.opacity = '0';
-                setTimeout(() => element.remove(), 300);
-                shipEl.style.transition = 'all 5s cubic-bezier(0.25,0.1,0.25,1)';
-                shipEl.style.left = center.x + 'px';
-                shipEl.style.top = center.y + 'px';
-                shipEl.style.transform = 'translate(-50%,-50%) scale(1.2)';
-                setTimeout(() => {
-                    shipEl.remove();
-                    window.galaxyObjects = window.galaxyObjects.filter(o => o !== obj);
-                    window.isShipFlying = false;
-                    createOrbitShip();
-                    if (document.querySelectorAll('.bg-object').length === 0) window.generateObjects();
-                }, 5000);
-            }, 5000);
+                saveAll(); updateTopPanel();
+                element.style.opacity='0'; setTimeout(()=>element.remove(),300);
+                shipEl.style.transition='all 5s cubic-bezier(0.25,0.1,0.25,1)'; shipEl.style.left=center.x+'px'; shipEl.style.top=center.y+'px'; shipEl.style.transform='translate(-50%,-50%) scale(0.8)';
+                setTimeout(()=>{ shipEl.remove(); window.galaxyObjects=window.galaxyObjects.filter(o=>o!==obj); window.isShipFlying=false; createOrbitShip(); if (document.querySelectorAll('.bg-object').length===0) window.generateObjects(); },5000);
+            },5000);
         };
 
-        setInterval(() => {
-            if (window.resources.fuel < window.maxFuel) {
-                window.resources.fuel = Math.min(window.maxFuel, window.resources.fuel + 1);
-                saveAll();
-                updateTopPanel();
-            }
-        }, 300000);
+        setInterval(()=>{ if (window.resources.fuel < window.maxFuel) { window.resources.fuel = Math.min(window.maxFuel, window.resources.fuel + 1); saveAll(); updateTopPanel(); } }, 300000);
 
-        window.freeRefuel = function() {
-            if (window.freeRefuelUsed) return;
-            window.resources.fuel = window.maxFuel;
-            window.freeRefuelUsed = true;
-            saveAll();
-            updateTopPanel();
-        };
+        window.freeRefuel = function() { if (window.freeRefuelUsed) return; window.resources.fuel = window.maxFuel; window.freeRefuelUsed = true; saveAll(); updateTopPanel(); };
 
         function getUpgradeCost(type) {
             const lvl = window.upgrades[type];
@@ -557,8 +396,7 @@
                 return { credits, spice, partsType: null, parts: 0 };
             } else {
                 const partsType = type === 'shield' ? 'shieldParts' : (type === 'damage' ? 'weaponParts' : (type === 'speed' ? 'speedParts' : 'shieldParts'));
-                const baseParts = 5;
-                const baseCredits = 50;
+                const baseParts = 5; const baseCredits = 50;
                 const parts = Math.floor(baseParts * Math.pow(1.5, lvl));
                 const credits = Math.floor(baseCredits * Math.pow(2, lvl));
                 let spice = 0;
@@ -587,9 +425,7 @@
                 window.maxFuel += 10;
                 window.resources.fuel = Math.min(window.resources.fuel + 10, window.maxFuel);
             }
-            saveAll();
-            updateHangar();
-            updateTopPanel();
+            saveAll(); updateHangar(); updateTopPanel();
         };
 
         function updateHangar() {
@@ -601,10 +437,8 @@
             const types = ['damage','shield','speed','luck','fuelTank'];
             const names = { damage:'УРОН', shield:'ЗАЩИТА', speed:'СКОРОСТЬ', luck:'УДАЧА', fuelTank:'ТОПЛИВНЫЙ БАК' };
             list.innerHTML = types.map(t => {
-                const lvl = window.upgrades[t];
-                const max = window.maxUpgradeLevels[t];
-                const cost = getUpgradeCost(t);
-                const can = canBuyUpgrade(t);
+                const lvl = window.upgrades[t]; const max = window.maxUpgradeLevels[t];
+                const cost = getUpgradeCost(t); const can = canBuyUpgrade(t);
                 let costStr = `${cost.credits}🪙`;
                 if (cost.spice) costStr += ` ${cost.spice}💎`;
                 if (cost.partsType) costStr += ` ${cost.parts} ${cost.partsType==='shieldParts'?'🛡️':(cost.partsType==='weaponParts'?'⚔️':'⚡')}`;
@@ -615,158 +449,51 @@
             }).join('');
         }
 
-        window.setPlayerName = function() {
-            const n = document.getElementById('input-player-name').value.trim();
-            if (n.length < 2) return alert('Минимум 2 символа');
-            window.playerName = n;
-            saveAll();
-            window.showWindow('faction');
+        window.setPlayerName = function() { const n=document.getElementById('input-player-name').value.trim(); if(n.length<2)return alert('Минимум 2 символа'); window.playerName=n; saveAll(); window.showWindow('faction'); };
+        window.selectFaction = function(name,color,bonus) {
+            window.tempFaction={name,color,bonus}; const container=document.getElementById('ship-selection'); container.innerHTML='';
+            for (let i=0;i<3;i++) { const card=document.createElement('div'); card.style.cssText='cursor:pointer;padding:6px;border:2px solid #009944;text-align:center;width:100px;height:120px;display:flex;align-items:center;justify-content:center;';
+                card.appendChild(drawShipSprite(SHIP_SPRITES[`player${i+1}`], 1.2));
+                card.onclick=()=>{ window.tempShipIndex=i; container.querySelectorAll('div').forEach(d=>d.style.borderColor='#009944'); card.style.borderColor='#aa9933'; document.getElementById('confirm-ship-btn').disabled=false; }; container.appendChild(card);
+            } document.getElementById('confirm-ship-btn').disabled=true; window.showWindow('ship');
         };
-
-        window.selectFaction = function(name, color, bonus) {
-            window.tempFaction = { name, color, bonus };
-            const container = document.getElementById('ship-selection');
-            container.innerHTML = '';
-            for (let i=0; i<3; i++) {
-                const card = document.createElement('div');
-                card.style.cssText = 'cursor:pointer;padding:6px;border:2px solid #009944;text-align:center;width:100px;height:120px;display:flex;align-items:center;justify-content:center;';
-                card.appendChild(drawShipSprite(SHIP_SPRITES[`player${i+1}`], 2.2));
-                card.onclick = () => {
-                    window.tempShipIndex = i;
-                    container.querySelectorAll('div').forEach(d => d.style.borderColor = '#009944');
-                    card.style.borderColor = '#aa9933';
-                    document.getElementById('confirm-ship-btn').disabled = false;
-                };
-                container.appendChild(card);
-            }
-            document.getElementById('confirm-ship-btn').disabled = true;
-            window.showWindow('ship');
-        };
-
         window.confirmShip = function() {
-            const name = document.getElementById('input-ship-name').value.trim();
-            if (window.tempShipIndex === null || name.length < 2) return alert('Выберите корабль и введите имя');
-            window.frac = window.tempFaction.name;
-            window.fracColor = window.tempFaction.color;
-            window.fracBonus = window.tempFaction.bonus;
-            window.selectedShipIndex = window.tempShipIndex;
-            window.shipName = name;
-            ['sd_frac','sd_color','sd_bonus','sd_ship_index','sd_ship_name'].forEach(k => localStorage.setItem(k, window[k]));
-            saveAll();
-            window.showUI();
-            document.getElementById('content-overlay').style.display = 'none';
-            const center = getMapCenter();
-            document.getElementById('planet-container').style.left = center.x + 'px';
-            document.getElementById('planet-container').style.top = center.y + 'px';
-            createOrbitShip();
-            window.generateObjects();
-            updateHangar();
-            updateLeaderboard();
+            const name=document.getElementById('input-ship-name').value.trim(); if(window.tempShipIndex===null||name.length<2)return alert('Выберите корабль и введите имя');
+            window.frac=window.tempFaction.name; window.fracColor=window.tempFaction.color; window.fracBonus=window.tempFaction.bonus; window.selectedShipIndex=window.tempShipIndex; window.shipName=name;
+            ['sd_frac','sd_color','sd_bonus','sd_ship_index','sd_ship_name'].forEach(k=>localStorage.setItem(k,window[k])); saveAll();
+            window.showUI(); document.getElementById('content-overlay').style.display='none';
+            const center=getMapCenter(); document.getElementById('planet-container').style.left=center.x+'px'; document.getElementById('planet-container').style.top=center.y+'px';
+            createOrbitShip(); window.generateObjects(); updateHangar(); updateLeaderboard();
         };
-
         window.switchTab = function(tab) {
-            window.currentTab = tab;
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('nav-' + tab).classList.add('active');
-            document.querySelectorAll('.bg-object').forEach(o => o.style.display = tab === 'map' ? 'block' : 'none');
-            if (tab === 'map') {
-                document.getElementById('content-overlay').style.display = 'none';
-            } else {
-                document.getElementById('content-overlay').style.display = 'flex';
-                if (tab === 'hangar') {
-                    window.showWindow('hangar');
-                    const hangarDiv = document.getElementById('hangar-ship-display');
-                    hangarDiv.innerHTML = '';
-                    hangarDiv.appendChild(window.createPlayerShip(2.5));
-                    updateHangar();
-                } else if (tab === 'pvp') {
-                    window.showWindow('pvp');
-                    const playerDiv = document.getElementById('pvp-player-ship-display');
-                    playerDiv.innerHTML = '';
-                    playerDiv.appendChild(window.createPlayerShip(2.2));
-                    const enemyDiv = document.getElementById('pvp-enemy-ship-display');
-                    enemyDiv.innerHTML = '';
-                    enemyDiv.appendChild(window.createEnemyShip(Math.floor(Math.random()*3)));
-                    updateLeaderboard();
-                } else if (tab === 'vip') {
-                    window.showWindow('vip');
-                    updateVipWindow();
-                }
+            window.currentTab=tab; document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); document.getElementById('nav-'+tab).classList.add('active');
+            document.querySelectorAll('.bg-object').forEach(o=>o.style.display=tab==='map'?'block':'none');
+            if(tab==='map'){ document.getElementById('content-overlay').style.display='none'; }
+            else { document.getElementById('content-overlay').style.display='flex';
+                if(tab==='hangar'){ window.showWindow('hangar'); const hangarDiv=document.getElementById('hangar-ship-display'); hangarDiv.innerHTML=''; hangarDiv.appendChild(window.createPlayerShip(1.2)); updateHangar(); }
+                else if(tab==='pvp'){ window.showWindow('pvp'); const playerDiv=document.getElementById('pvp-player-ship-display'); playerDiv.innerHTML=''; playerDiv.appendChild(window.createPlayerShip(1.2)); const enemyDiv=document.getElementById('pvp-enemy-ship-display'); enemyDiv.innerHTML=''; enemyDiv.appendChild(window.createEnemyShip(Math.floor(Math.random()*3))); updateLeaderboard(); }
+                else if(tab==='vip'){ window.showWindow('vip'); updateVipWindow(); }
             }
         };
-
-        function updateVipWindow() {
-            document.getElementById('vip-level').innerText = window.vipLevel;
-            document.getElementById('vip-mult').innerText = window.getMultiplier();
-        }
-
-        window.upgradeVip = function() {
-            if (window.vipLevel < 4) {
-                window.vipLevel++;
-                localStorage.setItem('sd_vip', window.vipLevel);
-                saveAll();
-                updateVipWindow();
-                updateTopPanel();
-            }
-        };
-
+        function updateVipWindow() { document.getElementById('vip-level').innerText=window.vipLevel; document.getElementById('vip-mult').innerText=window.getMultiplier(); }
+        window.upgradeVip = function() { if(window.vipLevel<4){ window.vipLevel++; localStorage.setItem('sd_vip',window.vipLevel); saveAll(); updateVipWindow(); updateTopPanel(); } };
         window.searchPvP = function() {
-            if (window.pvpInterval || window.pvpTimerInterval) return;
-            let timer = 15;
-            document.getElementById('pvp-timer').innerText = timer;
-            document.getElementById('pvp-status').innerText = 'Бой...';
-            window.pvpTimerInterval = setInterval(() => {
-                timer--;
-                document.getElementById('pvp-timer').innerText = timer;
-                if (timer <= 0) {
-                    clearInterval(window.pvpTimerInterval);
-                    window.pvpTimerInterval = null;
-                    const win = Math.random() > 0.5;
-                    document.getElementById('pvp-status').innerText = win ? 'ПОБЕДА! +15' : 'ПОРАЖЕНИЕ -12';
-                    window.pvpScore += win ? 15 : -12;
-                    if (window.pvpScore < 0) window.pvpScore = 0;
-                    saveAll();
-                    updateLeaderboard();
-                }
-            }, 1000);
+            if(window.pvpInterval||window.pvpTimerInterval)return; let timer=15; document.getElementById('pvp-timer').innerText=timer; document.getElementById('pvp-status').innerText='Бой...';
+            window.pvpTimerInterval=setInterval(()=>{ timer--; document.getElementById('pvp-timer').innerText=timer;
+                if(timer<=0){ clearInterval(window.pvpTimerInterval); window.pvpTimerInterval=null; const win=Math.random()>0.5; document.getElementById('pvp-status').innerText=win?'ПОБЕДА! +15':'ПОРАЖЕНИЕ -12'; window.pvpScore+=win?15:-12; if(window.pvpScore<0)window.pvpScore=0; saveAll(); updateLeaderboard(); }
+            },1000);
         };
-
         function updateLeaderboard() {
-            const idx = window.leaderboard.findIndex(p => p.name === window.playerName);
-            if (idx >= 0) window.leaderboard[idx].score = window.pvpScore;
-            else if (window.playerName) window.leaderboard.push({ name: window.playerName, score: window.pvpScore });
-            window.leaderboard.sort((a,b) => b.score - a.score);
-            window.leaderboard = window.leaderboard.slice(0, 15);
-            const list = document.getElementById('leaderboard');
-            if (list) {
-                list.innerHTML = '<div style="color:#aa9933">ТОП 15</div>' + 
-                    window.leaderboard.map((p,i) => `<div>#${i+1} ${p.name}: ${p.score}</div>`).join('');
-            }
-            saveAll();
-        }
-
-        window.goBack = () => {
-            if (window.currentTab !== 'map') window.switchTab('map');
+            const idx=window.leaderboard.findIndex(p=>p.name===window.playerName); if(idx>=0)window.leaderboard[idx].score=window.pvpScore; else if(window.playerName)window.leaderboard.push({name:window.playerName,score:window.pvpScore});
+            window.leaderboard.sort((a,b)=>b.score-a.score); window.leaderboard=window.leaderboard.slice(0,15); const list=document.getElementById('leaderboard');
+            if(list) list.innerHTML='<div style="color:#aa9933">ТОП 15</div>'+window.leaderboard.map((p,i)=>`<div>#${i+1} ${p.name}: ${p.score}</div>`).join(''); saveAll();
         };
+        window.goBack = ()=>{ if(window.currentTab!=='map')window.switchTab('map'); };
 
-        // Инициализация при загрузке
+        // Инициализация
         function init() {
             createBackground();
-            const container = document.getElementById('pixel-planet');
-            if (container) {
-                const wrapper = document.createElement('div');
-                wrapper.style.width = '100%';
-                wrapper.style.height = '100%';
-                wrapper.style.borderRadius = '50%';
-                wrapper.style.overflow = 'hidden';
-                wrapper.style.animation = 'rotate 60s linear infinite';
-                const newPlanetCanvas = drawPlanet(PLANET_MATRIX, 6.5);
-                newPlanetCanvas.style.width = '100%';
-                newPlanetCanvas.style.height = '100%';
-                wrapper.appendChild(newPlanetCanvas);
-                container.innerHTML = '';
-                container.appendChild(wrapper);
-            }
+            setupPixelPlanet();
             if (window.playerName && window.frac) {
                 window.showUI();
                 document.getElementById('content-overlay').style.display = 'none';
