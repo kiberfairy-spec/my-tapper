@@ -128,11 +128,11 @@
         </div>
     </div>
     <script>
-        // ========== ПЛАНЕТА (Исправлена: 20x20 с идеальной длиной строк) ==========
+        // ---------- ПЛАНЕТА ----------
         const PLANET_PALETTE = { '_': null, 'B': '#6AF5FA', 'C': '#009CAD', 'G': '#11D47D', 'D': '#009363', 'E': '#005238', 'F': '#59F2A8' };
         const PLANET_MATRIX = [
-            "__________________",
-            "_______BBBB_______",
+            "____________________",
+            "_______BBBB_________",
             "_______BBBBBB_______",
             "______BBCCCCBB______",
             "____BBGGCBGCGBB____",
@@ -150,26 +150,22 @@
             "_____BBGGCGCBB_____",
             "______BBCCBB______",
             "_________BB_________",
-            "__________________"
+            "____________________"
         ];
 
         function setupPixelPlanet() {
             const planetContainer = document.querySelector('.pixel-planet');
             if (!planetContainer) return;
             planetContainer.innerHTML = '';
-            
             const wrapper = document.createElement('div');
-            // Жесткая обрезка круга без смещений (убраны Flex-центровки)
-            wrapper.style.cssText = 'width:130px;height:130px;border-radius:50%;overflow:hidden;position:relative;background:transparent;';
-            
+            wrapper.style.cssText = 'width:130px;height:130px;border-radius:50%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;background:transparent;';
+            const tileSize = 130 / 20; // 6.5
             const canvas = document.createElement('canvas');
-            canvas.width = 130;
-            canvas.height = 130;
+            canvas.width = 20 * tileSize;
+            canvas.height = 20 * tileSize;
             const ctx = canvas.getContext('2d');
             ctx.imageSmoothingEnabled = false;
-            canvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;';
-            
-            const tileSize = 6.5;
+            canvas.style.imageRendering = 'pixelated';
             for (let y = 0; y < PLANET_MATRIX.length; y++) {
                 for (let x = 0; x < PLANET_MATRIX[0].length; x++) {
                     const key = PLANET_MATRIX[y][x];
@@ -179,162 +175,61 @@
                     }
                 }
             }
+            canvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;';
             wrapper.appendChild(canvas);
             wrapper.style.animation = 'rotate 60s linear infinite';
             planetContainer.appendChild(wrapper);
         }
 
-        // ========== КОРАБЛИ (Исправлены: СТРОГО 15x20, никаких рыбок!) ==========
+        // ---------- КОРАБЛИ ----------
         const PALETTE = {
             'A':'#2E0A4E','B':'#5B2C8E','C':'#8B5FBF','P':'#FF44AA','Q':'#44CCFF','T':'#88EEFF',
             'R':'#8B0000','D':'#2A2A2A','E':'#FF4500','F':'#FF6600','G':'#FFAA00','H':'#FFD700',
             '_':null
         };
         const SHIP_SPRITES = {
-            // Базовый фиолетовый
             player1: [
-                "_______A_______",
-                "______ABA______",
-                "_____ABBBA_____",
-                "____ABBBBBA____",
-                "___ABBBBBBA___",
-                "__ABBBBBBBBA__",
-                "_ABBBBBBBBBA_",
-                "ABBBBBBBBBBBA",
-                "ABBBBBBBBBBBA",
-                "_ABBBBBBBBBA_",
-                "__ABBBBBBBBA__",
-                "___ABBBBBBA___",
-                "____ABBBBBA____",
-                "_____ABBBA_____",
-                "______ABA______",
-                "_______A_______",
-                "_____Q_Q_Q_____",
-                "_____Q_Q_Q_____",
-                "_____Q_Q_Q_____",
-                "_____T_T_T_____"
+                "_______A_______","______ABA______","_____ABBBA_____","____ABBBBBA____","___ABBBBBBA___",
+                "__ABBBBBBBBA__","_ABBBBBBBBBA_","ABBBBBBBBBBBBA","ABBBBBBBBBBBBA","_ABBBBBBBBBBBA_",
+                "__ABBBBBBBBBA__","___ABBBBBBBBA___","____ABBBBBA____","_____ABBBA_____","______ABA______",
+                "_______A_______","_____Q_Q_Q_____","_____Q_Q_Q_____","_____Q_Q_Q_____","_____T_T_T_____"
             ],
-            // С розовой полосой (как на референсе)
             player2: [
-                "_______A_______",
-                "______ABA______",
-                "_____ABBBA_____",
-                "____ABBBBBA____",
-                "___ABBBBBBA___",
-                "__ABBBBBBBBA__",
-                "_ABBBBBBBBBA_",
-                "ABBBBBBBPBBBBBA",
-                "ABBBBBBBPBBBBBA",
-                "_ABBBBBBBBBA_",
-                "__ABBBBBBBBA__",
-                "___ABBBBBBA___",
-                "____ABBBBBA____",
-                "_____ABBBA_____",
-                "______ABA______",
-                "_______A_______",
-                "_____Q_Q_Q_____",
-                "_____Q_Q_Q_____",
-                "_____Q_Q_Q_____",
-                "_____T_T_T_____"
+                "_______A_______","______ABA______","_____ABBBA_____","____ABBBBBA____","___ABBBBBBA___",
+                "__ABBBBBBBBA__","_ABBBBBBBBBA_","ABBBBBBPBBBBBBA","ABBBBBBPBBBBBBA","_ABBBBBBBBBBBA_",
+                "__ABBBBBBBBBA__","___ABBBBBBBBA___","____ABBBBBA____","_____ABBBA_____","______ABA______",
+                "_______A_______","_____Q_Q_Q_____","_____Q_Q_Q_____","_____Q_Q_Q_____","_____T_T_T_____"
             ],
-            // С голубыми вставками
             player3: [
-                "_______A_______",
-                "______ACA______",
-                "_____ACCBA_____",
-                "____ACCCBBA____",
-                "___ACCCCBBA___",
-                "__ACCCCCBBA__",
-                "_ACCCCCCBBA_",
-                "ACCCCCCCBBBBBBA",
-                "ACCCCCCCBBBBBBA",
-                "_ACCCCCCBBA_",
-                "__ACCCCCBBA__",
-                "___ACCCCBBA___",
-                "____ACCCBBA____",
-                "_____ACCBA_____",
-                "______ACA______",
-                "_______A_______",
-                "_____Q_Q_Q_____",
-                "_____Q_Q_Q_____",
-                "_____Q_Q_Q_____",
-                "_____T_T_T_____"
+                "_______A_______","______ACA______","_____ACCBA_____","____ACCCBBA____","___ACCCCBBA___",
+                "__ACCCCCBBA__","_ACCCCCCBBA_","ACCCCCCCBBBBBBA","ACCCCCCCBBBBBBA","_ACCCCCCBBA_",
+                "__ACCCCCBBA__","___ACCCCBBA___","____ACCCBBA____","_____ACCBA_____","______ACA______",
+                "_______A_______","_____Q_Q_Q_____","_____Q_Q_Q_____","_____Q_Q_Q_____","_____T_T_T_____"
             ],
-            // Враг 1 (Темный)
             enemy1: [
-                "_______D_______",
-                "______DED______",
-                "_____DEEED_____",
-                "____DEEEEED____",
-                "___DEEEEEED___",
-                "__DEEEEEEEED__",
-                "_DEEEEEEEEED_",
-                "DEEEEEEEEEDEEED",
-                "DEEEEEEEEEDEEED",
-                "_DEEEEEEEEED_",
-                "__DEEEEEEEED__",
-                "___DEEEEEED___",
-                "____DEEEEED____",
-                "_____DEEED_____",
-                "______DED______",
-                "_______D_______",
-                "_____G_G_G_____",
-                "_____G_G_G_____",
-                "_____G_G_G_____",
-                "_____H_H_H_____"
+                "_______D_______","______DED______","_____DEEED_____","____DEEEEED____","___DEEEEEED___",
+                "__DEEEEEEEED__","_DEEEEEEEEED_","DEEEEEEEEEEED","DEEEEEEEEEEED","_DEEEEEEEEED_",
+                "__DEEEEEEEED__","___DEEEEEED___","____DEEEEED____","_____DEEED_____","______DED______",
+                "_______D_______","_____G_G_G_____","_____G_G_G_____","_____G_G_G_____","_____H_H_H_____"
             ],
-            // Враг 2 (Оранжевый акцент)
             enemy2: [
-                "_______D_______",
-                "______DED______",
-                "_____DEEED_____",
-                "____DEEEEED____",
-                "___DEEEEEED___",
-                "__DEEEEEEEED__",
-                "_DEEEEEEEEED_",
-                "DEEEEEEEFEEEEED",
-                "DEEEEEEEFEEEEED",
-                "_DEEEEEEEEED_",
-                "__DEEEEEEEED__",
-                "___DEEEEEED___",
-                "____DEEEEED____",
-                "_____DEEED_____",
-                "______DED______",
-                "_______D_______",
-                "_____G_G_G_____",
-                "_____G_G_G_____",
-                "_____G_G_G_____",
-                "_____H_H_H_____"
+                "_______D_______","______DED______","_____DEEED_____","____DEEEEED____","___DEEEEEED___",
+                "__DEEEEEEEED__","_DEEEEEEEEED_","DEEEEEEFEEEEED","DEEEEEEFEEEEED","_DEEEEEEEEED_",
+                "__DEEEEEEEED__","___DEEEEEED___","____DEEEEED____","_____DEEED_____","______DED______",
+                "_______D_______","_____G_G_G_____","_____G_G_G_____","_____G_G_G_____","_____H_H_H_____"
             ],
-            // Враг 3 (Золотой акцент)
             enemy3: [
-                "_______D_______",
-                "______DED______",
-                "_____DEEED_____",
-                "____DEEEEED____",
-                "___DEEEEEED___",
-                "__DEEEEEEEED__",
-                "_DEEEEEEEEED_",
-                "DEEEEEEEHEEEEEED",
-                "DEEEEEEEHEEEEEED",
-                "_DEEEEEEEEED_",
-                "__DEEEEEEEED__",
-                "___DEEEEEED___",
-                "____DEEEEED____",
-                "_____DEEED_____",
-                "______DED______",
-                "_______D_______",
-                "_____G_G_G_____",
-                "_____G_G_G_____",
-                "_____G_G_G_____",
-                "_____H_H_H_____"
+                "_______D_______","______DED______","_____DEEED_____","____DEEEEED____","___DEEEEEED___",
+                "__DEEEEEEEED__","_DEEEEEEEEED_","DEEEEEHEEEEEED","DEEEEEHEEEEEED","_DEEEEEEEEED_",
+                "__DEEEEEEEED__","___DEEEEEED___","____DEEEEED____","_____DEEED_____","______DED______",
+                "_______D_______","_____G_G_G_____","_____G_G_G_____","_____G_G_G_____","_____H_H_H_____"
             ]
         };
 
         function drawShipSprite(matrix, scale = 1) {
             const rows = matrix.length;
             const cols = matrix[0].length;
-            const tileSize = Math.max(2, Math.round(6 * scale)); 
+            const tileSize = Math.max(2, Math.round(6 * scale));
             const canvas = document.createElement('canvas');
             canvas.width = cols * tileSize;
             canvas.height = rows * tileSize;
@@ -360,7 +255,7 @@
         }
 
         window.createPlayerShip = (scale = 1) => drawShipSprite(SHIP_SPRITES[`player${(window.selectedShipIndex||0)+1}`], scale);
-        window.createEnemyShip = (variant = 0, scale = 1) => drawShipSprite(SHIP_SPRITES[`enemy${(variant%3)+1}`], scale);
+        window.createEnemyShip = (variant = 0) => drawShipSprite(SHIP_SPRITES[`enemy${(variant%3)+1}`], 0.8);
         window.createAsteroidEmoji = () => '🪨';
         window.createWreckEmoji = () => { const w = document.createElement('span'); w.style.fontSize='30px'; w.innerText='🛸'; w.style.filter='grayscale(1) brightness(0.5)'; return w; };
 
@@ -465,7 +360,7 @@
                 const obj = { type, x, y, element:null };
                 const div = document.createElement('div'); div.className='bg-object'; div.style.left=x+'px'; div.style.top=y+'px'; div.style.pointerEvents='all';
                 if (type==='asteroid') { div.innerHTML = window.createAsteroidEmoji(); }
-                else if (type==='pirate') { div.appendChild(window.createEnemyShip(Math.floor(Math.random()*3), 0.8)); }
+                else if (type==='pirate') { div.appendChild(window.createEnemyShip(Math.floor(Math.random()*3))); }
                 else { div.appendChild(window.createWreckEmoji()); }
                 div.onclick = (e) => { e.stopPropagation(); if (window.currentTab==='map' && !window.isShipFlying && window.resources.fuel>=10) window.flyToObject(obj, div); };
                 bg.appendChild(div); obj.element=div; window.galaxyObjects.push(obj);
@@ -589,7 +484,7 @@
             if(tab==='map'){ document.getElementById('content-overlay').style.display='none'; }
             else { document.getElementById('content-overlay').style.display='flex';
                 if(tab==='hangar'){ window.showWindow('hangar'); const hangarDiv=document.getElementById('hangar-ship-display'); hangarDiv.innerHTML=''; hangarDiv.appendChild(window.createPlayerShip(1.2)); updateHangar(); }
-                else if(tab==='pvp'){ window.showWindow('pvp'); const playerDiv=document.getElementById('pvp-player-ship-display'); playerDiv.innerHTML=''; playerDiv.appendChild(window.createPlayerShip(1.2)); const enemyDiv=document.getElementById('pvp-enemy-ship-display'); enemyDiv.innerHTML=''; enemyDiv.appendChild(window.createEnemyShip(Math.floor(Math.random()*3), 1.2)); updateLeaderboard(); }
+                else if(tab==='pvp'){ window.showWindow('pvp'); const playerDiv=document.getElementById('pvp-player-ship-display'); playerDiv.innerHTML=''; playerDiv.appendChild(window.createPlayerShip(1.2)); const enemyDiv=document.getElementById('pvp-enemy-ship-display'); enemyDiv.innerHTML=''; enemyDiv.appendChild(window.createEnemyShip(Math.floor(Math.random()*3))); updateLeaderboard(); }
                 else if(tab==='vip'){ window.showWindow('vip'); updateVipWindow(); }
             }
         };
