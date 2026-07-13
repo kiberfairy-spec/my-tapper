@@ -131,26 +131,11 @@
         // ---------- ПЛАНЕТА ----------
         const PLANET_PALETTE = { '_': null, 'B': '#6AF5FA', 'C': '#009CAD', 'G': '#11D47D', 'D': '#009363', 'E': '#005238', 'F': '#59F2A8' };
         const PLANET_MATRIX = [
-            "____________________",
-            "_______BBBB_________",
-            "_______BBBBBB_______",
-            "______BBCCCCBB______",
-            "____BBGGCBGCGBB____",
-            "___BBGCGGBGGCGBB___",
-            "___BBGCGGBBGGGCBB___",
-            "___BBGGCBBBGGGCBB___",
-            "___BBGGGCBBBGGGCBB___",
-            "___BBGGGCBBBGGGCBB___",
-            "___BBGGGCBBBGGGCBB___",
-            "___BBGGGCBBBGGGCBB___",
-            "___BBGGGGCBBGGGCBB___",
-            "___BBGGGGGBGGCBB___",
-            "___BBGGGGGGGGCBB___",
-            "____BBGGGGGGCBB____",
-            "_____BBGGCGCBB_____",
-            "______BBCCBB______",
-            "_________BB_________",
-            "____________________"
+            "____________________","_______BBBB_________","_______BBBBBB_______","______BBCCCCBB______",
+            "____BBGGCBGCGBB____","___BBGCGGBGGCGBB___","___BBGCGGBBGGGCBB___","___BBGGCBBBGGGCBB___",
+            "___BBGGGCBBBGGGCBB___","___BBGGGCBBBGGGCBB___","___BBGGGCBBBGGGCBB___","___BBGGGCBBBGGGCBB___",
+            "___BBGGGGCBBGGGCBB___","___BBGGGGGBGGCBB___","___BBGGGGGGGGCBB___","____BBGGGGGGCBB____",
+            "_____BBGGCGCBB_____","______BBCCBB______","_________BB_________","____________________"
         ];
 
         function setupPixelPlanet() {
@@ -182,18 +167,50 @@
         }
 
         // ---------- КОРАБЛИ ----------
+        // Новая палитра (фиолетовые + старые враги)
         const PALETTE = {
-            'A':'#2E0A4E','B':'#5B2C8E','C':'#8B5FBF','P':'#FF44AA','Q':'#44CCFF','T':'#88EEFF',
+            'A': '#2E0A4E', 'B': '#5B2C8E', 'C': '#8B5FBF', 'P': '#FF44AA', 'Q': '#44CCFF',
             'R':'#8B0000','D':'#2A2A2A','E':'#FF4500','F':'#FF6600','G':'#FFAA00','H':'#FFD700',
             '_':null
         };
+
+        // Новые спрайты (player1 – ваш, остальные пока старые, чтобы игра не сломалась)
         const SHIP_SPRITES = {
             player1: [
-                "_______A_______","______ABA______","_____ABBBA_____","____ABBBBBA____","___ABBBBBBA___",
-                "__ABBBBBBBBA__","_ABBBBBBBBBA_","ABBBBBBBBBBBBA","ABBBBBBBBBBBBA","_ABBBBBBBBBBBA_",
-                "__ABBBBBBBBBA__","___ABBBBBBBBA___","____ABBBBBA____","_____ABBBA_____","______ABA______",
-                "_______A_______","_____Q_Q_Q_____","_____Q_Q_Q_____","_____Q_Q_Q_____","_____T_T_T_____"
+                "__________A___________",
+                "_________AAA__________",
+                "_________AAA__________",
+                "________AAAAA_________",
+                "________AACAA_________",
+                "________ACCCA_________",
+                "________ACCCA_________",
+                "________AAAAA_________",
+                "________APBBA_________",
+                "________ABBBB_________",
+                "________ABBBB_________",
+                "_______ABABAB_________",
+                "_______ABBABB_________",
+                "_______ABBACB_________",
+                "_______ABBACB_________",
+                "____AAAABBABBAAA_____",
+                "____ABBABBBBBABB____",
+                "___ABBBBABBBBBABB___",
+                "__ABBBBBABBBBBABB__",
+                "_ABBBBBBAPBBBPABBBBB_",
+                "ABBBBBBBAAAAAAABBBBBBA",
+                "ABBQQBBBABBBBBABBQQBBA",
+                "AAAAAAAABBBBBAAAAAAA",
+                "_______AAAAAAA_______",
+                "________AAAAA_________",
+                "_______AAA_AAA_______",
+                "_______AAA_AAA_______",
+                "________QQ_QQ_________",
+                "________QQ_QQ_________",
+                "________QB_QB_________",
+                "_________Q__Q__________",
+                "_________Q__Q__________"
             ],
+            // Временно оставляем старые спрайты для player2, player3, врагов (можно заменить позже)
             player2: [
                 "_______A_______","______ABA______","_____ABBBA_____","____ABBBBBA____","___ABBBBBBA___",
                 "__ABBBBBBBBA__","_ABBBBBBBBBA_","ABBBBBBPBBBBBBA","ABBBBBBPBBBBBBA","_ABBBBBBBBBBBA_",
@@ -227,6 +244,13 @@
         };
 
         function drawShipSprite(matrix, scale = 1) {
+            // Защита от пустых матриц
+            if (!matrix || matrix.length === 0) {
+                const span = document.createElement('span');
+                span.style.fontSize = '30px';
+                span.innerText = '🚀';
+                return span;
+            }
             const rows = matrix.length;
             const cols = matrix[0].length;
             const tileSize = Math.max(2, Math.round(6 * scale));
@@ -241,7 +265,7 @@
                 for (let x = 0; x < cols; x++) {
                     const key = matrix[y][x];
                     if (key !== '_') {
-                        ctx.fillStyle = PALETTE[key];
+                        ctx.fillStyle = PALETTE[key] || '#888';
                         ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
                     }
                 }
@@ -348,7 +372,7 @@
         createBackground();
 
         function getMapCenter() { const bg = document.getElementById('galaxy-bg'); return { x: bg.offsetWidth/2, y: bg.offsetHeight/2 }; }
-        function createOrbitShip() { const orbit = document.getElementById('player-on-orbit'); orbit.innerHTML=''; orbit.appendChild(window.createPlayerShip(0.8)); orbit.style.display='block'; }
+        function createOrbitShip() { const orbit = document.getElementById('player-on-orbit'); orbit.innerHTML=''; orbit.appendChild(window.createPlayerShip(0.6)); orbit.style.display='block'; }
 
         window.generateObjects = function() {
             const bg = document.getElementById('galaxy-bg'); bg.querySelectorAll('.bg-object').forEach(e=>e.remove()); window.galaxyObjects=[];
@@ -384,7 +408,7 @@
             window.isShipFlying = true; window.resources.fuel -= 10; saveAll(); updateTopPanel();
             const center = getMapCenter(); const bg = document.getElementById('galaxy-bg');
             document.getElementById('player-on-orbit').style.display='none';
-            const shipEl = window.createPlayerShip(0.8);
+            const shipEl = window.createPlayerShip(0.6);
             shipEl.style.position='absolute'; shipEl.style.left=center.x+'px'; shipEl.style.top=center.y+'px'; shipEl.style.transform='translate(-50%,-50%)'; shipEl.style.transition='all 5s cubic-bezier(0.25,0.1,0.25,1)'; bg.appendChild(shipEl);
             requestAnimationFrame(()=>{ shipEl.style.left=obj.x+'px'; shipEl.style.top=obj.y+'px'; shipEl.style.transform='translate(-50%,-50%) scale(0.8)'; });
             setTimeout(()=>{
@@ -392,7 +416,7 @@
                 if (loot) window.showLoot(loot.name, loot.amount);
                 saveAll(); updateTopPanel();
                 element.style.opacity='0'; setTimeout(()=>element.remove(),300);
-                shipEl.style.transition='all 5s cubic-bezier(0.25,0.1,0.25,1)'; shipEl.style.left=center.x+'px'; shipEl.style.top=center.y+'px'; shipEl.style.transform='translate(-50%,-50%) scale(0.8)';
+                shipEl.style.transition='all 5s cubic-bezier(0.25,0.1,0.25,1)'; shipEl.style.left=center.x+'px'; shipEl.style.top=center.y+'px'; shipEl.style.transform='translate(-50%,-50%) scale(0.6)';
                 setTimeout(()=>{ shipEl.remove(); window.galaxyObjects=window.galaxyObjects.filter(o=>o!==obj); window.isShipFlying=false; createOrbitShip(); if (document.querySelectorAll('.bg-object').length===0) window.generateObjects(); },5000);
             },5000);
         };
@@ -466,7 +490,7 @@
         window.selectFaction = function(name,color,bonus) {
             window.tempFaction={name,color,bonus}; const container=document.getElementById('ship-selection'); container.innerHTML='';
             for (let i=0;i<3;i++) { const card=document.createElement('div'); card.style.cssText='cursor:pointer;padding:6px;border:2px solid #009944;text-align:center;width:100px;height:120px;display:flex;align-items:center;justify-content:center;';
-                card.appendChild(drawShipSprite(SHIP_SPRITES[`player${i+1}`], 1.2));
+                card.appendChild(drawShipSprite(SHIP_SPRITES[`player${i+1}`], 0.8));
                 card.onclick=()=>{ window.tempShipIndex=i; container.querySelectorAll('div').forEach(d=>d.style.borderColor='#009944'); card.style.borderColor='#aa9933'; document.getElementById('confirm-ship-btn').disabled=false; }; container.appendChild(card);
             } document.getElementById('confirm-ship-btn').disabled=true; window.showWindow('ship');
         };
@@ -483,8 +507,8 @@
             document.querySelectorAll('.bg-object').forEach(o=>o.style.display=tab==='map'?'block':'none');
             if(tab==='map'){ document.getElementById('content-overlay').style.display='none'; }
             else { document.getElementById('content-overlay').style.display='flex';
-                if(tab==='hangar'){ window.showWindow('hangar'); const hangarDiv=document.getElementById('hangar-ship-display'); hangarDiv.innerHTML=''; hangarDiv.appendChild(window.createPlayerShip(1.2)); updateHangar(); }
-                else if(tab==='pvp'){ window.showWindow('pvp'); const playerDiv=document.getElementById('pvp-player-ship-display'); playerDiv.innerHTML=''; playerDiv.appendChild(window.createPlayerShip(1.2)); const enemyDiv=document.getElementById('pvp-enemy-ship-display'); enemyDiv.innerHTML=''; enemyDiv.appendChild(window.createEnemyShip(Math.floor(Math.random()*3))); updateLeaderboard(); }
+                if(tab==='hangar'){ window.showWindow('hangar'); const hangarDiv=document.getElementById('hangar-ship-display'); hangarDiv.innerHTML=''; hangarDiv.appendChild(window.createPlayerShip(1.0)); updateHangar(); }
+                else if(tab==='pvp'){ window.showWindow('pvp'); const playerDiv=document.getElementById('pvp-player-ship-display'); playerDiv.innerHTML=''; playerDiv.appendChild(window.createPlayerShip(1.0)); const enemyDiv=document.getElementById('pvp-enemy-ship-display'); enemyDiv.innerHTML=''; enemyDiv.appendChild(window.createEnemyShip(Math.floor(Math.random()*3))); updateLeaderboard(); }
                 else if(tab==='vip'){ window.showWindow('vip'); updateVipWindow(); }
             }
         };
