@@ -117,22 +117,22 @@
         </div>
     </div>
     <script>
-        // ========== НОВАЯ ГРАФИКА (15x20) ==========
+        // ========== НОВАЯ ГРАФИКА, ИСПРАВЛЕННАЯ 15x20 С БОЛЬШИМИ ТАЙЛАМИ ==========
         const PALETTE = {
-            // Игрок (фиолетовые)
+            // Игрок (фиолетовые оттенки, объем)
             'A': '#2E0A4E', 'B': '#5B2C8E', 'C': '#8B5FBF', 'P': '#FF44AA', 'Q': '#44CCFF', 'T': '#88EEFF',
             // Враг (красные/серые)
-            'R': '#8B0000', 'D': '#2A2A2A', 'E': '#FF4500', 'F': '#FF6600', 'G': '#FFAA00', 'H': '#FFD700',
+            'D': '#2A2A2A', 'E': '#8B0000', 'F': '#FF4500', 'G': '#FFAA00', 'H': '#FFD700', 'I': '#FFFFFF',
             '_': null
         };
 
-        // 15 столбцов, 20 строк. Игроки: A,B,C,P,Q,T. Враги: D,E,F,G,H (но сохраняем ключи A,B,C,P,Q,T для формы)
+        // СТРОГО 15x20 пикселей (15 колонок, 20 строк)
         const SHIP_SPRITES = {
             player1: [
                 "_______A_______",
                 "______ABA______",
                 "_____ABBA_____",
-                "____ABBBA____",
+                "____ABBBBA____",
                 "___ABBBBBA___",
                 "__ABBBBBBA__",
                 "_ABBBBBBBBA_",
@@ -142,7 +142,7 @@
                 "__ABBBBBBA__",
                 "___ABBBBBA___",
                 "____ABBBBA____",
-                "_____ABBBA_____",
+                "_____ABBA_____",
                 "______ABA______",
                 "_______A_______",
                 "______QQQ______",
@@ -154,17 +154,17 @@
                 "_______A_______",
                 "______ABA______",
                 "_____ABBA_____",
-                "____ABBBA____",
+                "____ABBBBA____",
                 "___ABBBBBA___",
                 "__ABBBBBBA__",
                 "_ABBBBBBBBA_",
-                "ABBBBPBBBBBA",
-                "ABBBBPBBBBBA",
+                "ABBBBBPBBBBA",
+                "ABBBBBPBBBBA",
                 "_ABBBBBBBBA_",
                 "__ABBBBBBA__",
                 "___ABBBBBA___",
                 "____ABBBBA____",
-                "_____ABBBA_____",
+                "_____ABBA_____",
                 "______ABA______",
                 "_______A_______",
                 "______QQQ______",
@@ -176,17 +176,17 @@
                 "_______A_______",
                 "______ABA______",
                 "_____ABBA_____",
-                "____ABBBA____",
+                "____ABBBBA____",
                 "___ABBBBBA___",
                 "__ABBBBBBA__",
                 "_ABBBBBBBBA_",
-                "ABBBCBBBBBA",
-                "ABBBCBBBBBA",
+                "ABBBBBCBBBBA",
+                "ABBBBBCBBBBA",
                 "_ABBBBBBBBA_",
                 "__ABBBBBBA__",
                 "___ABBBBBA___",
                 "____ABBBBA____",
-                "_____ABBBA_____",
+                "_____ABBA_____",
                 "______ABA______",
                 "_______A_______",
                 "______QQQ______",
@@ -200,12 +200,12 @@
                 "_____DEED_____",
                 "____DEEED____",
                 "___DEEEEED___",
-                "__DEEEEED__",
+                "__DEEEEEED__",
                 "_DEEEEEEED_",
                 "DEEEEEEEEED",
                 "DEEEEEEEEED",
                 "_DEEEEEEED_",
-                "__DEEEEED__",
+                "__DEEEEEED__",
                 "___DEEEEED___",
                 "____DEEED____",
                 "_____DEED_____",
@@ -222,12 +222,12 @@
                 "_____DEED_____",
                 "____DEEED____",
                 "___DEEEEED___",
-                "__DEEEEED__",
+                "__DEEEEEED__",
                 "_DEEEEEEED_",
-                "DEEEFEEEEED",
-                "DEEEFEEEEED",
+                "DEEEEFEEEEED",
+                "DEEEEFEEEEED",
                 "_DEEEEEEED_",
-                "__DEEEEED__",
+                "__DEEEEEED__",
                 "___DEEEEED___",
                 "____DEEED____",
                 "_____DEED_____",
@@ -244,12 +244,12 @@
                 "_____DEED_____",
                 "____DEEED____",
                 "___DEEEEED___",
-                "__DEEEEED__",
+                "__DEEEEEED__",
                 "_DEEEEEEED_",
-                "DEEEEEEEEED",
-                "DEEEEEEEEED",
+                "DEEEEHEEEED",
+                "DEEEEHEEEED",
                 "_DEEEEEEED_",
-                "__DEEEEED__",
+                "__DEEEEEED__",
                 "___DEEEEED___",
                 "____DEEED____",
                 "_____DEED_____",
@@ -262,15 +262,17 @@
             ]
         };
 
-        function drawShipSprite(matrix, scale = 2) {
+        // Функция с увеличенным тайлом (базовый размер 4 пикселя) для отчетливых ретро-пикселей
+        function drawShipSprite(matrix, scale = 1) {
             const rows = matrix.length;
             const cols = matrix[0].length;
-            const tileSize = Math.max(2, Math.floor(scale));
+            // Чтобы пиксели были большими и чёткими, устанавливаем базовый тайл 4, и умножаем на коэффициент
+            const tileSize = Math.max(2, Math.round(4 * scale)); 
             const canvas = document.createElement('canvas');
             canvas.width = cols * tileSize;
             canvas.height = rows * tileSize;
             const ctx = canvas.getContext('2d');
-            ctx.imageSmoothingEnabled = false;
+            ctx.imageSmoothingEnabled = false; // КРИТИЧНО ВАЖНО ДЛЯ ПИКСЕЛЬ-АРТА!
             for (let y = 0; y < rows; y++) {
                 for (let x = 0; x < cols; x++) {
                     const key = matrix[y][x];
@@ -282,18 +284,19 @@
             }
             const wrapper = document.createElement('div');
             wrapper.style.display = 'inline-block';
+            wrapper.style.pointerEvents = 'none'; // Чтобы клики мыши не перехватывались холстом
             wrapper.appendChild(canvas);
             return wrapper;
         }
 
-        window.createPlayerShip = (scale = 2) => {
+        window.createPlayerShip = (scale = 1) => {
             const type = `player${(window.selectedShipIndex || 0) + 1}`;
             return drawShipSprite(SHIP_SPRITES[type], scale);
         };
 
-        window.createEnemyShip = (variant = 0) => {
+        window.createEnemyShip = (variant = 0, scale = 1) => {
             const type = `enemy${(variant % 3) + 1}`;
-            return drawShipSprite(SHIP_SPRITES[type], 2);
+            return drawShipSprite(SHIP_SPRITES[type], scale);
         };
 
         window.createAsteroidEmoji = () => '🪨';
@@ -392,7 +395,7 @@
         createBackground();
 
         function getMapCenter() { const bg = document.getElementById('galaxy-bg'); return { x: bg.offsetWidth/2, y: bg.offsetHeight/2 }; }
-        function createOrbitShip() { const orbit = document.getElementById('player-on-orbit'); orbit.innerHTML=''; orbit.appendChild(window.createPlayerShip(1.2)); orbit.style.display='block'; }
+        function createOrbitShip() { const orbit = document.getElementById('player-on-orbit'); orbit.innerHTML=''; orbit.appendChild(window.createPlayerShip(0.5)); orbit.style.display='block'; } // scale 0.5 на карте
 
         window.generateObjects = function() {
             const bg = document.getElementById('galaxy-bg'); bg.querySelectorAll('.bg-object').forEach(e=>e.remove()); window.galaxyObjects=[];
@@ -404,7 +407,7 @@
                 const obj = { type, x, y, element:null };
                 const div = document.createElement('div'); div.className='bg-object'; div.style.left=x+'px'; div.style.top=y+'px'; div.style.pointerEvents='all';
                 if (type==='asteroid') { div.innerHTML = window.createAsteroidEmoji(); }
-                else if (type==='pirate') { div.appendChild(window.createEnemyShip(Math.floor(Math.random()*3))); }
+                else if (type==='pirate') { div.appendChild(window.createEnemyShip(Math.floor(Math.random()*3), 0.5)); } // Враг на карте 0.5
                 else { div.appendChild(window.createWreckEmoji()); }
                 div.onclick = (e) => { e.stopPropagation(); if (window.currentTab==='map' && !window.isShipFlying && window.resources.fuel>=20) window.flyToObject(obj, div); };
                 bg.appendChild(div); obj.element=div; window.galaxyObjects.push(obj);
@@ -416,7 +419,7 @@
             window.isShipFlying=true; window.resources.fuel-=20; saveAll(); updateFuelDisplay();
             const center = getMapCenter(); const bg = document.getElementById('galaxy-bg');
             document.getElementById('player-on-orbit').style.display='none';
-            const shipEl = window.createPlayerShip(1.2);
+            const shipEl = window.createPlayerShip(0.5); // Корабль в полете (scale 0.5)
             shipEl.style.position='absolute'; shipEl.style.left=center.x+'px'; shipEl.style.top=center.y+'px'; shipEl.style.transform='translate(-50%,-50%)'; shipEl.style.transition='all 5s cubic-bezier(0.25,0.1,0.25,1)'; bg.appendChild(shipEl);
             requestAnimationFrame(()=>{ shipEl.style.left=obj.x+'px'; shipEl.style.top=obj.y+'px'; shipEl.style.transform='translate(-50%,-50%) scale(0.8)'; });
             setTimeout(()=>{
@@ -438,8 +441,8 @@
         window.setPlayerName = function() { const n=document.getElementById('input-player-name').value.trim(); if(n.length<2)return alert('Минимум 2 символа'); window.playerName=n; saveAll(); window.showWindow('faction'); };
         window.selectFaction = function(name,color,bonus) {
             window.tempFaction={name,color,bonus}; const container=document.getElementById('ship-selection'); container.innerHTML='';
-            for (let i=0;i<3;i++) { const card=document.createElement('div'); card.style.cssText='cursor:pointer;padding:6px;border:2px solid #009944;text-align:center;width:100px;height:120px;display:flex;align-items:center;justify-content:center;';
-                card.appendChild(drawShipSprite(SHIP_SPRITES[`player${i+1}`], 2.2));
+            for (let i=0;i<3;i++) { const card=document.createElement('div'); card.style.cssText='cursor:pointer;padding:6px;border:2px solid #009944;text-align:center;width:140px;height:160px;display:flex;align-items:center;justify-content:center;';
+                card.appendChild(drawShipSprite(SHIP_SPRITES[`player${i+1}`], 1.2)); // Выбор корабля в меню
                 card.onclick=()=>{ window.tempShipIndex=i; container.querySelectorAll('div').forEach(d=>d.style.borderColor='#009944'); card.style.borderColor='#aa9933'; document.getElementById('confirm-ship-btn').disabled=false; }; container.appendChild(card);
             } document.getElementById('confirm-ship-btn').disabled=true; window.showWindow('ship');
         };
@@ -457,8 +460,8 @@
             document.getElementById('loot-feed').style.display=tab==='map'?'flex':'none';
             if(tab==='map'){ document.getElementById('content-overlay').style.display='none'; }
             else { document.getElementById('content-overlay').style.display='flex';
-                if(tab==='hangar'){ window.showWindow('hangar'); const hangarDiv=document.getElementById('hangar-ship-display'); hangarDiv.innerHTML=''; hangarDiv.appendChild(window.createPlayerShip(2.5)); updateHangar(); }
-                else if(tab==='pvp'){ window.showWindow('pvp'); const playerDiv=document.getElementById('pvp-player-ship-display'); playerDiv.innerHTML=''; playerDiv.appendChild(window.createPlayerShip(2.2)); const enemyDiv=document.getElementById('pvp-enemy-ship-display'); enemyDiv.innerHTML=''; enemyDiv.appendChild(window.createEnemyShip(Math.floor(Math.random()*3))); updateLeaderboard(); }
+                if(tab==='hangar'){ window.showWindow('hangar'); const hangarDiv=document.getElementById('hangar-ship-display'); hangarDiv.innerHTML=''; hangarDiv.appendChild(window.createPlayerShip(1.2)); updateHangar(); } // Корабль в Ангаре
+                else if(tab==='pvp'){ window.showWindow('pvp'); const playerDiv=document.getElementById('pvp-player-ship-display'); playerDiv.innerHTML=''; playerDiv.appendChild(window.createPlayerShip(1.2)); const enemyDiv=document.getElementById('pvp-enemy-ship-display'); enemyDiv.innerHTML=''; enemyDiv.appendChild(window.createEnemyShip(Math.floor(Math.random()*3), 1.2)); updateLeaderboard(); } // Враг в PvP
                 else if(tab==='vip'){ window.showWindow('vip'); updateVipWindow(); }
             }
         };
