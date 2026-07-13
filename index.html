@@ -23,7 +23,7 @@
         .background-map { position:fixed; top:0; left:0; width:100%; height:calc(100dvh - 80px); z-index:1; pointer-events:none; }
         .galaxy-bg { position:relative; width:100%; height:100%; overflow:hidden; background:transparent; }
         .planet-container { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:2; }
-        .pixel-planet { width:184px; height:184px; position:relative; } /* 46px * 4 = 184 */
+        .pixel-planet { width:128px; height:80px; position:relative; }
         .player-orbit { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:5; pointer-events:none; }
         .player-on-orbit { position:absolute; animation:orbitAnim 22s linear infinite; }
         .bg-object { position:absolute; z-index:2; pointer-events:none; transition:opacity 0.3s; transform:translate(-50%,-50%); cursor:pointer; }
@@ -78,7 +78,6 @@
         </div>
         <div class="loot-feed" id="loot-feed"></div>
         <div class="content-overlay" id="content-overlay">
-            <!-- Окна без изменений -->
             <div class="window" id="window-start">
                 <div class="title">SPACE DREAM</div>
                 <input type="text" class="input-field" id="input-player-name" placeholder="ИМЯ ИГРОКА" maxlength="12">
@@ -129,38 +128,81 @@
         </div>
     </div>
     <script>
-        // ---------- НОВАЯ ПЛАНЕТА ----------
+        // ---------- ГЕНЕРАЦИЯ ПЛАНЕТЫ ----------
         const planetColors = {
-            1: '#3c1a5b', // Темно-фиолетовый контур
-            2: '#b094fa', // Лавандовый базовый
-            3: '#f25cf2', // Ярко-розовые полосы
-            4: '#ff9eff', // Светло-розовые блики
-            5: '#e3e8ff'  // Бело-голубые кратеры/кольца
+            1: '#3c1a5b', // темно-фиолетовый контур
+            2: '#b094fa', // лавандовый
+            3: '#f25cf2', // розовый
+            4: '#ff9eff', // светло-розовый блик
+            5: '#e3e8ff'  // бело-голубой
         };
 
-        // Тестовая матрица 46x46 (замените на свою полную матрицу)
-        const planetMatrix = Array.from({ length: 46 }, () => 
-            Array.from({ length: 46 }, () => 0)
-        );
-        // Пример: закрасим несколько пикселей для проверки
-        for (let i = 10; i < 36; i++) {
-            for (let j = 10; j < 36; j++) {
-                planetMatrix[i][j] = (i + j) % 5 + 1; // случайные цвета
+        const WIDTH = 64;
+        const HEIGHT = 40;
+        const planetMatrix = Array(HEIGHT).fill().map(() => Array(WIDTH).fill(0));
+
+        const centerX = 32;
+        const centerY = 20;
+        const radius = 14;
+
+        // Тело планеты
+        for (let y = 0; y < HEIGHT; y++) {
+            for (let x = 0; x < WIDTH; x++) {
+                const dx = x - centerX;
+                const dy = y - centerY;
+                if (dx * dx + dy * dy <= radius * radius) {
+                    planetMatrix[y][x] = 2;
+                    if ((y >= 10 && y <= 13) || (y >= 18 && y <= 22) || (y >= 27 && y <= 29)) {
+                        planetMatrix[y][x] = 3;
+                    }
+                    if ((y === 9 && x === 28) || (y === 10 && x === 29) || (y === 21 && x === 24)) {
+                        planetMatrix[y][x] = 4;
+                    }
+                }
             }
         }
 
-        function drawPixelPlanet(ctx, matrix, startX, startY, pixelSize) {
-            for (let r = 0; r < matrix.length; r++) {
-                for (let c = 0; c < matrix[r].length; c++) {
-                    const colorKey = matrix[r][c];
+        // Кольцо
+        for (let y = 0; y < HEIGHT; y++) {
+            for (let x = 0; x < WIDTH; x++) {
+                const dx = x - centerX;
+                const dy = y - centerY;
+                const angle = -20 * Math.PI / 180;
+                const rx = dx * Math.cos(angle) - dy * Math.sin(angle);
+                const ry = dx * Math.sin(angle) + dy * Math.cos(angle);
+                const inRing = (rx*rx)/(28*28) + (ry*ry)/(5*5) <= 1.0;
+                const inInnerHole = (rx*rx)/(18*18) + (ry*ry)/(3.2*3.2) <= 1.0;
+                if (inRing && !inInnerHole) {
+                    const isFront = ry > 0 || dx > 8;
+                    const isPlanetHere = planetMatrix[y][x] !== 0;
+                    if (!isPlanetHere || isFront) {
+                        planetMatrix[y][x] = 2;
+                        if (Math.abs(rx) > 24) planetMatrix[y][x] = 4;
+                    }
+                }
+            }
+        }
+
+        // Контур
+        const finalMatrix = JSON.parse(JSON.stringify(planetMatrix));
+        for (let y = 1; y < HEIGHT - 1; y++) {
+            for (let x = 1; x < WIDTH - 1; x++) {
+                if (planetMatrix[y][x] === 0) {
+                    if (planetMatrix[y-1][x] > 1 || planetMatrix[y+1][x] > 1 ||
+                        planetMatrix[y][x-1] > 1 || planetMatrix[y][x+1] > 1) {
+                        finalMatrix[y][x] = 1;
+                    }
+                }
+            }
+        }
+
+        function drawPlanet(ctx, matrix, pixelSize) {
+            for (let y = 0; y < matrix.length; y++) {
+                for (let x = 0; x < matrix[0].length; x++) {
+                    const colorKey = matrix[y][x];
                     if (colorKey !== 0) {
                         ctx.fillStyle = planetColors[colorKey];
-                        ctx.fillRect(
-                            startX + c * pixelSize,
-                            startY + r * pixelSize,
-                            pixelSize,
-                            pixelSize
-                        );
+                        ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
                     }
                 }
             }
@@ -171,62 +213,37 @@
             if (!planetContainer) return;
             planetContainer.innerHTML = '';
             const wrapper = document.createElement('div');
-            wrapper.style.cssText = 'width:100%;height:100%;border-radius:50%;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;background:transparent;';
-            const pixelSize = 4; // размер пикселя
+            wrapper.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;';
+            const pixelSize = 2;
             const canvas = document.createElement('canvas');
-            canvas.width = planetMatrix[0].length * pixelSize;
-            canvas.height = planetMatrix.length * pixelSize;
+            canvas.width = WIDTH * pixelSize;
+            canvas.height = HEIGHT * pixelSize;
             const ctx = canvas.getContext('2d');
             ctx.imageSmoothingEnabled = false;
             canvas.style.imageRendering = 'pixelated';
-            drawPixelPlanet(ctx, planetMatrix, 0, 0, pixelSize);
-            canvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;';
+            drawPlanet(ctx, finalMatrix, pixelSize);
+            canvas.style.cssText = 'display:block;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;';
             wrapper.appendChild(canvas);
             wrapper.style.animation = 'rotate 60s linear infinite';
             planetContainer.appendChild(wrapper);
         }
 
-        // ---------- КОРАБЛИ (ваш player1) ----------
+        // ---------- КОРАБЛИ ----------
         const PALETTE = {
             'A': '#2E0A4E', 'B': '#5B2C8E', 'C': '#8B5FBF', 'P': '#FF44AA', 'Q': '#44CCFF',
             'R':'#8B0000','D':'#2A2A2A','E':'#FF4500','F':'#FF6600','G':'#FFAA00','H':'#FFD700',
             '_':null
         };
-
         const SHIP_SPRITES = {
             player1: [
-                "__________A___________",
-                "_________AAA__________",
-                "_________AAA__________",
-                "________AAAAA_________",
-                "________AACAA_________",
-                "________ACCCA_________",
-                "________ACCCA_________",
-                "________AAAAA_________",
-                "________APBBA_________",
-                "________ABBBB_________",
-                "________ABBBB_________",
-                "_______AABABAA_______",
-                "_______ABBABB_______",
-                "_______ABBCBA_______",
-                "_______ABBCBA_______",
-                "_____AAABBABBAAA_____",
-                "____ABBABBBBBABB____",
-                "___ABBBABBBBBABBBA___",
-                "__ABBBBABBBBBABBBB__",
-                "_ABBBBBAPBBBPABBBBB_",
-                "ABBBBBBAAAAAAABBBBBBA",
-                "ABQQBBBABBBBBABBBQQBA",
-                "AAAAAAAAABBBBBAAAAAAAAA",
-                "_______AAAAAAA_______",
-                "________AAAAA_________",
-                "_______AAA_AAA_______",
-                "_______AAA_AAA_______",
-                "________QQ_QQ_________",
-                "________QQ_QQ_________",
-                "________QB_QB_________",
-                "_________Q__Q________",
-                "_________Q__Q________"
+                "__________A___________","_________AAA__________","_________AAA__________","________AAAAA_________",
+                "________AACAA_________","________ACCCA_________","________ACCCA_________","________AAAAA_________",
+                "________APBBA_________","________ABBBB_________","________ABBBB_________","_______AABABAA_______",
+                "_______ABBABB_______","_______ABBCBA_______","_______ABBCBA_______","_____AAABBABBAAA_____",
+                "____ABBABBBBBABB____","___ABBBABBBBBABBBA___","__ABBBBABBBBBABBBB__","_ABBBBBAPBBBPABBBBB_",
+                "ABBBBBBAAAAAAABBBBBBA","ABQQBBBABBBBBABBBQQBA","AAAAAAAAABBBBBAAAAAAAAA","_______AAAAAAA_______",
+                "________AAAAA_________","_______AAA_AAA_______","_______AAA_AAA_______","________QQ_QQ_________",
+                "________QQ_QQ_________","________QB_QB_________","_________Q__Q________","_________Q__Q________"
             ],
             player2: [], player3: [], enemy1: [], enemy2: [], enemy3: []
         };
@@ -278,7 +295,7 @@
         window.createAsteroidEmoji = () => '🪨';
         window.createWreckEmoji = () => { const w = document.createElement('span'); w.style.fontSize='30px'; w.innerText='🛸'; w.style.filter='grayscale(1) brightness(0.5)'; return w; };
 
-        // ---------- СОСТОЯНИЕ (без изменений) ----------
+        // ---------- СОСТОЯНИЕ ----------
         window.playerName = localStorage.getItem('sd_player_name') || '';
         window.shipName = localStorage.getItem('sd_ship_name') || '';
         window.frac = localStorage.getItem('sd_frac') || null;
