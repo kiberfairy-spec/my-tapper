@@ -119,75 +119,75 @@
     <script>
         // ========== ПИКСЕЛЬНАЯ ГРАФИКА (вид сверху, 8x8) ==========
         const PALETTE = {
-            'Y': '#FFAA00', // желтый
-            'B': '#3355CC', // синий
-            'O': '#FF6600', // оранжевый
+            'Y': '#FFC107', // ярко-желтый
+            'B': '#1A237E', // темно-синий
+            'O': '#FF5722', // оранжевый
             'W': '#FFFFFF', // белый
-            'G': '#667788', // серый
-            'R': '#CC2222', // красный
-            '_': null       // прозрачный
+            'G': '#424242', // темно-серый
+            'R': '#D50000', // красный
+            '_': null
         };
 
         const SHIP_SPRITES = {
-            player1: [
+            player1: [ // Классический истребитель
+                "__YY____",
                 "_YYYY___",
-                "YYYYYY__",
-                "YBBYYYY_",
-                "YBBYYYY_",
-                "YYYYYYY_",
-                "_YOOYY__",
-                "__WWYY__",
-                "__WW____"
-            ],
-            player2: [
-                "__YYY___",
-                "_YYYYY__",
                 "YYBBYY__",
-                "YYBBYYY_",
-                "YYYYYYY_",
-                "_YOOYY__",
-                "__WWY___",
-                "__WW____"
-            ],
-            player3: [
-                "_YYYY___",
+                "YYBBYY__",
                 "YYYYYY__",
-                "YBBYYYY_",
-                "YBBYYYY_",
-                "YYYYYYY_",
-                "_YYOYY__",
-                "__WWY___",
+                "_YOOY___",
+                "__WW____",
                 "__WW____"
             ],
-            enemy1: [
-                "_GGGG___",
-                "GGGGGG__",
-                "GRRGGGG_",
-                "GRRGGGG_",
-                "GGGGGGG_",
-                "_GOOGG__",
-                "__WWGG__",
+            player2: [ // Тяжёлый штурмовик
+                "__YY____",
+                "_YYYY___",
+                "YYBBYY__",
+                "YYBBYY__",
+                "YYYYYY__",
+                "_YOOY___",
+                "_WWWW___",
+                "_WWWW___"
+            ],
+            player3: [ // Быстрый перехватчик
+                "___Y____",
+                "__YYY___",
+                "_YYBYY__",
+                "YYBBBYY_",
+                "_YYYYY__",
+                "__YOY___",
+                "__WW____",
                 "__WW____"
             ],
-            enemy2: [
-                "__GGG___",
-                "_GGGGG__",
-                "GGRRGGG_",
-                "GGRRGGG_",
-                "GGGGGGG_",
-                "_GOOGG__",
-                "__WWG___",
-                "__WW____"
-            ],
-            enemy3: [
+            enemy1: [ // Лёгкий истребитель
                 "__GG____",
                 "_GGGG___",
-                "GGRGGG__",
-                "GGRGGG__",
+                "GGRRGG__",
+                "GGRRGG__",
                 "GGGGGG__",
-                "_GOGG___",
-                "__WG____",
-                "__W_____"
+                "_GOOG___",
+                "__WW____",
+                "__WW____"
+            ],
+            enemy2: [ // Бронированный корабль
+                "__GG____",
+                "_GGGG___",
+                "GGRRGG__",
+                "GGRRGG__",
+                "GGWWGG__",
+                "_GOOG___",
+                "_WWWW___",
+                "_WWWW___"
+            ],
+            enemy3: [ // Тяжёлый бомбардировщик
+                "___G____",
+                "__GGG___",
+                "_GGRGG__",
+                "GGRRRGG_",
+                "_GGGGG__",
+                "__GOG___",
+                "__WW____",
+                "__WW____"
             ]
         };
 
@@ -199,7 +199,7 @@
             canvas.width = cols * tileSize;
             canvas.height = rows * tileSize;
             const ctx = canvas.getContext('2d');
-            ctx.imageSmoothingEnabled = false; // убираем размытие
+            ctx.imageSmoothingEnabled = false;
             for (let y = 0; y < rows; y++) {
                 for (let x = 0; x < cols; x++) {
                     const key = matrix[y][x];
@@ -234,7 +234,7 @@
             return wreck;
         };
 
-        // ---------- ОСНОВНАЯ ЛОГИКА (без изменений в механиках) ----------
+        // ---------- ОСНОВНАЯ ЛОГИКА ----------
         window.playerName = localStorage.getItem('sd_player_name') || '';
         window.shipName = localStorage.getItem('sd_ship_name') || '';
         window.frac = localStorage.getItem('sd_frac') || null;
