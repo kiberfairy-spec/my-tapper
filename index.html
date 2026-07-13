@@ -28,7 +28,7 @@
         .player-orbit { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:5; pointer-events:none; }
         .player-on-orbit { position:absolute; animation:orbitAnim 22s linear infinite; }
         .bg-object { position:absolute; z-index:2; pointer-events:none; transition:opacity 0.3s; transform:translate(-50%,-50%); cursor:pointer; }
-        
+
         /* Верхняя панель */
         .top-panel {
             position:fixed; top:0; left:0; right:0; height:50px;
@@ -59,7 +59,7 @@
             font-size:15px; cursor:pointer; display:none; align-items:center; justify-content:center;
             font-family:'Press Start 2P',monospace; pointer-events:all;
         }
-        
+
         /* Лут-фид */
         .loot-feed {
             position:fixed; bottom:85px; left:50%; transform:translateX(-50%);
@@ -78,13 +78,13 @@
             80% { opacity:1; transform:translateY(0); }
             100% { opacity:0; transform:translateY(-10px); }
         }
-        
+
         .content-overlay {
             position:fixed; top:50px; left:0; right:0; bottom:80px; z-index:50;
             pointer-events:none; display:flex; align-items:center; justify-content:center;
         }
         .content-overlay > * { pointer-events:all; }
-        
+
         .bottom-panel {
             position:fixed; bottom:0; left:0; right:0; height:80px;
             background:rgba(2,2,10,0.96); border-top:2px solid #009944;
@@ -96,7 +96,7 @@
             text-align:center; flex:1; margin:0 2px; max-width:90px;
         }
         .nav-btn.active { background:#061806; border-color:#bb9922; }
-        
+
         .window {
             background:rgba(2,2,14,0.94); border:2px solid #009944; padding:14px;
             max-width:320px; width:88%; max-height:55vh; overflow-y:auto; animation:slideUp 0.3s ease-out;
@@ -116,7 +116,7 @@
                 <div class="player-orbit" id="player-orbit"><div class="player-on-orbit" id="player-on-orbit"></div></div>
             </div>
         </div>
-        
+
         <!-- Верхняя панель -->
         <div class="top-panel">
             <div style="display:flex; gap:8px; align-items:center;">
@@ -130,11 +130,10 @@
                 <button class="refuel-btn" id="refuel-btn" onclick="window.freeRefuel()">БЕСПЛ. ЗАПРАВКА</button>
             </div>
         </div>
-        
+
         <div class="loot-feed" id="loot-feed"></div>
-        
+
         <div class="content-overlay" id="content-overlay">
-            <!-- Окна остались без изменений -->
             <div class="window" id="window-start">
                 <div class="title">SPACE DREAM</div>
                 <input type="text" class="input-field" id="input-player-name" placeholder="ИМЯ ИГРОКА" maxlength="12">
@@ -177,7 +176,7 @@
                 <button class="btn" onclick="upgradeVip()">УЛУЧШИТЬ VIP</button>
             </div>
         </div>
-        
+
         <div class="bottom-panel hidden" id="bottom-panel">
             <button class="nav-btn active" id="nav-map" onclick="switchTab('map')">🌌 КАРТА</button>
             <button class="nav-btn" id="nav-hangar" onclick="switchTab('hangar')">🚀 АНГАР</button>
@@ -337,7 +336,7 @@
         createBackground();
 
         function getMapCenter() { const bg = document.getElementById('galaxy-bg'); return { x: bg.offsetWidth/2, y: bg.offsetHeight/2 }; }
-        function createOrbitShip() { const orbit = document.getElementById('player-on-orbit'); orbit.innerHTML=''; orbit.appendChild(window.createPlayerShip(1.2)); orbit.style.display='block'; }
+        function createOrbitShip() { const orbit = document.getElementById('player-on-orbit'); orbit.innerHTML=''; orbit.appendChild(window.createPlayerShip(1.2)); orbit.style.display='block'; } // УВЕЛИЧЕН МАСШТАБ
 
         window.generateObjects = function() {
             const bg = document.getElementById('galaxy-bg'); bg.querySelectorAll('.bg-object').forEach(e=>e.remove()); window.galaxyObjects=[];
@@ -374,7 +373,7 @@
             window.isShipFlying = true; window.resources.fuel -= 10; saveAll(); updateTopPanel();
             const center = getMapCenter(); const bg = document.getElementById('galaxy-bg');
             document.getElementById('player-on-orbit').style.display='none';
-            const shipEl = window.createPlayerShip(1.2);
+            const shipEl = window.createPlayerShip(1.2); // УВЕЛИЧЕН МАСШТАБ
             shipEl.style.position='absolute'; shipEl.style.left=center.x+'px'; shipEl.style.top=center.y+'px'; shipEl.style.transform='translate(-50%,-50%)'; shipEl.style.transition='all 5s cubic-bezier(0.25,0.1,0.25,1)'; bg.appendChild(shipEl);
             requestAnimationFrame(()=>{ shipEl.style.left=obj.x+'px'; shipEl.style.top=obj.y+'px'; shipEl.style.transform='translate(-50%,-50%) scale(0.8)'; });
             setTimeout(()=>{
@@ -471,7 +470,6 @@
         window.switchTab = function(tab) {
             window.currentTab=tab; document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); document.getElementById('nav-'+tab).classList.add('active');
             document.querySelectorAll('.bg-object').forEach(o=>o.style.display=tab==='map'?'block':'none');
-            // Лут-фид всегда видим, не скрываем
             if(tab==='map'){ document.getElementById('content-overlay').style.display='none'; }
             else { document.getElementById('content-overlay').style.display='flex';
                 if(tab==='hangar'){ window.showWindow('hangar'); const hangarDiv=document.getElementById('hangar-ship-display'); hangarDiv.innerHTML=''; hangarDiv.appendChild(window.createPlayerShip(2.5)); updateHangar(); }
