@@ -206,6 +206,7 @@
         .fuel-badge { border-color: #4488ff; color: #4488ff; }
         .credits-badge { border-color: #ffcc00; color: #ffcc00; }
         .spice-badge { border-color: #ff66ff; color: #f5f5f5; }
+        .shards-badge { border-color: #66ff99; color: #66ff99; }
 
         /* Неоновые кнопки */
         .top-btn {
@@ -587,6 +588,7 @@
                 <div class="resource-badge spice-badge">💎 <span id="spice-value">0</span></div>
                 <div class="resource-badge fuel-badge">⛽ <span id="fuel-value">100/100</span></div>
                 <div class="resource-badge credits-badge">🪙 <span id="credits-value">0</span></div>
+                <div class="resource-badge shards-badge">🧩 <span id="shards-value">0</span></div>
                 <button class="refuel-btn" id="refuel-btn" onclick="freeRefuel()">БЕСПЛ. ЗАПРАВКА</button>
             </div>
         </div>
@@ -624,7 +626,7 @@
         </div>
 
         <!-- Ангар (переработан) -->
-        <div class="window" id="window-hangar">
+        <div class="window hidden" id="window-hangar">
             <div id="hangar-header">
                 <div class="window-title">АНГАР</div>
                 <div id="hangar-ship-display" style="text-align:center;margin:4px 0;"></div>
@@ -763,7 +765,8 @@ function drawShipSprite(matrix, scale=1) {
     return wrapper;
 }
 window.createPlayerShip = (scale=1, rotate=0) => {
-    const idx = (window.selectedShipIndex || 0) + 1;
+    // ИСПРАВЛЕНИЕ: используем state.shipIndex, а не window.selectedShipIndex
+    const idx = (state.shipIndex !== null ? state.shipIndex : 0) + 1;
     const matrix = SHIP_SPRITES[`player${idx}`] || [];
     const ship = drawShipSprite(matrix, scale);
     if (rotate !== 0) {
@@ -817,7 +820,7 @@ function getBPReward(day) {
 }
 
 // ----------------------------------------------------------------------
-//  2. СОСТОЯНИЕ
+//  2. СОСТОЯНИЕ (исправлена мутация defaultState)
 // ----------------------------------------------------------------------
 
 const defaultState = {
@@ -848,44 +851,50 @@ const defaultState = {
 };
 
 function loadState() {
-    const s = defaultState;
+    const s = JSON.parse(JSON.stringify(defaultState)); // глубокое копирование
     try {
-        s.playerName = localStorage.getItem('sd_player_name') || '';
-        s.faction = localStorage.getItem('sd_frac') || null;
+        const saved = localStorage.getItem('sd_state');
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            Object.assign(s, parsed);
+        }
+        // Дополнительная миграция для старых ключей, если нужно
+        s.playerName = localStorage.getItem('sd_player_name') || s.playerName;
+        s.faction = localStorage.getItem('sd_frac') || s.faction;
         s.factionColor = localStorage.getItem('sd_color') || '#00aa44';
         s.factionBonus = localStorage.getItem('sd_bonus') || null;
         const shipIdx = parseInt(localStorage.getItem('sd_ship_index'));
         s.shipIndex = isNaN(shipIdx) ? null : shipIdx;
-        s.resources.credits = parseInt(localStorage.getItem('sd_credits')) || 0;
-        s.resources.fuel = parseInt(localStorage.getItem('sd_fuel')) || 100;
-        s.resources.shieldParts = parseInt(localStorage.getItem('sd_shieldParts')) || 0;
-        s.resources.weaponParts = parseInt(localStorage.getItem('sd_weaponParts')) || 0;
-        s.resources.speedParts = parseInt(localStorage.getItem('sd_speedParts')) || 0;
-        s.resources.spice = parseInt(localStorage.getItem('sd_spice')) || 0;
-        s.resources.shards = parseInt(localStorage.getItem('sd_shards')) || 0;
-        s.maxFuel = parseInt(localStorage.getItem('sd_maxFuel')) || 100;
-        s.upgrades.damage = parseInt(localStorage.getItem('sd_upg_damage')) || 0;
-        s.upgrades.shield = parseInt(localStorage.getItem('sd_upg_shield')) || 0;
-        s.upgrades.speed = parseInt(localStorage.getItem('sd_upg_speed')) || 0;
-        s.upgrades.luck = parseInt(localStorage.getItem('sd_upg_luck')) || 0;
-        s.upgrades.fuelTank = parseInt(localStorage.getItem('sd_upg_fuelTank')) || 0;
-        s.artifact.id = localStorage.getItem('sd_artifact_id') || null;
-        s.artifact.level = parseInt(localStorage.getItem('sd_artifact_level')) || 0;
-        s.vip = parseInt(localStorage.getItem('sd_vip')) || 0;
-        s.pvpScore = parseInt(localStorage.getItem('sd_pvp_score')) || 0;
-        s.leaderboard = JSON.parse(localStorage.getItem('sd_leaderboard')) || [];
-        s.freeRefuelUsed = localStorage.getItem('sd_free_refuel') === 'true';
-        s.checkinDay = parseInt(localStorage.getItem('sd_checkin_day')) || 1;
-        s.checkinLastClaim = localStorage.getItem('sd_checkin_last') || null;
-        s.checkinClaimedToday = localStorage.getItem('sd_checkin_today') === 'true';
-        s.bpPaid = localStorage.getItem('sd_bp_paid') === 'true';
-        s.bpDay = parseInt(localStorage.getItem('sd_bp_day')) || 1;
-        s.bpLastClaim = localStorage.getItem('sd_bp_last') || null;
-        s.bpClaimedToday = localStorage.getItem('sd_bp_today') === 'true';
-        s.boosts = JSON.parse(localStorage.getItem('sd_boosts')) || [];
-        s.exp = parseInt(localStorage.getItem('sd_exp')) || 0;
-        s.level = parseInt(localStorage.getItem('sd_level')) || 1;
-    } catch(e) {}
+        s.resources.credits = parseInt(localStorage.getItem('sd_credits')) || s.resources.credits;
+        s.resources.fuel = parseInt(localStorage.getItem('sd_fuel')) || s.resources.fuel;
+        s.resources.shieldParts = parseInt(localStorage.getItem('sd_shieldParts')) || s.resources.shieldParts;
+        s.resources.weaponParts = parseInt(localStorage.getItem('sd_weaponParts')) || s.resources.weaponParts;
+        s.resources.speedParts = parseInt(localStorage.getItem('sd_speedParts')) || s.resources.speedParts;
+        s.resources.spice = parseInt(localStorage.getItem('sd_spice')) || s.resources.spice;
+        s.resources.shards = parseInt(localStorage.getItem('sd_shards')) || s.resources.shards;
+        s.maxFuel = parseInt(localStorage.getItem('sd_maxFuel')) || s.maxFuel;
+        s.upgrades.damage = parseInt(localStorage.getItem('sd_upg_damage')) || s.upgrades.damage;
+        s.upgrades.shield = parseInt(localStorage.getItem('sd_upg_shield')) || s.upgrades.shield;
+        s.upgrades.speed = parseInt(localStorage.getItem('sd_upg_speed')) || s.upgrades.speed;
+        s.upgrades.luck = parseInt(localStorage.getItem('sd_upg_luck')) || s.upgrades.luck;
+        s.upgrades.fuelTank = parseInt(localStorage.getItem('sd_upg_fuelTank')) || s.upgrades.fuelTank;
+        s.artifact.id = localStorage.getItem('sd_artifact_id') || s.artifact.id;
+        s.artifact.level = parseInt(localStorage.getItem('sd_artifact_level')) || s.artifact.level;
+        s.vip = parseInt(localStorage.getItem('sd_vip')) || s.vip;
+        s.pvpScore = parseInt(localStorage.getItem('sd_pvp_score')) || s.pvpScore;
+        s.leaderboard = JSON.parse(localStorage.getItem('sd_leaderboard')) || s.leaderboard;
+        s.freeRefuelUsed = localStorage.getItem('sd_free_refuel') === 'true' || s.freeRefuelUsed;
+        s.checkinDay = parseInt(localStorage.getItem('sd_checkin_day')) || s.checkinDay;
+        s.checkinLastClaim = localStorage.getItem('sd_checkin_last') || s.checkinLastClaim;
+        s.checkinClaimedToday = localStorage.getItem('sd_checkin_today') === 'true' || s.checkinClaimedToday;
+        s.bpPaid = localStorage.getItem('sd_bp_paid') === 'true' || s.bpPaid;
+        s.bpDay = parseInt(localStorage.getItem('sd_bp_day')) || s.bpDay;
+        s.bpLastClaim = localStorage.getItem('sd_bp_last') || s.bpLastClaim;
+        s.bpClaimedToday = localStorage.getItem('sd_bp_today') === 'true' || s.bpClaimedToday;
+        s.boosts = JSON.parse(localStorage.getItem('sd_boosts')) || s.boosts;
+        s.exp = parseInt(localStorage.getItem('sd_exp')) || s.exp;
+        s.level = parseInt(localStorage.getItem('sd_level')) || s.level;
+    } catch(e) { console.warn('Load state error:', e); }
     return s;
 }
 
@@ -893,6 +902,8 @@ let state = loadState();
 
 function saveState() {
     const s = state;
+    localStorage.setItem('sd_state', JSON.stringify(s));
+    // Дополнительные ключи для совместимости
     localStorage.setItem('sd_player_name', s.playerName);
     localStorage.setItem('sd_frac', s.faction);
     localStorage.setItem('sd_color', s.factionColor);
@@ -939,7 +950,7 @@ function updateTopPanel() {
     document.getElementById('credits-value').innerText = Math.floor(r.credits);
     document.getElementById('fuel-value').innerText = Math.floor(r.fuel)+'/'+state.maxFuel;
     document.getElementById('spice-value').innerText = r.spice;
-    document.getElementById('shards-value').innerText = r.shards;
+    document.getElementById('shards-value').innerText = r.shards; // исправлено: теперь элемент есть
     const refuelBtn = document.getElementById('refuel-btn');
     refuelBtn.style.display = (r.fuel === 0 && !state.freeRefuelUsed) ? 'inline-block' : 'none';
     const avatar = document.getElementById('avatar-circle');
@@ -968,26 +979,8 @@ function showUI() {
     updateTopPanel();
 }
 
-function createStars() {
-    const layer = document.getElementById('stars-layer');
-    for (let i=0; i<400; i++) {
-        const s = document.createElement('div');
-        s.className = 'star';
-        const r = Math.random();
-        if (r<0.1) s.style.background = '#ccddff';
-        else if (r<0.3) s.style.background = '#8899bb';
-        else if (r<0.6) s.style.background = '#556677';
-        else s.style.background = '#334455';
-        s.style.left = Math.random()*100+'%';
-        s.style.top = Math.random()*100+'%';
-        const sz = Math.random()<0.08?2.5:(Math.random()<0.2?1.8:(Math.random()<0.5?1.2:0.6));
-        s.style.width = sz+'px'; s.style.height = sz+'px';
-        s.style.setProperty('--duration', (Math.random()*3+1.5)+'s');
-        s.style.setProperty('--delay', Math.random()*2+'s');
-        layer.appendChild(s);
-    }
-}
-createStars();
+// Звёзды создаются только один раз
+createStars(); // вызов здесь, не в init()
 
 const planetColors = {1:'#3c1a5b',2:'#b094fa',3:'#f25cf2',4:'#ff9eff',5:'#e3e8ff'};
 const W=72,H=44;
@@ -1040,7 +1033,24 @@ function parkShipOnPlanet() {
 let galaxyObjects = [];
 let isShipFlying = false;
 const FUEL_COST_PER_FLIGHT = 10;
-const FUEL_REGENERATION_INTERVAL = 4 * 60 * 1000;
+let fuelInterval = null; // для перезапуска интервала при изменении буста
+
+function startFuelRegeneration() {
+    if (fuelInterval) clearInterval(fuelInterval);
+    const interval = getFuelRegenInterval();
+    fuelInterval = setInterval(() => {
+        if (state.resources.fuel < state.maxFuel) {
+            state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + 1);
+            saveState();
+            updateTopPanel();
+        }
+    }, interval);
+}
+
+function getFuelRegenInterval() {
+    const boost = state.boosts.find(b => b.type === 'fuel' && b.expires > Date.now());
+    return boost ? 2 * 60 * 1000 : 4 * 60 * 1000;
+}
 
 function generateObjects() {
     const bg = document.getElementById('galaxy-bg');
@@ -1210,18 +1220,6 @@ function flyToObject(obj, element) {
     }, 5000);
 }
 
-function getFuelRegenInterval() {
-    const boost = state.boosts.find(b => b.type === 'fuel' && b.expires > Date.now());
-    return boost ? 2 * 60 * 1000 : 4 * 60 * 1000;
-}
-setInterval(() => {
-    if (state.resources.fuel < state.maxFuel) {
-        state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + 1);
-        saveState();
-        updateTopPanel();
-    }
-}, getFuelRegenInterval());
-
 function freeRefuel() {
     if (state.freeRefuelUsed) return;
     state.resources.fuel = state.maxFuel;
@@ -1229,6 +1227,9 @@ function freeRefuel() {
     saveState();
     updateTopPanel();
 }
+
+// Запуск восстановления топлива
+startFuelRegeneration();
 
 // ----------------------------------------------------------------------
 //  5. АНГАР
@@ -1470,12 +1471,12 @@ function simulatePvP(playerStats, enemyStats) {
     return { pHP, pShield, eHP, eShield, history };
 }
 
-let pvpInterval = null;
+let pvpInterval = null; // теперь реально используется
 let pvpTimerInterval = null;
 
 function searchPvP() {
     if (!state.faction) return;
-    if (pvpInterval) return;
+    if (pvpInterval) return; // предотвращает повторные запуски
     const playerStats = getFinalStats();
     const enemyStats = generateEnemyStats();
 
@@ -1561,7 +1562,7 @@ function searchPvP() {
     }
 
     let timeIdx = 0;
-    pvpTimerInterval = setInterval(() => {
+    pvpInterval = setInterval(() => { // присваиваем переменной
         timer--;
         document.getElementById('pvp-timer').innerText = timer;
         const targetTime = maxTime - timer;
@@ -1571,8 +1572,8 @@ function searchPvP() {
         }
         updateBars();
         if (timer <= 0) {
-            clearInterval(pvpTimerInterval);
-            pvpTimerInterval = null;
+            clearInterval(pvpInterval);
+            pvpInterval = null;
             let outcome;
             if (result.pHP <= 0 && result.eHP <= 0) outcome = 'НИЧЬЯ! +2';
             else if (result.eHP <= 0) outcome = 'ПОБЕДА! +15';
@@ -1587,7 +1588,7 @@ function searchPvP() {
             addExp(30);
             updateLeaderboard();
             saveState();
-            if (pvpInterval) { clearInterval(pvpInterval); pvpInterval = null; }
+            if (pvpTimerInterval) { clearInterval(pvpTimerInterval); pvpTimerInterval = null; }
         }
     }, 1000);
 }
@@ -1803,6 +1804,10 @@ function buyBoost() {
     alert(`Усиление "${BOOST_TYPES.find(b=>b.id===selectedBoostType).name}" на ${selectedBoostDuration} дней активировано!`);
     selectedBoostType = null;
     selectedBoostDuration = null;
+    // Перезапускаем восстановление топлива, если активирован буст топлива
+    if (selectedBoostType === 'fuel') {
+        startFuelRegeneration();
+    }
 }
 
 // ----------------------------------------------------------------------
@@ -1865,9 +1870,8 @@ function switchTab(tab) {
     if (tab === 'map') {
         // Показываем карту
         document.getElementById('content-overlay').style.display = 'none';
-        // Убеждаемся, что объекты и корабль видны
         document.querySelectorAll('.bg-object').forEach(o => o.style.display = 'block');
-        parkShipOnPlanet(); // перепарковываем, если нужно
+        parkShipOnPlanet();
     } else {
         document.getElementById('content-overlay').style.display = 'flex';
         document.querySelectorAll('.bg-object').forEach(o => o.style.display = 'none');
@@ -1911,7 +1915,7 @@ function devReset() {
 }
 
 function init() {
-    createStars();
+    // createStars() уже вызван в начале скрипта
     drawPlanet();
     if (state.faction && state.playerName && state.shipIndex !== null) {
         showUI();
