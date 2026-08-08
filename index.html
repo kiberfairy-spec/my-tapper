@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Space Dream v2.9.1</title>
+    <title>Space Dream v2.9.2</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -82,6 +82,7 @@
         .mining-viewport {
             position: relative; width: 100%; height: 100%;
             overflow: hidden; touch-action: none;
+            cursor: crosshair;
         }
         .mining-world {
             position: absolute; left: 0; top: 0;
@@ -91,7 +92,7 @@
             border: 1px solid rgba(0, 170, 68, .35);
             box-shadow: inset 0 0 40px rgba(0, 40, 20, .25);
         }
-        .mining-tap { position: absolute; inset: 0; z-index: 20; }
+        .mining-tap { display: none; }
         .mining-hub {
             position: absolute;
             transform: translate(-50%, -50%);
@@ -152,20 +153,25 @@
             100% { opacity: .12; stroke-width: 1; }
         }
         .mine-object {
-            position: absolute; z-index: 8; transform: translate(-50%, -50%);
+            position: absolute; z-index: 25; transform: translate(-50%, -50%);
             cursor: pointer; pointer-events: auto;
             filter: drop-shadow(0 0 6px rgba(255,200,80,.45));
             transition: opacity .3s, transform .2s;
+            min-width: 56px; min-height: 56px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            touch-action: manipulation;
         }
         .mine-object canvas {
             display: block;
             image-rendering: pixelated;
             image-rendering: crisp-edges;
+            pointer-events: none;
         }
-        .mine-object:active { transform: translate(-50%, -50%) scale(1.15); }
+        .mine-object:active { transform: translate(-50%, -50%) scale(1.12); }
         .mine-label {
             position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
             font-size: 5px; color: #aaa; white-space: nowrap; margin-top: 2px;
+            pointer-events: none;
         }
         .ship-sprite-img {
             image-rendering: pixelated;
@@ -341,7 +347,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.9.1';
+const VERSION = '2.9.2';
 const SAVE_KEY = 'space_dream_save';
 const SHIP_MOVE_SPEED = 85;
 const SHIP_ROT_LERP = 0.22;
@@ -351,7 +357,7 @@ const FUEL_PER_FLIGHT = 10;
 const WORLD_PAD = 300;
 let worldBounds = { width: 960, height: 1160, centerX: 480, centerY: 580 };
 let MAP_CENTER = { x: 480, y: 580 };
-const MINE_STOP_DIST = 36;
+const MINE_STOP_DIST = 46;
 const MINE_LASER_MS = 3000;
 const MINE_PER_WAVE = 9;
 const MINE_KINDS = {
@@ -1236,7 +1242,7 @@ function drawPirateSprite(ctx, ps) {
 }
 
 function createMineSprite(kind) {
-    const ps = 2;
+    const ps = kind === 'meteor' ? 4 : 2;
     const size = { meteor: [14, 14], wreck: [14, 12], pirate: [12, 14] }[kind];
     const cvs = document.createElement('canvas');
     cvs.width = size[0] * ps;
@@ -1325,20 +1331,27 @@ function shuffleArr(arr) {
     return a;
 }
 
-function findMineAtScreen(sx, sy) {
-    const vp = $('mining-viewport');
-    if (!vp || !mineObjects.length) return null;
-    const rect = vp.getBoundingClientRect();
-    const isTouch = window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
-    const hitR = isTouch ? 52 : 36;
-    let best = null, bestD = hitR;
-    for (const o of mineObjects) {
-        const ox = rect.left + (o.x - camera.x);
-        const oy = rect.top + (o.y - camera.y);
-        const d = Math.hypot(sx - ox, sy - oy);
-        if (d < bestD) { best = o; bestD = d; }
-    }
-    return best;
+function bindMineObject(obj) {
+    const el = obj.el;
+    let touchHandled = false;
+
+    el.addEventListener('touchstart', e => e.stopPropagation(), { passive: true });
+
+    el.addEventListener('touchend', e => {
+        e.stopPropagation();
+        e.preventDefault();
+        touchHandled = true;
+        setTimeout(() => { touchHandled = false; }, 450);
+        if (!state.profileComplete || shipFlying) return;
+        flyToMine(obj);
+    }, { passive: false });
+
+    el.addEventListener('click', e => {
+        e.stopPropagation();
+        if (touchHandled) return;
+        if (!state.profileComplete || shipFlying) return;
+        flyToMine(obj);
+    });
 }
 
 function buildMineKinds() {
@@ -1397,6 +1410,7 @@ function generateMineObjects() {
         el.appendChild(lbl);
 
         mineObjects.push({ x, y, kind, el });
+        bindMineObject(mineObjects[mineObjects.length - 1]);
         world.insertBefore(el, $('player-ship'));
     });
 }
@@ -1519,44 +1533,44 @@ function flyToMine(obj) {
 }
 
 function initMiningTap() {
-    const tap = $('mining-tap');
-    if (tap.dataset.ready) return;
-    tap.dataset.ready = '1';
+    const vp = $('mining-viewport');
+    if (vp.dataset.ready) return;
+    vp.dataset.ready = '1';
     let lastTouch = 0;
     let touchStart = null;
 
-    const onTap = (cx, cy) => {
+    const onMoveTap = (cx, cy) => {
         if (!state.profileComplete || shipFlying) return;
-        const hit = findMineAtScreen(cx, cy);
-        if (hit) { flyToMine(hit); return; }
         const w = screenToWorld(cx, cy);
         moveShip(w.x, w.y);
     };
 
-    tap.addEventListener('touchstart', e => {
-        e.preventDefault();
+    vp.addEventListener('touchstart', e => {
+        if (e.target.closest('.mine-object')) return;
         const t = e.changedTouches[0] || e.touches[0];
         if (!t) return;
         touchStart = { x: t.clientX, y: t.clientY, time: Date.now() };
-    }, { passive: false });
+    }, { passive: true });
 
-    tap.addEventListener('touchend', e => {
-        e.preventDefault();
+    vp.addEventListener('touchend', e => {
+        if (e.target.closest('.mine-object')) return;
         const t = e.changedTouches[0];
         if (!t || !touchStart) return;
         if (Date.now() - touchStart.time > 600) { touchStart = null; return; }
         const dx = t.clientX - touchStart.x, dy = t.clientY - touchStart.y;
         if (Math.hypot(dx, dy) > 22) { touchStart = null; return; }
+        e.preventDefault();
         lastTouch = Date.now();
-        onTap(touchStart.x, touchStart.y);
+        onMoveTap(touchStart.x, touchStart.y);
         touchStart = null;
     }, { passive: false });
 
-    tap.addEventListener('touchcancel', () => { touchStart = null; });
+    vp.addEventListener('touchcancel', () => { touchStart = null; });
 
-    tap.addEventListener('click', e => {
+    vp.addEventListener('click', e => {
+        if (e.target.closest('.mine-object')) return;
         if (Date.now() - lastTouch < 450) return;
-        onTap(e.clientX, e.clientY);
+        onMoveTap(e.clientX, e.clientY);
     });
 }
 
