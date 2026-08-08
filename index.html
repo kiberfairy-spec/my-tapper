@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Space Dream v2.0</title>
+    <title>Space Dream v2.1</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -336,6 +336,16 @@ const Storage = {
         if (cloud) cloud.setItem(SAVE_KEY, json, () => {});
     },
 
+    saveAsync() {
+        return new Promise(resolve => {
+            const json = JSON.stringify(state);
+            try { localStorage.setItem(SAVE_KEY, json); } catch(e) {}
+            const cloud = window.Telegram?.WebApp?.CloudStorage;
+            if (cloud) cloud.setItem(SAVE_KEY, json, () => resolve());
+            else resolve();
+        });
+    },
+
     loadLocal() {
         try {
             const raw = localStorage.getItem(SAVE_KEY);
@@ -359,17 +369,10 @@ const Storage = {
     async load() {
         const cloud = await this.loadCloud();
         state = cloud || this.loadLocal();
-        if (!state.profileComplete && state.playerName && state.factionId !== null) {
+        if (!state.profileComplete && state.playerName && state.factionId !== null && state.shipIndex !== null) {
             state.profileComplete = true;
         }
     },
-
-    reset() {
-        try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
-        const cloud = window.Telegram?.WebApp?.CloudStorage;
-        if (cloud) cloud.removeItem(SAVE_KEY, () => location.reload());
-        else location.reload();
-    }
 };
 
 // ─── Telegram ───────────────────────────────────────────────
@@ -762,6 +765,38 @@ function resumeOrStart() {
     showWindow('start');
 }
 
+async function resetGame() {
+    const savedName = state.playerName;
+
+    state = defaultState();
+    state.playerName = savedName;
+    state.profileComplete = false;
+
+    shipPos = { x: 0, y: 0 };
+    shipMoving = false;
+    shipFlying = false;
+    mineObjects = [];
+    $('mining-field')?.querySelectorAll('.mine-object').forEach(el => el.remove());
+
+    await Storage.saveAsync();
+
+    $('mining-screen').classList.remove('active');
+    $('bottom-nav').classList.add('hidden');
+    $('btn-ship-confirm').disabled = true;
+    $('inp-name').value = savedName || '';
+
+    if (savedName) {
+        $('top-panel').classList.remove('hidden');
+        renderFactions();
+        showWindow('faction');
+    } else {
+        $('top-panel').classList.add('hidden');
+        showWindow('start');
+    }
+
+    updateHUD();
+}
+
 // ─── Инициализация ───────────────────────────────────────────
 function bindEvents() {
     $('btn-start').onclick = () => {
@@ -775,8 +810,9 @@ function bindEvents() {
 
     $('btn-ship-confirm').onclick = completeProfile;
 
-    $('btn-reset').onclick = () => {
-        if (confirm('Сбросить весь прогресс?')) Storage.reset();
+    $('btn-reset').onclick = async () => {
+        if (!confirm('Сбросить прогресс и выбрать фракцию заново?')) return;
+        await resetGame();
     };
 
     document.querySelectorAll('[data-tab]').forEach(btn => {
