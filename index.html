@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Space Dream v2.12.8</title>
+    <title>Space Dream v2.13.0</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500&display=swap');
 
         :root {
             --bg: #000;
@@ -55,21 +55,82 @@
             left: var(--game-inset-left);
             right: var(--game-inset-right);
             z-index: 100;
-            background: rgba(0,0,0,.88); border-bottom: 1px solid var(--accent);
-            padding: 4px 8px; display: flex; flex-direction: column; gap: 2px;
+            background: rgba(0,0,0,.88);
+            border-bottom: 1px solid rgba(0, 232, 255, 0.25);
+            padding: 4px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            font-family: 'Rajdhani', 'Segoe UI', sans-serif;
+            font-weight: 300;
         }
         .top-row, .top-row2 { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-        .top-row2 { justify-content: space-between; border-top: 1px solid var(--accent); padding-top: 3px; }
+        .top-row2 { justify-content: space-between; border-top: 1px solid rgba(0, 232, 255, 0.15); padding-top: 4px; }
         .avatar { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--accent); background: #222; display: flex; align-items: center; justify-content: center; font-size: 12px; }
-        .pname { font-size: 7px; line-height: 1.6; }
-        .plevel { font-size: 5px; color: #888; }
-        .badge { background: rgba(0,0,0,.85); border: 2px solid var(--accent); padding: 2px 4px; font-size: 5px; white-space: nowrap; }
-        .badge-gold { border-color: #ffcc00; color: #ffcc00; }
-        .badge-blue { border-color: #4488ff; color: #4488ff; }
-        .badge-pink { border-color: #ff66ff; color: #f5f5f5; }
-        .badge-green { border-color: #66ff99; color: #66ff99; }
-        .btn-xs { background: rgba(0,0,0,.8); border: 1px solid #8a2be2; color: #ff66aa; font-family: inherit; font-size: 4px; padding: 2px 4px; cursor: pointer; }
-        .btn-reset { background: #aa3333; color: #fff; border: none; font-family: inherit; font-size: 4px; padding: 2px 5px; cursor: pointer; }
+        .pname { font-size: 11px; line-height: 1.3; font-weight: 400; letter-spacing: 0.04em; }
+        .plevel { font-size: 9px; color: #9aa; font-weight: 300; }
+
+        .top-neon {
+            --neon-color: #00e8ff;
+            --neon-glow: rgba(0, 232, 255, 0.8);
+            background: rgba(0, 0, 0, 0.78);
+            border: 1px solid var(--neon-color);
+            color: var(--neon-color);
+            font-family: 'Rajdhani', 'Segoe UI', sans-serif;
+            font-weight: 400;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            box-shadow:
+                0 0 5px var(--neon-glow),
+                0 0 12px var(--neon-glow),
+                inset 0 0 10px rgba(255, 255, 255, 0.04);
+            text-shadow: 0 0 8px var(--neon-glow);
+        }
+        .neon-cyan   { --neon-color: #00e8ff; --neon-glow: rgba(0, 232, 255, 0.85); }
+        .neon-magenta{ --neon-color: #ff2bd6; --neon-glow: rgba(255, 43, 214, 0.85); }
+        .neon-lime   { --neon-color: #b8ff00; --neon-glow: rgba(184, 255, 0, 0.85); }
+        .neon-orange { --neon-color: #ff6a1a; --neon-glow: rgba(255, 106, 26, 0.85); }
+        .neon-gold   { --neon-color: #ffd400; --neon-glow: rgba(255, 212, 0, 0.85); }
+        .neon-pink   { --neon-color: #ff5cf4; --neon-glow: rgba(255, 92, 244, 0.85); color: #ffe8ff; }
+        .neon-blue   { --neon-color: #4da6ff; --neon-glow: rgba(77, 166, 255, 0.85); }
+        .neon-green  { --neon-color: #45ff9a; --neon-glow: rgba(69, 255, 154, 0.85); }
+
+        @keyframes neonBurnout {
+            0%, 100% {
+                opacity: 1;
+                filter: brightness(1);
+                box-shadow: 0 0 5px var(--neon-glow), 0 0 12px var(--neon-glow), inset 0 0 10px rgba(255, 255, 255, 0.04);
+            }
+            3%  { opacity: 0.2; filter: brightness(0.15); box-shadow: none; text-shadow: none; }
+            5%  { opacity: 1;   filter: brightness(1.8); box-shadow: 0 0 16px var(--neon-glow), 0 0 28px var(--neon-glow); }
+            7%  { opacity: 0.1; filter: brightness(0.1); box-shadow: none; text-shadow: none; }
+            9%  { opacity: 0.85; filter: brightness(1.3); }
+            11% { opacity: 0.35; filter: brightness(0.25); box-shadow: 0 0 2px var(--neon-glow); }
+            13% { opacity: 1; filter: brightness(1); }
+            15%, 88% { opacity: 1; filter: brightness(1); }
+            91% { opacity: 0.45; filter: brightness(0.35); box-shadow: 0 0 2px var(--neon-glow); }
+            94% { opacity: 1; filter: brightness(1.5); box-shadow: 0 0 14px var(--neon-glow); }
+        }
+        .top-neon.neon-flicker { animation: neonBurnout 1.15s linear forwards; }
+
+        .badge {
+            padding: 2px 6px;
+            font-size: 10px;
+            white-space: nowrap;
+            border-radius: 1px;
+        }
+        .btn-xs {
+            font-size: 10px;
+            padding: 3px 7px;
+            cursor: pointer;
+            border-radius: 1px;
+        }
+        .btn-reset {
+            font-size: 10px;
+            padding: 3px 8px;
+            cursor: pointer;
+            border-radius: 1px;
+        }
 
         /* ── Нижняя навигация ── */
         .bottom-nav {
@@ -299,20 +360,20 @@
     <div class="top-row">
         <div class="avatar" id="avatar">?</div>
         <div class="pname"><div id="ui-name">Игрок</div><div class="plevel" id="ui-level">Lvl 1</div></div>
-        <div class="badge badge-gold" id="ui-vip">⭐ VIP 0</div>
+        <div class="badge top-neon neon-gold" id="ui-vip">⭐ VIP 0</div>
         <div style="margin-left:auto;display:flex;gap:4px;flex-wrap:wrap">
-            <div class="badge badge-pink">💎 <span id="ui-spice">0</span></div>
-            <div class="badge badge-blue">⛽ <span id="ui-fuel">100</span></div>
-            <div class="badge badge-gold">🪙 <span id="ui-credits">0</span></div>
-            <div class="badge badge-green">🧩 <span id="ui-shards">0</span></div>
+            <div class="badge top-neon neon-pink">💎 <span id="ui-spice">0</span></div>
+            <div class="badge top-neon neon-blue">⛽ <span id="ui-fuel">100</span></div>
+            <div class="badge top-neon neon-gold">🪙 <span id="ui-credits">0</span></div>
+            <div class="badge top-neon neon-green">🧩 <span id="ui-shards">0</span></div>
         </div>
     </div>
     <div class="top-row2">
-        <button class="btn-reset" id="btn-reset">🔄 СБРОС</button>
+        <button class="btn-reset top-neon neon-orange" id="btn-reset">🔄 СБРОС</button>
         <div style="display:flex;gap:4px">
-            <button class="btn-xs" data-open="battlepass">🎫 БАТЛ-ПАСС</button>
-            <button class="btn-xs" data-open="boosts">⚡ УСИЛЕНИЯ</button>
-            <button class="btn-xs" data-open="checkin">📅 ЧЕКИН</button>
+            <button class="btn-xs top-neon neon-cyan" data-open="battlepass">🎫 БАТЛ-ПАСС</button>
+            <button class="btn-xs top-neon neon-magenta" data-open="boosts">⚡ УСИЛЕНИЯ</button>
+            <button class="btn-xs top-neon neon-lime" data-open="checkin">📅 ЧЕКИН</button>
         </div>
     </div>
 </div>
@@ -406,7 +467,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.12.8';
+const VERSION = '2.13.0';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -1574,11 +1635,27 @@ function hideOverlay() {
     $('overlay').classList.remove('active');
 }
 
+function initTopNeonFlicker() {
+    if (window._neonFlickerTimer) clearInterval(window._neonFlickerTimer);
+    const flicker = () => {
+        const items = [...document.querySelectorAll('#top-panel .top-neon')];
+        if (!items.length) return;
+        items.forEach(el => el.classList.remove('neon-flicker'));
+        const el = items[Math.floor(Math.random() * items.length)];
+        void el.offsetWidth;
+        el.classList.add('neon-flicker');
+        setTimeout(() => el.classList.remove('neon-flicker'), 1200);
+    };
+    setTimeout(flicker, 2000);
+    window._neonFlickerTimer = setInterval(flicker, 8000);
+}
+
 function showGameUI() {
     $('top-panel').classList.remove('hidden');
     $('bottom-nav').classList.remove('hidden');
     syncPanelHeights();
     applyGameInsets();
+    initTopNeonFlicker();
 }
 
 function updateHUD() {
@@ -2223,6 +2300,7 @@ async function resetGame() {
     shipFlying = false;
     returningToPlanet = false;
     mineObjects = [];
+    if (window._neonFlickerTimer) { clearInterval(window._neonFlickerTimer); window._neonFlickerTimer = null; }
     if (planetFlashTimer) { clearInterval(planetFlashTimer); planetFlashTimer = null; }
     if (planetSparkTimer) { clearInterval(planetSparkTimer); planetSparkTimer = null; }
     stopPlanetSpin();
