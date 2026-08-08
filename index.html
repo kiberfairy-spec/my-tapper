@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Space Dream v2.9.8</title>
+    <title>Space Dream v2.9.9</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -113,7 +113,7 @@
         .mining-hub {
             position: absolute;
             transform: translate(-50%, -50%);
-            width: 400px; aspect-ratio: 1;
+            width: 600px; aspect-ratio: 1;
             pointer-events: none; z-index: 3;
         }
         .planet-glow {
@@ -126,7 +126,8 @@
             width: 90%; animation: spin 60s linear infinite;
         }
         .planet-wrap canvas { position: relative; z-index: 1; }
-        .planet-canvas { width: 100%; image-rendering: pixelated; display: block; filter: drop-shadow(0 0 16px rgba(200,100,255,.5)); }
+        .planet-canvas { width: 100%; height: auto; image-rendering: pixelated; display: block; filter: drop-shadow(0 0 16px rgba(200,100,255,.5)); }
+        .planet-flash-layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
         .player-ship {
             position: absolute; z-index: 10; pointer-events: none;
             transform: translate(-50%, -50%);
@@ -380,10 +381,11 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.9.8';
-const ORBIT_DIST = 100;
-const PLANET_W = 72, PLANET_H = 44, PLANET_PS = 6;
-const PLANET_CX = 36, PLANET_CY = 22, PLANET_R = 18;
+const VERSION = '2.9.9';
+const ORBIT_DIST = 150;
+const PLANET_SCALE = 1.5;
+const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
+const PLANET_DISPLAY_W = Math.round(360 * PLANET_SCALE);
 let planetFlashTimer = null;
 const SAVE_KEY = 'space_dream_save';
 const DEV_FREE_FUEL = true; // временно: без ограничений топлива для тестов
@@ -409,6 +411,7 @@ const MINE_KINDS = {
 const SHIP_IMG = {
     mining: 'ships/ship-mining.png',
     select: 'ships/ship-select.png',
+    planet: 'ships/Planet_centr.PNG',
 };
 
 const FACTIONS = [
@@ -1238,50 +1241,57 @@ function flyShipTo(x, y, onArrive) {
     ensureShipFlightLoop();
 }
 
-function drawPlanetPixels(ctx) {
-    const colors = { 2:'#b094fa', 3:'#f25cf2', 4:'#ff9eff' };
-    for (let y = 0; y < PLANET_H; y++) {
-        for (let x = 0; x < PLANET_W; x++) {
-            if ((x - PLANET_CX) ** 2 + (y - PLANET_CY) ** 2 <= PLANET_R * PLANET_R) {
-                ctx.fillStyle = colors[((y + x) % 3 === 0) ? 3 : 2] || '#b094fa';
-                ctx.fillRect(x * PLANET_PS, y * PLANET_PS, PLANET_PS, PLANET_PS);
-            }
-        }
-    }
-}
-
-function startPlanetFlashes(cvs, ctx) {
+function startPlanetFlashes(wrap, displayW, displayH) {
     if (planetFlashTimer) clearInterval(planetFlashTimer);
-    const base = ctx.getImageData(0, 0, cvs.width, cvs.height);
+    const flashCvs = document.createElement('canvas');
+    flashCvs.width = displayW;
+    flashCvs.height = displayH;
+    flashCvs.className = 'planet-flash-layer';
+    wrap.appendChild(flashCvs);
+    const ctx = flashCvs.getContext('2d');
+    const cx = displayW / 2;
+    const cy = displayH / 2;
+    const radius = Math.min(displayW, displayH) / 2 - 6;
+
     planetFlashTimer = setInterval(() => {
-        ctx.putImageData(base, 0, 0);
-        const angle = Math.random() * Math.PI * 2;
-        const dist = Math.random() * (PLANET_R - 3);
-        const lx = PLANET_CX + Math.cos(angle) * dist;
-        const ly = PLANET_CY + Math.sin(angle) * dist;
-        const diameter = 1 + Math.floor(Math.random() * 4);
-        const radius = diameter / 2;
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.92)';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.arc((lx + 0.5) * PLANET_PS, (ly + 0.5) * PLANET_PS, radius, 0, Math.PI * 2);
-        ctx.stroke();
-        setTimeout(() => ctx.putImageData(base, 0, 0), 400);
+        ctx.clearRect(0, 0, displayW, displayH);
+        const count = 1 + Math.floor(Math.random() * 3);
+        for (let i = 0; i < count; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const dist = Math.random() * radius;
+            const lx = cx + Math.cos(angle) * dist;
+            const ly = cy + Math.sin(angle) * dist;
+            const diameter = 1 + Math.floor(Math.random() * 4);
+            const r = diameter / 2;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.92)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(lx, ly, r, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        setTimeout(() => ctx.clearRect(0, 0, displayW, displayH), 400);
     }, 4000);
 }
 
 function drawPlanet() {
     const wrap = document.getElementById('planet-wrap');
     wrap.innerHTML = '';
-    const cvs = document.createElement('canvas');
-    cvs.width = PLANET_W * PLANET_PS;
-    cvs.height = PLANET_H * PLANET_PS;
-    cvs.className = 'planet-canvas';
-    const ctx = cvs.getContext('2d');
-    ctx.imageSmoothingEnabled = false;
-    drawPlanetPixels(ctx);
-    wrap.appendChild(cvs);
-    startPlanetFlashes(cvs, ctx);
+    const img = document.createElement('img');
+    img.src = SHIP_IMG.planet;
+    img.alt = 'Планета';
+    img.className = 'planet-canvas';
+    img.draggable = false;
+    wrap.style.width = PLANET_DISPLAY_W + 'px';
+    wrap.appendChild(img);
+
+    const setupFlashes = () => {
+        const displayW = PLANET_DISPLAY_W;
+        const displayH = Math.round(displayW * (img.naturalHeight / img.naturalWidth));
+        wrap.style.height = displayH + 'px';
+        startPlanetFlashes(wrap, displayW, displayH);
+    };
+    if (img.complete && img.naturalWidth) setupFlashes();
+    else img.onload = setupFlashes;
 }
 
 function renderPlayerShip() {
@@ -1607,7 +1617,7 @@ function generateMineObjects() {
     const kinds = buildMineKinds();
     const placed = [];
     const cx = MAP_CENTER.x, cy = MAP_CENTER.y;
-    const PLANET_R = 200;
+    const PLANET_R = PLANET_HUB_R;
     const MIN_FROM_PLANET = PLANET_R + 90;
     const MAX_FROM_PLANET = Math.min(worldBounds.width, worldBounds.height) / 2 - 55;
     const MIN_FROM_OBJ = 75;
