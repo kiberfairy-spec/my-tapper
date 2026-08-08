@@ -4,2327 +4,824 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Space Dream v1.3</title>
+    <title>Space Dream v2.0</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+
+        :root {
+            --bg: #000;
+            --text: #cc3333;
+            --accent: #00aa44;
+            --gold: #bb9922;
+            --panel: rgba(2, 2, 14, 0.95);
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            background: #000;
-            color: #cc3333; /* вишнёвый текст */
             font-family: 'Press Start 2P', monospace;
+            background: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+            height: 100dvh;
+            width: 100vw;
+            position: fixed;
             user-select: none;
             -webkit-user-select: none;
             -webkit-touch-callout: none;
-            overflow: hidden;
-            height: 100dvh;
-            width: 100dvw;
-            position: fixed;
             padding-top: var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px));
             padding-bottom: var(--tg-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
         }
-        .stars-layer {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-            background: radial-gradient(ellipse at 50% 50%, #010310 0%, #000008 60%, #000 100%);
-        }
-        .star {
-            position: absolute;
-            background: #fff;
-            border-radius: 50%;
-            animation: twinkle var(--duration) infinite;
-            animation-delay: var(--delay);
-        }
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.1; transform: scale(0.8); }
-            50% { opacity: 0.9; transform: scale(1.3); }
-        }
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        @keyframes slideUp {
-            from { transform: translateY(100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        .app-container {
-            position: relative;
-            width: 100%;
-            height: 100dvh;
-            display: flex;
-            flex-direction: column;
-        }
-        .background-map {
-            position: fixed;
-            top: 80px;
-            left: 0;
-            width: 100%;
-            height: calc(100dvh - 80px - 80px);
-            z-index: 1;
-            pointer-events: none;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.25s ease;
-        }
-        .background-map.active {
-            opacity: 1;
-            visibility: visible;
-            pointer-events: auto;
-        }
-        .mining-stars {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            z-index: 0;
-            background: radial-gradient(ellipse at 50% 40%, #0a1035 0%, #03020a 55%, #000 100%);
-            overflow: hidden;
-        }
-        .galaxy-bg {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background: transparent;
-            pointer-events: all;
-            touch-action: manipulation;
-            z-index: 1;
-        }
-        .mining-hub {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: min(88vw, 400px);
-            height: min(88vw, 400px);
-            z-index: 3;
-            pointer-events: none;
-        }
-        .planet-glow {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 95%;
-            height: 95%;
-            transform: translate(-50%, -50%);
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(180, 80, 255, 0.35) 0%, rgba(80, 20, 140, 0.12) 45%, transparent 70%);
-            pointer-events: none;
-        }
-        .planet-container {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 2;
-            pointer-events: none;
-            width: 92%;
-        }
-        .pixel-planet {
-            width: 100%;
-            height: auto;
-            aspect-ratio: 72 / 44;
-            position: relative;
-            filter: drop-shadow(0 0 18px rgba(200, 100, 255, 0.45));
-        }
-        .player-docked {
-            position: absolute;
-            z-index: 4;
-            pointer-events: none;
-        }
-        .map-tap-layer {
-            position: absolute;
-            inset: 0;
-            z-index: 5;
-            cursor: crosshair;
-            touch-action: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .bg-object {
-            position: absolute;
-            z-index: 8;
-            pointer-events: all;
-            transition: opacity 0.3s;
-            transform: translate(-50%, -50%);
-            cursor: pointer;
-            font-size: 28px;
-        }
-        /* Верхняя панель – две строки */
+
+        /* ── Звёзды ── */
+        .stars { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 40%, #0a1035 0%, #000 70%); }
+        .star { position: absolute; border-radius: 50%; background: #fff; animation: twinkle var(--d, 2s) infinite; animation-delay: var(--delay, 0s); }
+        @keyframes twinkle { 0%,100% { opacity: .15; transform: scale(.8); } 50% { opacity: .9; transform: scale(1.2); } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* ── Верхняя панель ── */
         .top-panel {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-            pointer-events: none;
-            background: rgba(0,0,0,0.85);
-            border-bottom: 1px solid #00aa44;
-            padding: 4px 8px;
-            display: flex;
-            flex-direction: column;
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            background: rgba(0,0,0,.88); border-bottom: 1px solid var(--accent);
+            padding: 4px 8px; display: flex; flex-direction: column; gap: 2px;
         }
-        .top-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 4px;
-            pointer-events: all;
-            padding-bottom: 2px;
-        }
-        .top-row .left {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .top-row .resources {
-            display: flex;
-            gap: 4px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .top-row .actions {
-            display: flex;
-            gap: 4px;
-            align-items: center;
-        }
-        .bottom-row {
-            display: flex;
-            justify-content: flex-end; /* кнопки справа */
-            gap: 6px;
-            pointer-events: all;
-            padding-top: 2px;
-            border-top: 1px solid #00aa44;
-            align-items: flex-start;
-        }
-        .bottom-row .left-actions {
-            display: flex;
-            gap: 4px;
-            align-items: center;
-            margin-right: auto;
-        }
-        .bottom-row .right-actions {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 2px;
-        }
-        .avatar-circle {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: #222;
-            border: 2px solid #00aa44;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            color: #cc3333;
-            font-weight: bold;
-        }
-        .player-name {
-            font-size: 7px;
-            color: #cc3333;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-        }
-        .player-level {
-            font-size: 5px;
-            color: #888;
-        }
-        .vip-badge {
-            background: rgba(0,0,0,0.8);
-            border: 2px solid #ffaa00;
-            color: #ffaa00;
-            padding: 1px 4px;
-            font-size: 5px;
-            pointer-events: all;
-            text-align: center;
-            border-radius: 2px;
-        }
-        .resource-badge {
-            background: rgba(0,0,0,0.85);
-            border: 2px solid #00aa44;
-            color: #cc3333;
-            padding: 1px 3px;
-            font-size: 5px;
-            pointer-events: all;
-            text-align: center;
-        }
-        .fuel-badge { border-color: #4488ff; color: #4488ff; }
-        .credits-badge { border-color: #ffcc00; color: #ffcc00; }
-        .spice-badge { border-color: #ff66ff; color: #f5f5f5; }
-        .shards-badge { border-color: #66ff99; color: #66ff99; }
+        .top-row, .top-row2 { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        .top-row2 { justify-content: space-between; border-top: 1px solid var(--accent); padding-top: 3px; }
+        .avatar { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--accent); background: #222; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        .pname { font-size: 7px; line-height: 1.6; }
+        .plevel { font-size: 5px; color: #888; }
+        .badge { background: rgba(0,0,0,.85); border: 2px solid var(--accent); padding: 2px 4px; font-size: 5px; white-space: nowrap; }
+        .badge-gold { border-color: #ffcc00; color: #ffcc00; }
+        .badge-blue { border-color: #4488ff; color: #4488ff; }
+        .badge-pink { border-color: #ff66ff; color: #f5f5f5; }
+        .badge-green { border-color: #66ff99; color: #66ff99; }
+        .btn-xs { background: rgba(0,0,0,.8); border: 1px solid #8a2be2; color: #ff66aa; font-family: inherit; font-size: 4px; padding: 2px 4px; cursor: pointer; }
+        .btn-reset { background: #aa3333; color: #fff; border: none; font-family: inherit; font-size: 4px; padding: 2px 5px; cursor: pointer; }
 
-        /* Неоновые кнопки */
-        .top-btn {
-            background: rgba(0,0,0,0.8);
-            border: 1px solid #8a2be2;
-            color: #ff66aa;
-            text-shadow: 0 0 5px #ff66aa, 0 0 10px #ff66aa, 0 0 20px #ff66aa;
-            padding: 2px 5px;
-            font-size: 4px;
-            cursor: pointer;
-            font-family: 'Press Start 2P', monospace;
-            white-space: nowrap;
-            box-shadow: 2px 2px 0 #4a1a8a;
-            transition: all 0.1s ease;
-            border-radius: 2px;
-        }
-        .top-btn:active {
-            transform: translate(2px, 2px);
-            box-shadow: none;
-        }
-        .top-btn:hover {
-            background: #1a0a2a;
-        }
-        .top-btn.compact {
-            padding: 1px 4px;
-            font-size: 4px;
-            min-width: 50px;
-            text-align: center;
-        }
-
-        .refuel-btn {
-            background: #4488ff;
-            color: #fff;
-            border: none;
-            padding: 1px 4px;
-            font-size: 4px;
-            cursor: pointer;
-            font-family: 'Press Start 2P', monospace;
-            pointer-events: all;
-            display: none;
-            border-radius: 2px;
-        }
-        .dev-reset-btn {
-            background: #aa3333;
-            color: #fff;
-            border: none;
-            padding: 1px 4px;
-            font-size: 4px;
-            cursor: pointer;
-            font-family: 'Press Start 2P', monospace;
-            pointer-events: all;
-            border-radius: 2px;
-        }
-
-        .loot-feed {
-            position: fixed;
-            bottom: 85px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 200;
-            pointer-events: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            flex-wrap: wrap;
-            min-height: 26px;
-        }
-        .loot-item {
-            font-family: 'Press Start 2P', monospace;
-            font-size: 5px;
-            color: #ffcc00;
-            background: rgba(0,0,0,0.8);
-            padding: 2px 5px;
-            animation: fadeInOut 2.5s ease-in-out forwards;
-        }
-        @keyframes fadeInOut {
-            0% { opacity: 0; transform: translateY(10px); }
-            15% { opacity: 1; transform: translateY(0); }
-            80% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-10px); }
-        }
-
-        .content-overlay {
-            position: fixed;
-            top: 80px;
-            left: 0;
-            right: 0;
-            bottom: 80px;
-            z-index: 50;
-            pointer-events: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .content-overlay.hidden-map {
-            display: none !important;
-            pointer-events: none !important;
-        }
-        .content-overlay > * {
-            pointer-events: all;
-        }
-
-        .bottom-panel {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 80px;
-            background: rgba(2,2,10,0.96);
-            border-top: 1px solid #00aa44;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            z-index: 100;
-            padding: 4px;
+        /* ── Нижняя навигация ── */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+            height: 72px; background: rgba(2,2,10,.96); border-top: 1px solid var(--accent);
+            display: flex; align-items: center; justify-content: space-around; padding: 4px;
         }
         .nav-btn {
-            background: #040c04;
-            border: 1px solid #00aa44;
-            color: #cc3333;
-            padding: 5px 8px;
-            font-family: 'Press Start 2P', monospace;
-            font-size: 5px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: center;
-            flex: 1;
-            margin: 0 2px;
-            max-width: 90px;
+            flex: 1; margin: 0 2px; max-width: 88px; padding: 6px 4px;
+            background: #040c04; border: 1px solid var(--accent); color: var(--text);
+            font-family: inherit; font-size: 5px; cursor: pointer; text-align: center;
         }
-        .nav-btn.active {
-            background: #061806;
-            border-color: #bb9922;
+        .nav-btn.active { background: #061806; border-color: var(--gold); }
+
+        /* ── Экран добычи ── */
+        .mining-screen {
+            position: fixed; top: 72px; left: 0; right: 0; bottom: 72px;
+            z-index: 1; display: none; overflow: hidden;
+        }
+        .mining-screen.active { display: block; }
+        .mining-stars { position: absolute; inset: 0; pointer-events: none; }
+        .mining-field {
+            position: relative; width: 100%; height: 100%;
+            touch-action: none;
+        }
+        .mining-tap { position: absolute; inset: 0; z-index: 5; }
+        .mining-hub {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: min(88vw, 380px); aspect-ratio: 1;
+            pointer-events: none; z-index: 3;
+        }
+        .planet-glow {
+            position: absolute; inset: 5%; border-radius: 50%;
+            background: radial-gradient(circle, rgba(180,80,255,.35) 0%, transparent 70%);
+        }
+        .planet-wrap {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%; animation: spin 60s linear infinite;
+        }
+        .planet-canvas { width: 100%; image-rendering: pixelated; display: block; filter: drop-shadow(0 0 16px rgba(200,100,255,.5)); }
+        .player-ship {
+            position: absolute; z-index: 10; pointer-events: none;
+            transform: translate(-50%, -50%);
+        }
+        .mine-object {
+            position: absolute; z-index: 8; transform: translate(-50%, -50%);
+            font-size: 26px; cursor: pointer; transition: opacity .3s;
         }
 
-        /* Окна – общий стиль */
-        .window {
-            background: rgba(2,2,14,0.95);
-            border: 1px solid #00aa44;
-            padding: 10px;
-            max-width: 320px;
-            width: 88%;
-            max-height: 60vh;
-            overflow-y: auto;
-            animation: slideUp 0.3s ease-out;
-        }
-        .window-title {
-            color: #bb9922;
-            font-size: 7px;
-            margin-bottom: 6px;
-            text-align: center;
-        }
-        /* Ангар: убираем рамку и делаем прокрутку только для контента */
-        #window-hangar {
-            border: none !important;
-            padding: 0 !important;
-            overflow-y: hidden !important;
-        }
-        #hangar-header {
-            position: sticky;
-            top: 0;
-            background: rgba(2,2,14,0.95);
-            z-index: 1;
-            padding: 10px;
-        }
-        #hangar-content {
-            padding: 0 10px 10px 10px;
-            overflow-y: auto;
-            max-height: calc(60vh - 100px);
-        }
-        /* Корабль в ангаре горизонтально */
-        #hangar-ship-display .ship-horizontal {
-            transform: rotate(90deg);
-            display: inline-block;
-        }
-
-        .input-field {
-            width: 100%;
-            padding: 5px;
-            margin: 4px 0;
-            background: #040410;
-            border: 2px solid #00aa44;
-            color: #cc3333;
-            font-family: 'Press Start 2P', monospace;
-            font-size: 6px;
-            text-align: center;
-        }
-        .btn {
-            width: 100%;
-            padding: 5px;
-            margin: 4px 0;
-            background: #040c04;
-            border: 2px solid #00aa44;
-            color: #cc3333;
-            font-family: 'Press Start 2P', monospace;
-            font-size: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn:disabled {
-            background: #161616;
-            color: #333;
-            border-color: #333;
-            cursor: not-allowed;
-        }
-        .btn-small {
-            width: auto;
-            padding: 2px 4px;
-            font-size: 4px;
-        }
-        .btn-purple {
-            border-color: #8a2be2;
-            color: #cc3333;
-        }
-        .hidden { display: none !important; }
-        .flex-row { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
-        .upgrade-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 3px;
-            border: 1px solid #00aa44;
-            margin: 2px 0;
-            align-items: center;
-            font-size: 5px;
-        }
-        .artifact-card {
-            border: 2px solid #00aa44;
-            padding: 4px;
-            margin: 2px;
-            cursor: pointer;
-            text-align: center;
-            min-width: 50px;
-            font-size: 5px;
-        }
-        .artifact-card.selected { border-color: #ffaa00; }
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 3px;
-            margin: 4px 0;
-        }
-        .calendar-day {
-            border: 1px solid #8a2be2;
-            padding: 3px;
-            text-align: center;
-            font-size: 4px;
-            color: #cc3333;
-            background: #111;
-            cursor: default;
-        }
-        .calendar-day.claimed {
-            background: #1a1a1a;
-            border-color: #00aa44;
-            color: #00aa44;
-        }
-        .calendar-day.today {
-            border-color: #ffaa00;
-            background: #221100;
-        }
-        .calendar-day button {
-            background: transparent;
-            border: none;
-            color: #cc3333;
-            font-size: 4px;
-            cursor: pointer;
-            font-family: 'Press Start 2P', monospace;
-            padding: 1px;
-        }
-        .calendar-day button:disabled { opacity: 0.5; }
-
-        /* PvP split */
-        .pvp-split {
-            display: flex;
-            width: 100%;
-            height: 100%;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .pvp-side {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 4px;
-        }
-        .pvp-side .bar-container {
-            width: 90%;
-            margin: 2px 0;
-        }
-        .pvp-side .bar-label {
-            font-size: 5px;
-            color: #cc3333;
-        }
-        .pvp-side .bar {
-            height: 8px;
-            background: #333;
-            border: 1px solid #00aa44;
-            position: relative;
-            overflow: hidden;
-        }
-        .pvp-side .bar-fill {
-            height: 100%;
-            transition: width 0.1s;
-        }
-        .pvp-side .shield-fill { background: #4488ff; }
-        .pvp-side .hp-fill { background: #00aa44; }
-        .pvp-vs { font-size: 14px; color: #aa3333; }
-
-        .mini-game-placeholder {
-            text-align: center;
-            font-size: 7px;
-            color: #cc3333;
-        }
-
-        .boost-card {
-            border: 1px solid #8a2be2;
-            padding: 4px;
-            margin: 3px;
-            text-align: center;
-            font-size: 5px;
-            background: #0a0a1a;
-            cursor: pointer;
-        }
-        .boost-card.selected { border-color: #ffaa00; }
-
-        /* Анимация удара */
-        .hit-flash {
-            animation: hitFlash 0.3s;
-        }
-        @keyframes hitFlash {
-            0% { filter: brightness(1); }
-            50% { filter: brightness(3) drop-shadow(0 0 10px #ffaa00); }
-            100% { filter: brightness(1); }
-        }
-        .ship-shake {
-            animation: shake 0.15s;
-        }
-        @keyframes shake {
-            0% { transform: translate(0,0); }
-            25% { transform: translate(-2px,2px); }
-            50% { transform: translate(2px,-2px); }
-            75% { transform: translate(-2px,-2px); }
-            100% { transform: translate(0,0); }
-        }
-        /* Лазерные выстрелы */
-        .laser-shot {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: #ffaa00;
-            border-radius: 50%;
-            box-shadow: 0 0 10px #ffaa00, 0 0 20px #ffaa00;
+        /* ── Окна ── */
+        .overlay {
+            position: fixed; top: 72px; left: 0; right: 0; bottom: 72px;
+            z-index: 50; display: none; align-items: center; justify-content: center;
             pointer-events: none;
-            z-index: 20;
         }
+        .overlay.active { display: flex; }
+        .overlay > .window { pointer-events: all; }
+        .window {
+            background: var(--panel); border: 1px solid var(--accent);
+            padding: 12px; width: 90%; max-width: 340px; max-height: 65vh;
+            overflow-y: auto; animation: slideUp .3s ease-out;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .wtitle { color: var(--gold); font-size: 7px; text-align: center; margin-bottom: 8px; }
+        .input { width: 100%; padding: 6px; margin: 6px 0; background: #040410; border: 2px solid var(--accent); color: var(--text); font-family: inherit; font-size: 6px; text-align: center; }
+        .btn { width: 100%; padding: 7px; margin: 5px 0; background: #040c04; border: 2px solid var(--accent); color: var(--text); font-family: inherit; font-size: 6px; cursor: pointer; }
+        .btn:disabled { opacity: .4; cursor: not-allowed; }
+        .btn-sm { width: auto; padding: 3px 6px; font-size: 4px; }
+        .hidden { display: none !important; }
+        .row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+        .card { border: 2px solid var(--accent); padding: 6px; text-align: center; cursor: pointer; font-size: 5px; min-width: 80px; }
+        .card.selected { border-color: #ffaa00; }
+        .upgrade-row { display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--accent); padding: 4px; margin: 3px 0; font-size: 5px; }
+        .loot-feed { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 200; pointer-events: none; display: flex; gap: 6px; flex-wrap: wrap; }
+        .loot { font-size: 5px; color: #ffcc00; background: rgba(0,0,0,.8); padding: 3px 6px; animation: fadeLoot 2.5s forwards; }
+        @keyframes fadeLoot { 0% { opacity:0; transform:translateY(8px); } 15%,80% { opacity:1; transform:translateY(0); } 100% { opacity:0; transform:translateY(-8px); } }
+
+        /* PvP */
+        .pvp-grid { display: flex; align-items: center; gap: 4px; }
+        .pvp-side { flex: 1; text-align: center; font-size: 5px; }
+        .bar { height: 8px; background: #333; border: 1px solid var(--accent); margin: 3px 0; overflow: hidden; }
+        .bar-fill { height: 100%; transition: width .2s; }
+        .bar-shield { background: #4488ff; }
+        .bar-hp { background: var(--accent); }
     </style>
 </head>
 <body>
-<div class="stars-layer" id="stars-layer"></div>
-<div class="app-container">
-    <div class="background-map" id="background-map">
-        <div class="mining-stars" id="mining-stars"></div>
-        <div class="galaxy-bg" id="galaxy-bg">
-            <div class="map-tap-layer" id="map-tap-layer"></div>
-            <div class="mining-hub" id="mining-hub">
-                <div class="planet-glow"></div>
-                <div class="planet-container" id="planet-container">
-                    <div class="pixel-planet" id="pixel-planet"></div>
-                </div>
-            </div>
-            <div class="player-docked" id="player-docked"></div>
+
+<div class="stars" id="stars-global"></div>
+
+<!-- Верхняя панель -->
+<div class="top-panel hidden" id="top-panel">
+    <div class="top-row">
+        <div class="avatar" id="avatar">?</div>
+        <div class="pname"><div id="ui-name">Игрок</div><div class="plevel" id="ui-level">Lvl 1</div></div>
+        <div class="badge badge-gold" id="ui-vip">⭐ VIP 0</div>
+        <div style="margin-left:auto;display:flex;gap:4px;flex-wrap:wrap">
+            <div class="badge badge-pink">💎 <span id="ui-spice">0</span></div>
+            <div class="badge badge-blue">⛽ <span id="ui-fuel">100</span></div>
+            <div class="badge badge-gold">🪙 <span id="ui-credits">0</span></div>
+            <div class="badge badge-green">🧩 <span id="ui-shards">0</span></div>
         </div>
     </div>
-
-    <!-- Верхняя панель – две строки -->
-    <div class="top-panel">
-        <div class="top-row">
-            <div class="left">
-                <div class="avatar-circle" id="avatar-circle">?</div>
-                <div class="player-name">
-                    <span id="player-name">Игрок</span>
-                    <span class="player-level" id="player-level">Lvl 1</span>
-                </div>
-                <div class="vip-badge" id="vip-badge">⭐ VIP 0</div>
-            </div>
-            <div class="resources" id="resources-panel">
-                <div class="resource-badge spice-badge">💎 <span id="spice-value">0</span></div>
-                <div class="resource-badge fuel-badge">⛽ <span id="fuel-value">100/100</span></div>
-                <div class="resource-badge credits-badge">🪙 <span id="credits-value">0</span></div>
-                <div class="resource-badge shards-badge">🧩 <span id="shards-value">0</span></div>
-                <button class="refuel-btn" id="refuel-btn" onclick="freeRefuel()">БЕСПЛ. ЗАПРАВКА</button>
-            </div>
+    <div class="top-row2">
+        <button class="btn-reset" id="btn-reset">🔄 СБРОС</button>
+        <div style="display:flex;gap:4px">
+            <button class="btn-xs" data-open="battlepass">🎫 БАТЛ-ПАСС</button>
+            <button class="btn-xs" data-open="boosts">⚡ УСИЛЕНИЯ</button>
+            <button class="btn-xs" data-open="checkin">📅 ЧЕКИН</button>
         </div>
-        <div class="bottom-row">
-            <div class="left-actions">
-                <button class="dev-reset-btn" id="dev-reset-btn" onclick="devReset()">🔄 СБРОС</button>
-            </div>
-            <div class="right-actions">
-                <button class="top-btn compact" onclick="openBattlePass()">🎫 БАТЛ-ПАСС</button>
-                <button class="top-btn compact" onclick="openBoosts()">⚡ УСИЛЕНИЯ</button>
-                <button class="top-btn compact" onclick="openCheckin()">📅 ЧЕКИН</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="loot-feed" id="loot-feed"></div>
-
-    <!-- Контентные окна -->
-    <div class="content-overlay" id="content-overlay">
-        <div class="window" id="window-start">
-            <div class="window-title">SPACE DREAM</div>
-            <input type="text" class="input-field" id="input-player-name" placeholder="ИМЯ ИГРОКА" maxlength="12">
-            <button class="btn" onclick="setPlayerName()">ДАЛЕЕ</button>
-        </div>
-        <div class="window hidden" id="window-faction">
-            <div class="window-title">ВЫБЕРИ ФРАКЦИЮ</div>
-            <button class="btn" style="border-color:#4488aa;color:#4488aa" onclick="selectFaction('Конфедерация','#4488aa','tank')">◆ КОНФЕДЕРАЦИЯ<br><small>Защита:40 | Урон:20 | Скорость:15</small></button>
-            <button class="btn" style="border-color:#aa5533;color:#aa5533" onclick="selectFaction('Повстанцы','#aa5533','dps')">◆ ПОВСТАНЦЫ<br><small>Защита:15 | Урон:25 | Скорость:35</small></button>
-            <button class="btn" style="border-color:#aa9933;color:#aa9933" onclick="selectFaction('Торговая гильдия','#aa9933','sniper')">◆ ТОРГОВАЯ ГИЛЬДИЯ<br><small>Защита:20 | Урон:40 | Скорость:15</small></button>
-        </div>
-        <div class="window hidden" id="window-ship">
-            <div class="window-title">ВЫБЕРИ КОРАБЛЬ</div>
-            <div id="ship-selection" class="flex-row"></div>
-            <button class="btn" id="confirm-ship-btn" onclick="confirmShip()" disabled>ПОДТВЕРДИТЬ</button>
-        </div>
-
-        <!-- Ангар (переработан) -->
-        <div class="window hidden" id="window-hangar">
-            <div id="hangar-header">
-                <div class="window-title">АНГАР</div>
-                <div id="hangar-ship-display" style="text-align:center;margin:4px 0;"></div>
-                <div id="hangar-resources" class="flex-row" style="font-size:5px;margin:4px 0;"></div>
-            </div>
-            <div id="hangar-content">
-                <div id="upgrades-list"></div>
-                <div style="margin-top:8px;border-top:1px solid #00aa44;padding-top:6px;">
-                    <div class="window-title" style="font-size:6px;">АРТЕФАКТЫ</div>
-                    <div id="artifact-section"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- PvP -->
-        <div class="window hidden" id="window-pvp">
-            <div class="window-title">КОСМОБИТВА</div>
-            <div class="pvp-split">
-                <div class="pvp-side" id="pvp-left">
-                    <div id="pvp-player-ship-display" style="position:relative;"></div>
-                    <div style="font-size:6px;margin:2px 0;" id="pvp-player-name">Вы</div>
-                    <div class="bar-container">
-                        <div class="bar-label">Щит</div>
-                        <div class="bar"><div class="bar-fill shield-fill" id="pvp-player-shield" style="width:100%;"></div></div>
-                    </div>
-                    <div class="bar-container">
-                        <div class="bar-label">ХП</div>
-                        <div class="bar"><div class="bar-fill hp-fill" id="pvp-player-hp" style="width:100%;"></div></div>
-                    </div>
-                    <div class="pvp-stats" id="pvp-player-stats" style="font-size:4px;">Урон:0 Защ:0 Ск:0</div>
-                </div>
-                <div class="pvp-vs">VS</div>
-                <div class="pvp-side" id="pvp-right">
-                    <div id="pvp-enemy-ship-display" style="position:relative;"></div>
-                    <div style="font-size:6px;margin:2px 0;" id="pvp-enemy-name">Противник</div>
-                    <div class="bar-container">
-                        <div class="bar-label">Щит</div>
-                        <div class="bar"><div class="bar-fill shield-fill" id="pvp-enemy-shield" style="width:100%;"></div></div>
-                    </div>
-                    <div class="bar-container">
-                        <div class="bar-label">ХП</div>
-                        <div class="bar"><div class="bar-fill hp-fill" id="pvp-enemy-hp" style="width:100%;"></div></div>
-                    </div>
-                    <div class="pvp-stats" id="pvp-enemy-stats" style="font-size:4px;">Урон:0 Защ:0 Ск:0</div>
-                </div>
-            </div>
-            <div style="text-align:center;font-size:7px;color:#aa9933" id="pvp-timer">10</div>
-            <div style="text-align:center;font-size:5px" id="pvp-status">Нажмите НАЙТИ БОЙ</div>
-            <button class="btn" onclick="searchPvP()">НАЙТИ БОЙ</button>
-            <div class="leaderboard" id="leaderboard" style="max-height:80px;overflow-y:auto;font-size:4px;margin-top:6px;"></div>
-        </div>
-
-        <!-- МиниИгры -->
-        <div class="window hidden" id="window-minigames">
-            <div class="window-title">МИНИ-ИГРЫ</div>
-            <div class="mini-game-placeholder">🚧 В разработке</div>
-        </div>
-
-        <!-- Чекин -->
-        <div class="window hidden" id="window-checkin">
-            <div class="window-title">ЕЖЕДНЕВНЫЙ ЧЕКИН</div>
-            <div id="checkin-calendar"></div>
-            <div style="font-size:4px;margin-top:4px;color:#888;">При пропуске дня прогресс сбрасывается</div>
-            <button class="btn btn-purple" onclick="claimCheckin()">ЗАБРАТЬ</button>
-        </div>
-
-        <!-- Батл-пасс -->
-        <div class="window hidden" id="window-battlepass">
-            <div class="window-title">БАТЛ-ПАСС (30 дней)</div>
-            <div style="font-size:5px;margin:4px 0;">Цена: 10 USDT</div>
-            <div id="bp-calendar"></div>
-            <div style="font-size:4px;margin-top:6px;" id="bp-status">Не куплен</div>
-            <button class="btn btn-purple" onclick="buyBattlePass()">КУПИТЬ</button>
-            <button class="btn btn-purple" onclick="claimBP()">ЗАБРАТЬ</button>
-        </div>
-
-        <!-- Усиления (бусты) -->
-        <div class="window hidden" id="window-boosts">
-            <div class="window-title">УСИЛЕНИЯ</div>
-            <div style="font-size:5px;margin:4px 0;">Выберите тип и длительность</div>
-            <div id="boost-selection"></div>
-            <button class="btn btn-purple" onclick="buyBoost()">КУПИТЬ</button>
-        </div>
-    </div>
-
-    <!-- Нижняя панель -->
-    <div class="bottom-panel hidden" id="bottom-panel">
-        <button class="nav-btn active" id="nav-map" onclick="switchTab('map')">🌌 ДОБЫЧА</button>
-        <button class="nav-btn" id="nav-hangar" onclick="switchTab('hangar')">🚀 АНГАР</button>
-        <button class="nav-btn" id="nav-pvp" onclick="switchTab('pvp')">⚔️ КОСМОБИТВА</button>
-        <button class="nav-btn" id="nav-minigames" onclick="switchTab('minigames')">🎮 МИНИ-ИГРЫ</button>
     </div>
 </div>
 
+<!-- Экран добычи -->
+<div class="mining-screen" id="mining-screen">
+    <div class="mining-stars" id="mining-stars"></div>
+    <div class="mining-field" id="mining-field">
+        <div class="mining-tap" id="mining-tap"></div>
+        <div class="mining-hub">
+            <div class="planet-glow"></div>
+            <div class="planet-wrap" id="planet-wrap"></div>
+        </div>
+        <div class="player-ship" id="player-ship"></div>
+    </div>
+</div>
+
+<div class="loot-feed" id="loot-feed"></div>
+
+<!-- Окна -->
+<div class="overlay active" id="overlay">
+    <div class="window" id="win-start">
+        <div class="wtitle">SPACE DREAM</div>
+        <input class="input" id="inp-name" placeholder="ИМЯ ИГРОКА" maxlength="12">
+        <button class="btn" id="btn-start">ДАЛЕЕ</button>
+    </div>
+    <div class="window hidden" id="win-faction">
+        <div class="wtitle">ВЫБЕРИ ФРАКЦИЮ</div>
+        <div id="faction-list"></div>
+    </div>
+    <div class="window hidden" id="win-ship">
+        <div class="wtitle">ВЫБЕРИ КОРАБЛЬ</div>
+        <div class="row" id="ship-list"></div>
+        <button class="btn" id="btn-ship-confirm" disabled>ПОДТВЕРДИТЬ</button>
+    </div>
+    <div class="window hidden" id="win-hangar">
+        <div class="wtitle">АНГАР</div>
+        <div id="hangar-ship" style="text-align:center;margin:8px 0"></div>
+        <div id="hangar-res" style="font-size:5px;text-align:center;margin-bottom:8px"></div>
+        <div id="upgrade-list"></div>
+        <div class="wtitle" style="margin-top:10px;font-size:6px">АРТЕФАКТЫ</div>
+        <div class="row" id="artifact-list"></div>
+    </div>
+    <div class="window hidden" id="win-pvp">
+        <div class="wtitle">КОСМОБИТВА</div>
+        <div class="pvp-grid">
+            <div class="pvp-side"><div id="pvp-my-ship"></div><div id="pvp-my-bars"></div></div>
+            <div style="font-size:12px;color:#aa3333">VS</div>
+            <div class="pvp-side"><div id="pvp-en-ship"></div><div id="pvp-en-bars"></div></div>
+        </div>
+        <div style="text-align:center;font-size:6px;margin:6px 0" id="pvp-status">Нажмите НАЙТИ БОЙ</div>
+        <button class="btn" id="btn-pvp">НАЙТИ БОЙ</button>
+        <div id="leaderboard" style="font-size:4px;margin-top:8px;max-height:80px;overflow-y:auto"></div>
+    </div>
+    <div class="window hidden" id="win-minigames">
+        <div class="wtitle">МИНИ-ИГРЫ</div>
+        <p style="font-size:6px;text-align:center">🚧 В разработке</p>
+    </div>
+    <div class="window hidden" id="win-checkin">
+        <div class="wtitle">ЕЖЕДНЕВНЫЙ ЧЕКИН</div>
+        <div id="checkin-grid"></div>
+        <button class="btn" id="btn-checkin">ЗАБРАТЬ</button>
+    </div>
+    <div class="window hidden" id="win-battlepass">
+        <div class="wtitle">БАТЛ-ПАСС</div>
+        <div id="bp-grid"></div>
+        <button class="btn" id="btn-bp-buy">КУПИТЬ (10 USDT)</button>
+        <button class="btn" id="btn-bp-claim">ЗАБРАТЬ</button>
+    </div>
+    <div class="window hidden" id="win-boosts">
+        <div class="wtitle">УСИЛЕНИЯ</div>
+        <div id="boost-list"></div>
+        <button class="btn" id="btn-boost-buy">КУПИТЬ</button>
+    </div>
+</div>
+
+<!-- Нижняя навигация -->
+<div class="bottom-nav hidden" id="bottom-nav">
+    <button class="nav-btn active" data-tab="mining">🌌 ДОБЫЧА</button>
+    <button class="nav-btn" data-tab="hangar">🚀 АНГАР</button>
+    <button class="nav-btn" data-tab="pvp">⚔️ PvP</button>
+    <button class="nav-btn" data-tab="minigames">🎮 МИНИ-ИГРЫ</button>
+</div>
+
 <script>
-// ----------------------------------------------------------------------
-//  1. КОНСТАНТЫ И ДАННЫЕ
-// ----------------------------------------------------------------------
+/* ═══════════════════════════════════════════════════════════
+   SPACE DREAM v2 — чистая архитектура
+   ═══════════════════════════════════════════════════════════ */
 
-const PALETTE = { 'A':'#2E0A4E','B':'#5B2C8E','C':'#8B5FBF','P':'#FF44AA','Q':'#44CCFF', 'R':'#8B0000','D':'#2A2A2A','E':'#FF4500','F':'#FF6600','G':'#FFAA00','H':'#FFD700', '_':null };
-const UFO_PALETTE = { 1:'#14143d',2:'#346cbd',3:'#7cb5ec',4:'#e1f3ff',5:'#73737c',6:'#ffffff',7:'#ff9000' };
-const player1Matrix = [
-"__________A___________","_________AAA__________","_________AAA__________","________AAAAA_________","________AACAA_________","________ACCCA_________","________ACCCA_________","________AAAAA_________","________APBBA_________","________ABBBB_________","________ABBBB_________","_______AABABAA_______","_______ABBABB_______","_______ABBCBA_______","_______ABBCBA_______","_____AAABBABBAAA_____","____ABBABBBBBABB____","___ABBBABBBBBABBBA___","__ABBBBABBBBBABBBB__","_ABBBBBAPBBBPABBBBB_","ABBBBBBAAAAAAABBBBBBA","ABQQBBBABBBBBABBBQQBA","AAAAAAAAABBBBBAAAAAAAAA","_______AAAAAAA_______","________AAAAA_________","_______AAA_AAA_______","_______AAA_AAA_______","________QQ_QQ_________","________QQ_QQ_________","________QB_QB_________","_________Q__Q________","_________Q__Q________"
+// ─── Константы ───────────────────────────────────────────────
+const VERSION = '2.0';
+const SAVE_KEY = 'space_dream_save';
+const SHIP_SPEED = 100;
+const FUEL_PER_FLIGHT = 10;
+
+const FACTIONS = [
+    { id: 'tank',   name: 'Конфедерация',    color: '#4488aa', shield: 40, damage: 20, speed: 15 },
+    { id: 'dps',    name: 'Повстанцы',       color: '#aa5533', shield: 15, damage: 25, speed: 35 },
+    { id: 'sniper', name: 'Торговая гильдия', color: '#aa9933', shield: 20, damage: 40, speed: 15 },
 ];
-function createUfoMatrix() { return []; }
-const SHIP_SPRITES = { player1: player1Matrix, player2: createUfoMatrix(), player3: [] };
 
-function drawShipSprite(matrix, scale=1) {
-    if (!matrix || matrix.length===0) {
-        const s = document.createElement('span'); s.style.fontSize='20px'; s.innerText='🚀'; return s;
-    }
-    const rows = matrix.length, cols = matrix[0].length;
-    const tileSize = Math.max(2, Math.round(5 * scale));
-    const canvas = document.createElement('canvas');
-    canvas.width = cols * tileSize; canvas.height = rows * tileSize;
-    const ctx = canvas.getContext('2d');
-    ctx.imageSmoothingEnabled = false;
-    canvas.style.imageRendering = 'pixelated';
-    const isNumeric = typeof matrix[0][0] === 'number';
-    for (let y=0; y<rows; y++) {
-        for (let x=0; x<cols; x++) {
-            const key = matrix[y][x];
-            if (key === '_' || key === 0 || key === undefined) continue;
-            let color;
-            if (isNumeric) color = UFO_PALETTE[key] || '#888';
-            else color = PALETTE[key] || '#888';
-            ctx.fillStyle = color;
-            ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
-        }
-    }
-    const wrapper = document.createElement('div');
-    wrapper.style.display = 'inline-block';
-    wrapper.style.pointerEvents = 'none';
-    wrapper.style.imageRendering = 'pixelated';
-    wrapper.appendChild(canvas);
-    return wrapper;
-}
-window.createPlayerShip = (scale=1, rotate=0) => {
-    // ИСПРАВЛЕНИЕ: используем state.shipIndex, а не window.selectedShipIndex
-    const idx = (state.shipIndex !== null ? state.shipIndex : 0) + 1;
-    const matrix = SHIP_SPRITES[`player${idx}`] || [];
-    const ship = drawShipSprite(matrix, scale);
-    if (rotate !== 0) {
-        ship.style.transform = `rotate(${rotate}deg)`;
-    }
-    return ship;
-};
-window.createEnemyShip = (variant=0) => {
-    const s = document.createElement('span'); s.style.fontSize='20px'; s.innerText='👾'; return s;
-};
+const PALETTE = { A:'#2E0A4E',B:'#5B2C8E',C:'#8B5FBF',P:'#FF44AA',Q:'#44CCFF',R:'#8B0000',D:'#2A2A2A',E:'#FF4500',F:'#FF6600',G:'#FFAA00',H:'#FFD700','_':null };
 
-const FACTION_STATS = {
-    tank:   { shield:40, damage:20, speed:15 },
-    dps:    { shield:15, damage:25, speed:35 },
-    sniper: { shield:20, damage:40, speed:15 }
-};
+const SHIP_MATRIX = [
+    "__________A___________","_________AAA__________","_________AAA__________",
+    "________AAAAA_________","________AACAA_________","________ACCCA_________",
+    "________ACCCA_________","________AAAAA_________","________APBBA_________",
+    "________ABBBB_________","________ABBBB_________","_______AABABAA_______",
+    "_______ABBABB_______","_______ABBCBA_______","_______ABBCBA_______",
+    "_____AAABBABBAAA_____","____ABBABBBBBABB____","___ABBBABBBBBABBBA___",
+    "__ABBBBABBBBBABBBB__","_ABBBBBAPBBBPABBBBB_","ABBBBBBAAAAAAABBBBBBA",
+    "ABQQBBBABBBBBABBBQQBA","AAAAAAAAABBBBBAAAAAAAAA","_______AAAAAAA_______",
+    "________AAAAA_________","_______AAA_AAA_______","_______AAA_AAA_______",
+    "________QQ_QQ_________","________QQ_QQ_________","________QB_QB_________",
+    "_________Q__Q________","_________Q__Q________"
+];
 
 const ARTIFACTS = [
-    { id:'phantom_blade', name:'Клинок Фантома', desc:'+5% урона/ур', effect:'damage', perLevel:5 },
-    { id:'shield_imperishability', name:'Щит Нерушимости', desc:'+5% защиты/ур', effect:'shield', perLevel:5 },
-    { id:'vortex_engine', name:'Двигатель Вихря', desc:'+5% скорости/ур', effect:'speed', perLevel:5 },
-    { id:'vampire_crystal', name:'Вампирический Кристалл', desc:'3% шанс восстановить 10% HP/ур', effect:'vampire', perLevel:3 },
-    { id:'eye_of_foresight', name:'Глаз Предвидения', desc:'3% шанс уклонения/ур', effect:'dodge', perLevel:3 }
+    { id:'blade',  name:'Клинок Фантома',       effect:'damage', per:5 },
+    { id:'shield', name:'Щит Нерушимости',      effect:'shield', per:5 },
+    { id:'engine', name:'Двигатель Вихря',      effect:'speed',  per:5 },
 ];
 
-const BOOST_TYPES = [
-    { id:'mining', name:'Добыча', desc:'+50% ко всем ресурсам' },
-    { id:'fuel', name:'Топливо', desc:'Восстановление в 2 раза быстрее' },
-    { id:'pvp', name:'PvP', desc:'+20% к урону и защите в бою' }
-];
-const BOOST_DURATIONS = [3, 5, 7];
-const BOOST_PRICES = { 3:3, 5:5, 7:7 };
-
-const CHECKIN_REWARDS = [
-    { day:1, credits:10, fuel:3, parts:0, spice:0 },
-    { day:2, credits:15, fuel:4, parts:1, spice:0 },
-    { day:3, credits:20, fuel:5, parts:1, spice:1 },
-    { day:4, credits:25, fuel:6, parts:2, spice:1 },
-    { day:5, credits:30, fuel:7, parts:2, spice:2 },
-    { day:6, credits:40, fuel:8, parts:3, spice:2 },
-    { day:7, credits:100, fuel:20, parts:5, spice:5 }
+const UPGRADES = [
+    { key:'damage',   label:'УРОН',           max:30 },
+    { key:'shield',   label:'ЗАЩИТА',         max:30 },
+    { key:'speed',    label:'СКОРОСТЬ',       max:30 },
+    { key:'luck',     label:'УДАЧА',          max:5  },
+    { key:'fuelTank', label:'ТОПЛИВНЫЙ БАК',  max:10 },
 ];
 
-function getBPReward(day) {
-    if (day <= 5) return { credits:50, fuel:10, parts:2, spice:0 };
-    if (day <= 10) return { credits:80, fuel:15, parts:4, spice:2 };
-    if (day <= 20) return { credits:120, fuel:20, parts:6, spice:5 };
-    if (day <= 29) return { credits:150, fuel:25, parts:8, spice:8 };
-    if (day === 30) return { credits:300, fuel:50, parts:15, spice:20 };
-    return { credits:0, fuel:0, parts:0, spice:0 };
-}
-
-// ----------------------------------------------------------------------
-//  2. СОСТОЯНИЕ (исправлена мутация defaultState)
-// ----------------------------------------------------------------------
-
-const defaultState = {
+// ─── Состояние ───────────────────────────────────────────────
+const defaultState = () => ({
+    version: VERSION,
     playerName: '',
-    shipName: '',
-    faction: null,
-    factionColor: '#00aa44',
-    factionBonus: null,
-    shipIndex: null,
-    resources: { credits:0, fuel:100, shieldParts:0, weaponParts:0, speedParts:0, spice:0, shards:0 },
+    factionId: null,
+    shipIndex: 0,
+    profileComplete: false,
+    level: 1, exp: 0, vip: 0, pvpScore: 0,
+    resources: { credits:0, fuel:100, spice:0, shards:0, shieldParts:0, weaponParts:0, speedParts:0 },
     maxFuel: 100,
     upgrades: { damage:0, shield:0, speed:0, luck:0, fuelTank:0 },
     artifact: { id:null, level:0 },
-    vip: 0,
-    pvpScore: 0,
+    checkin: { day:1, lastClaim:null, claimedToday:false },
+    bp: { paid:false, day:1, lastClaim:null, claimedToday:false },
+    boosts: [],
     leaderboard: [],
     freeRefuelUsed: false,
-    checkinDay: 1,
-    checkinLastClaim: null,
-    checkinClaimedToday: false,
-    bpPaid: false,
-    bpDay: 1,
-    bpLastClaim: null,
-    bpClaimedToday: false,
-    boosts: [],
-    exp: 0,
-    level: 1,
-    profileComplete: false
+});
+
+let state = defaultState();
+let currentTab = 'mining';
+let shipPos = { x: 0, y: 0 };
+let shipMoving = false;
+let shipFlying = false;
+let mineObjects = [];
+let selectedBoost = null;
+
+// ─── Хранилище ───────────────────────────────────────────────
+const Storage = {
+    save() {
+        const json = JSON.stringify(state);
+        try { localStorage.setItem(SAVE_KEY, json); } catch(e) {}
+        const cloud = window.Telegram?.WebApp?.CloudStorage;
+        if (cloud) cloud.setItem(SAVE_KEY, json, () => {});
+    },
+
+    loadLocal() {
+        try {
+            const raw = localStorage.getItem(SAVE_KEY);
+            if (raw) return { ...defaultState(), ...JSON.parse(raw) };
+        } catch(e) {}
+        return defaultState();
+    },
+
+    loadCloud() {
+        return new Promise(resolve => {
+            const cloud = window.Telegram?.WebApp?.CloudStorage;
+            if (!cloud) return resolve(null);
+            cloud.getItem(SAVE_KEY, (err, val) => {
+                if (err || !val) return resolve(null);
+                try { resolve({ ...defaultState(), ...JSON.parse(val) }); }
+                catch(e) { resolve(null); }
+            });
+        });
+    },
+
+    async load() {
+        const cloud = await this.loadCloud();
+        state = cloud || this.loadLocal();
+        if (!state.profileComplete && state.playerName && state.factionId !== null) {
+            state.profileComplete = true;
+        }
+    },
+
+    reset() {
+        try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
+        const cloud = window.Telegram?.WebApp?.CloudStorage;
+        if (cloud) cloud.removeItem(SAVE_KEY, () => location.reload());
+        else location.reload();
+    }
 };
 
-function mergeState(saved) {
-    const s = JSON.parse(JSON.stringify(defaultState));
-    if (!saved || typeof saved !== 'object') return s;
-    Object.assign(s, saved);
-    if (saved.resources) Object.assign(s.resources, saved.resources);
-    if (saved.upgrades) Object.assign(s.upgrades, saved.upgrades);
-    if (saved.artifact) Object.assign(s.artifact, saved.artifact);
-    if (Array.isArray(saved.leaderboard)) s.leaderboard = saved.leaderboard;
-    if (Array.isArray(saved.boosts)) s.boosts = saved.boosts;
-    if (saved.shipIndex !== null && saved.shipIndex !== undefined && saved.shipIndex !== '') {
-        const idx = parseInt(saved.shipIndex, 10);
-        s.shipIndex = isNaN(idx) ? null : idx;
-    }
-    return s;
+// ─── Telegram ───────────────────────────────────────────────
+function initTelegram() {
+    const tg = window.Telegram?.WebApp;
+    if (!tg) return;
+    tg.ready();
+    tg.expand();
+    if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
+    if (tg.setHeaderColor) tg.setHeaderColor('#000000');
+    if (tg.setBackgroundColor) tg.setBackgroundColor('#000000');
 }
 
-function loadStateFromLocal() {
-    try {
-        const raw = localStorage.getItem('sd_state');
-        if (raw) return mergeState(JSON.parse(raw));
-    } catch (e) {
-        console.warn('Load sd_state error:', e);
+// ─── Графика ─────────────────────────────────────────────────
+function drawMatrix(matrix, scale = 1) {
+    if (!matrix?.length) {
+        const s = document.createElement('span');
+        s.textContent = '🚀'; s.style.fontSize = '24px';
+        return s;
     }
-
-    const s = mergeState(null);
-    try {
-        s.playerName = localStorage.getItem('sd_player_name') || s.playerName;
-        s.faction = localStorage.getItem('sd_frac') || s.faction;
-        s.factionColor = localStorage.getItem('sd_color') || s.factionColor;
-        s.factionBonus = localStorage.getItem('sd_bonus') || s.factionBonus;
-        const shipRaw = localStorage.getItem('sd_ship_index');
-        if (shipRaw !== null && shipRaw !== '') {
-            const shipIdx = parseInt(shipRaw, 10);
-            s.shipIndex = isNaN(shipIdx) ? null : shipIdx;
+    const rows = matrix.length, cols = matrix[0].length;
+    const ts = Math.max(2, Math.round(4 * scale));
+    const cvs = document.createElement('canvas');
+    cvs.width = cols * ts; cvs.height = rows * ts;
+    const ctx = cvs.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+            const ch = matrix[y][x];
+            if (ch === '_' || !PALETTE[ch]) continue;
+            ctx.fillStyle = PALETTE[ch];
+            ctx.fillRect(x * ts, y * ts, ts, ts);
         }
-        s.profileComplete = localStorage.getItem('sd_profile_complete') === 'true';
-        s.resources.credits = parseInt(localStorage.getItem('sd_credits')) || s.resources.credits;
-        s.resources.fuel = parseInt(localStorage.getItem('sd_fuel')) ?? s.resources.fuel;
-        s.resources.shieldParts = parseInt(localStorage.getItem('sd_shieldParts')) || s.resources.shieldParts;
-        s.resources.weaponParts = parseInt(localStorage.getItem('sd_weaponParts')) || s.resources.weaponParts;
-        s.resources.speedParts = parseInt(localStorage.getItem('sd_speedParts')) || s.resources.speedParts;
-        s.resources.spice = parseInt(localStorage.getItem('sd_spice')) || s.resources.spice;
-        s.resources.shards = parseInt(localStorage.getItem('sd_shards')) || s.resources.shards;
-        s.maxFuel = parseInt(localStorage.getItem('sd_maxFuel')) || s.maxFuel;
-        s.upgrades.damage = parseInt(localStorage.getItem('sd_upg_damage')) || s.upgrades.damage;
-        s.upgrades.shield = parseInt(localStorage.getItem('sd_upg_shield')) || s.upgrades.shield;
-        s.upgrades.speed = parseInt(localStorage.getItem('sd_upg_speed')) || s.upgrades.speed;
-        s.upgrades.luck = parseInt(localStorage.getItem('sd_upg_luck')) || s.upgrades.luck;
-        s.upgrades.fuelTank = parseInt(localStorage.getItem('sd_upg_fuelTank')) || s.upgrades.fuelTank;
-        s.artifact.id = localStorage.getItem('sd_artifact_id') || s.artifact.id;
-        s.artifact.level = parseInt(localStorage.getItem('sd_artifact_level')) || s.artifact.level;
-        s.vip = parseInt(localStorage.getItem('sd_vip')) || s.vip;
-        s.pvpScore = parseInt(localStorage.getItem('sd_pvp_score')) || s.pvpScore;
-        s.leaderboard = JSON.parse(localStorage.getItem('sd_leaderboard') || '[]');
-        s.freeRefuelUsed = localStorage.getItem('sd_free_refuel') === 'true';
-        s.checkinDay = parseInt(localStorage.getItem('sd_checkin_day')) || s.checkinDay;
-        s.checkinLastClaim = localStorage.getItem('sd_checkin_last') || s.checkinLastClaim;
-        s.checkinClaimedToday = localStorage.getItem('sd_checkin_today') === 'true';
-        s.bpPaid = localStorage.getItem('sd_bp_paid') === 'true';
-        s.bpDay = parseInt(localStorage.getItem('sd_bp_day')) || s.bpDay;
-        s.bpLastClaim = localStorage.getItem('sd_bp_last') || s.bpLastClaim;
-        s.bpClaimedToday = localStorage.getItem('sd_bp_today') === 'true';
-        s.boosts = JSON.parse(localStorage.getItem('sd_boosts') || '[]');
-        s.exp = parseInt(localStorage.getItem('sd_exp')) || s.exp;
-        s.level = parseInt(localStorage.getItem('sd_level')) || s.level;
-        if (!s.profileComplete && s.playerName && s.faction && s.shipIndex !== null) {
-            s.profileComplete = true;
-        }
-    } catch (e) {
-        console.warn('Load legacy state error:', e);
     }
-    return s;
+    cvs.style.imageRendering = 'pixelated';
+    return cvs;
 }
 
-function loadStateFromCloud() {
-    return new Promise((resolve) => {
-        const cloud = window.Telegram?.WebApp?.CloudStorage;
-        if (!cloud) {
-            resolve(false);
-            return;
-        }
-        cloud.getItem('sd_state', (err, value) => {
-            if (err || !value) {
-                resolve(false);
-                return;
+function drawPlanet() {
+    const wrap = document.getElementById('planet-wrap');
+    wrap.innerHTML = '';
+    const W = 72, H = 44, ps = 3;
+    const cvs = document.createElement('canvas');
+    cvs.width = W * ps; cvs.height = H * ps;
+    cvs.className = 'planet-canvas';
+    const ctx = cvs.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    const colors = { 2:'#b094fa', 3:'#f25cf2', 4:'#ff9eff' };
+    const cx = 36, cy = 22, r = 18;
+    for (let y = 0; y < H; y++) {
+        for (let x = 0; x < W; x++) {
+            if ((x-cx)**2 + (y-cy)**2 <= r*r) {
+                ctx.fillStyle = colors[((y+x)%3===0)?3:2] || '#b094fa';
+                ctx.fillRect(x*ps, y*ps, ps, ps);
             }
-            try {
-                state = mergeState(JSON.parse(value));
-                saveState();
-                resolve(true);
-            } catch (e) {
-                console.warn('Cloud state parse error:', e);
-                resolve(false);
-            }
-        });
-    });
-}
-
-let state = loadStateFromLocal();
-
-function isProfileComplete() {
-    return Boolean(
-        state.profileComplete &&
-        state.playerName &&
-        state.faction &&
-        state.shipIndex !== null &&
-        state.shipIndex !== undefined
-    );
-}
-
-function saveState() {
-    const s = state;
-    const payload = JSON.stringify(s);
-    localStorage.setItem('sd_state', payload);
-    localStorage.setItem('sd_profile_complete', s.profileComplete ? 'true' : 'false');
-    localStorage.setItem('sd_player_name', s.playerName);
-    localStorage.setItem('sd_frac', s.faction);
-    localStorage.setItem('sd_color', s.factionColor);
-    localStorage.setItem('sd_bonus', s.factionBonus);
-    localStorage.setItem('sd_ship_index', s.shipIndex !== null ? s.shipIndex : '');
-    localStorage.setItem('sd_credits', s.resources.credits);
-    localStorage.setItem('sd_fuel', s.resources.fuel);
-    localStorage.setItem('sd_shieldParts', s.resources.shieldParts);
-    localStorage.setItem('sd_weaponParts', s.resources.weaponParts);
-    localStorage.setItem('sd_speedParts', s.resources.speedParts);
-    localStorage.setItem('sd_spice', s.resources.spice);
-    localStorage.setItem('sd_shards', s.resources.shards);
-    localStorage.setItem('sd_maxFuel', s.maxFuel);
-    localStorage.setItem('sd_upg_damage', s.upgrades.damage);
-    localStorage.setItem('sd_upg_shield', s.upgrades.shield);
-    localStorage.setItem('sd_upg_speed', s.upgrades.speed);
-    localStorage.setItem('sd_upg_luck', s.upgrades.luck);
-    localStorage.setItem('sd_upg_fuelTank', s.upgrades.fuelTank);
-    localStorage.setItem('sd_artifact_id', s.artifact.id);
-    localStorage.setItem('sd_artifact_level', s.artifact.level);
-    localStorage.setItem('sd_vip', s.vip);
-    localStorage.setItem('sd_pvp_score', s.pvpScore);
-    localStorage.setItem('sd_leaderboard', JSON.stringify(s.leaderboard));
-    localStorage.setItem('sd_free_refuel', s.freeRefuelUsed);
-    localStorage.setItem('sd_checkin_day', s.checkinDay);
-    localStorage.setItem('sd_checkin_last', s.checkinLastClaim);
-    localStorage.setItem('sd_checkin_today', s.checkinClaimedToday);
-    localStorage.setItem('sd_bp_paid', s.bpPaid);
-    localStorage.setItem('sd_bp_day', s.bpDay);
-    localStorage.setItem('sd_bp_last', s.bpLastClaim);
-    localStorage.setItem('sd_bp_today', s.bpClaimedToday);
-    localStorage.setItem('sd_boosts', JSON.stringify(s.boosts));
-    localStorage.setItem('sd_exp', s.exp);
-    localStorage.setItem('sd_level', s.level);
-
-    const cloud = window.Telegram?.WebApp?.CloudStorage;
-    if (cloud) {
-        cloud.setItem('sd_state', payload, () => {});
+        }
     }
+    wrap.appendChild(cvs);
 }
 
-// ----------------------------------------------------------------------
-//  3. ВСПОМОГАТЕЛЬНЫЕ
-// ----------------------------------------------------------------------
-
-function updateTopPanel() {
-    const r = state.resources;
-    document.getElementById('vip-badge').innerHTML = `⭐ VIP ${state.vip}`;
-    document.getElementById('credits-value').innerText = Math.floor(r.credits);
-    document.getElementById('fuel-value').innerText = Math.floor(r.fuel)+'/'+state.maxFuel;
-    document.getElementById('spice-value').innerText = r.spice;
-    document.getElementById('shards-value').innerText = r.shards; // исправлено: теперь элемент есть
-    const refuelBtn = document.getElementById('refuel-btn');
-    refuelBtn.style.display = (r.fuel === 0 && !state.freeRefuelUsed) ? 'inline-block' : 'none';
-    const avatar = document.getElementById('avatar-circle');
-    avatar.innerText = state.playerName ? state.playerName[0].toUpperCase() : '?';
-    document.getElementById('player-name').innerText = state.playerName || 'Игрок';
-    document.getElementById('player-level').innerText = `Lvl ${state.level}`;
+function renderPlayerShip(rotation = -20) {
+    const el = document.getElementById('player-ship');
+    el.innerHTML = '';
+    el.appendChild(drawMatrix(SHIP_MATRIX, 0.55));
+    el.style.transform = `translate(-50%,-50%) rotate(${rotation}deg)`;
 }
 
-function showLoot(name, amount) {
-    const feed = document.getElementById('loot-feed');
-    const item = document.createElement('span');
-    item.className = 'loot-item';
-    item.innerText = `+${amount} ${name}`;
-    feed.appendChild(item);
-    setTimeout(() => item.remove(), 2500);
-}
-
-function showWindow(id) {
-    document.querySelectorAll('.window').forEach(w => w.classList.add('hidden'));
-    const win = document.getElementById('window-'+id);
-    if (win) win.classList.remove('hidden');
-}
-
-function showUI() {
-    document.getElementById('bottom-panel').classList.remove('hidden');
-    updateTopPanel();
-}
-
-function fillStars(layer, count) {
+function fillStars(container, count) {
+    if (container.dataset.done) return;
+    container.dataset.done = '1';
     for (let i = 0; i < count; i++) {
         const s = document.createElement('div');
         s.className = 'star';
-        const r = Math.random();
-        if (r < 0.1) s.style.background = '#ccddff';
-        else if (r < 0.3) s.style.background = '#8899bb';
-        else if (r < 0.6) s.style.background = '#556677';
-        else s.style.background = '#334455';
-        s.style.left = Math.random() * 100 + '%';
-        s.style.top = Math.random() * 100 + '%';
-        const sz = Math.random() < 0.08 ? 2.5 : (Math.random() < 0.2 ? 1.8 : (Math.random() < 0.5 ? 1.2 : 0.6));
-        s.style.width = sz + 'px';
-        s.style.height = sz + 'px';
-        s.style.setProperty('--duration', (Math.random() * 3 + 1.5) + 's');
-        s.style.setProperty('--delay', Math.random() * 2 + 's');
-        layer.appendChild(s);
+        s.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;width:${Math.random()*2+1}px;height:${Math.random()*2+1}px;--d:${1.5+Math.random()*3}s;--delay:${Math.random()*2}s`;
+        container.appendChild(s);
     }
 }
 
-function createStars() {
-    const layer = document.getElementById('stars-layer');
-    if (!layer || layer.dataset.ready === '1') return;
-    layer.dataset.ready = '1';
-    fillStars(layer, 350);
+// ─── UI ──────────────────────────────────────────────────────
+function $(id) { return document.getElementById(id); }
+
+function showWindow(name) {
+    document.querySelectorAll('.window').forEach(w => w.classList.add('hidden'));
+    $('win-' + name)?.classList.remove('hidden');
+    $('overlay').classList.add('active');
 }
 
-function createMiningStars() {
-    const layer = document.getElementById('mining-stars');
-    if (!layer || layer.dataset.ready === '1') return;
-    layer.dataset.ready = '1';
-    fillStars(layer, 220);
+function hideOverlay() {
+    $('overlay').classList.remove('active');
 }
 
-createStars();
-
-const planetColors = {1:'#3c1a5b',2:'#b094fa',3:'#f25cf2',4:'#ff9eff',5:'#e3e8ff'};
-const W=72,H=44;
-let planetMatrix = Array(H).fill().map(()=>Array(W).fill(0));
-const cX=36,cY=22,rad=18;
-for(let y=0;y<H;y++)for(let x=0;x<W;x++){const dx=x-cX,dy=y-cY;if(dx*dx+dy*dy<=rad*rad){planetMatrix[y][x]=2;if((y>=10&&y<=13)||(y>=18&&y<=22)||(y>=27&&y<=29))planetMatrix[y][x]=3;if((y===9&&x===28)||(y===10&&x===29)||(y===21&&x===24))planetMatrix[y][x]=4;}}
-function drawPlanet() {
-    const container = document.getElementById('pixel-planet');
-    container.innerHTML = '';
-    const ps = 2.5;
-    const canvas = document.createElement('canvas');
-    canvas.width = W*ps; canvas.height = H*ps;
-    const ctx = canvas.getContext('2d');
-    ctx.imageSmoothingEnabled = false;
-    for (let y=0;y<H;y++)for (let x=0;x<W;x++){const c=planetMatrix[y][x];if(c){ctx.fillStyle=planetColors[c];ctx.fillRect(x*ps,y*ps,ps,ps);}}
-    canvas.style.cssText = 'display:block;width:100%;height:100%;image-rendering:pixelated;';
-    const wrapper = document.createElement('div');
-    wrapper.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;animation:rotate 60s linear infinite;';
-    wrapper.appendChild(canvas);
-    container.appendChild(wrapper);
-}
-drawPlanet();
-
-function getMapCenter() {
-    const bg = document.getElementById('galaxy-bg');
-    return { x: bg.offsetWidth/2, y: bg.offsetHeight/2 };
+function showGameUI() {
+    $('top-panel').classList.remove('hidden');
+    $('bottom-nav').classList.remove('hidden');
 }
 
-function getShipHomePosition() {
-    const hub = document.getElementById('mining-hub');
-    const bg = document.getElementById('galaxy-bg');
-    if (hub && bg && bg.offsetWidth) {
-        const hr = hub.getBoundingClientRect();
-        const br = bg.getBoundingClientRect();
-        return {
-            x: hr.left - br.left + hr.width * 0.74,
-            y: hr.top - br.top + hr.height * 0.56
-        };
-    }
-    const center = getMapCenter();
-    return { x: center.x + 90, y: center.y + 30 };
-}
-
-function refreshPlayerShipSprite() {
-    const docked = document.getElementById('player-docked');
-    if (!docked) return;
-    docked.innerHTML = '';
-    docked.appendChild(window.createPlayerShip(0.62, -20));
-}
-
-function ensurePlayerShip() {
-    const docked = document.getElementById('player-docked');
-    if (!docked) return null;
-    if (!docked.firstChild) refreshPlayerShipSprite();
-    docked.style.display = 'block';
-    return docked;
-}
-
-function setShipPosition(x, y, rotationDeg = null) {
-    shipPosition.x = x;
-    shipPosition.y = y;
-    const docked = ensurePlayerShip();
-    if (!docked) return;
-    docked.style.left = x + 'px';
-    docked.style.top = y + 'px';
-    const rotate = rotationDeg !== null ? ` rotate(${rotationDeg}deg)` : ' rotate(-20deg)';
-    docked.style.transform = `translate(-50%, -50%)${rotate}`;
-}
-
-function parkShipOnPlanet() {
-    const home = getShipHomePosition();
-    setShipPosition(home.x, home.y);
-}
-
-function moveShipTo(targetX, targetY) {
-    if (isShipFlying || isShipMoving) return;
-
-    const bg = document.getElementById('galaxy-bg');
-    if (!bg || !bg.offsetWidth) return;
-
-    const margin = 24;
-    const x = Math.max(margin, Math.min(bg.offsetWidth - margin, targetX));
-    const y = Math.max(margin, Math.min(bg.offsetHeight - margin, targetY));
-
-    const fromX = shipPosition.x;
-    const fromY = shipPosition.y;
-    const dx = x - fromX;
-    const dy = y - fromY;
-    const dist = Math.hypot(dx, dy);
-    if (dist < 8) return;
-
-    const angleDeg = Math.atan2(dy, dx) * 180 / Math.PI;
-    const duration = Math.max(300, (dist / SHIP_MOVE_SPEED) * 1000);
-
-    isShipMoving = true;
-    const docked = ensurePlayerShip();
-    if (!docked) {
-        isShipMoving = false;
-        return;
-    }
-
-    docked.style.transition = 'none';
-    docked.style.left = fromX + 'px';
-    docked.style.top = fromY + 'px';
-    docked.style.transform = 'translate(-50%, -50%)';
-
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-            docked.style.transition = `left ${duration}ms linear, top ${duration}ms linear, transform ${duration}ms linear`;
-            docked.style.left = x + 'px';
-            docked.style.top = y + 'px';
-            docked.style.transform = `translate(-50%, -50%) rotate(${angleDeg}deg)`;
-            shipPosition.x = x;
-            shipPosition.y = y;
-        });
-    });
-
-    if (shipMoveTimer) clearTimeout(shipMoveTimer);
-    shipMoveTimer = setTimeout(() => {
-        isShipMoving = false;
-        docked.style.transition = '';
-    }, duration);
-}
-
-function handleMapTap(clientX, clientY) {
-    if (!state.faction || isShipFlying) return;
-    const overlay = document.getElementById('content-overlay');
-    if (!overlay.classList.contains('hidden-map')) return;
-    const bg = document.getElementById('galaxy-bg');
-    const rect = bg.getBoundingClientRect();
-    moveShipTo(clientX - rect.left, clientY - rect.top);
-}
-
-function initMapTapControls() {
-    const layer = document.getElementById('map-tap-layer');
-    if (!layer || layer.dataset.tapReady === '1') return;
-    layer.dataset.tapReady = '1';
-
-    let lastTouchAt = 0;
-
-    layer.addEventListener('touchstart', (e) => {
-        // Нужно для стабильного touchend в Telegram WebView
-        if (e.cancelable) e.preventDefault();
-    }, { passive: false });
-
-    layer.addEventListener('touchend', (e) => {
-        const touch = e.changedTouches[0];
-        if (!touch) return;
-        if (e.cancelable) e.preventDefault();
-        lastTouchAt = Date.now();
-        handleMapTap(touch.clientX, touch.clientY);
-    }, { passive: false });
-
-    layer.addEventListener('pointerup', (e) => {
-        if (e.pointerType === 'touch') return;
-        if (e.pointerType === 'mouse' && e.button !== 0) return;
-        handleMapTap(e.clientX, e.clientY);
-    });
-
-    layer.addEventListener('click', (e) => {
-        if (Date.now() - lastTouchAt < 400) return;
-        handleMapTap(e.clientX, e.clientY);
-    });
-}
-
-function initTelegramApp() {
-    const tg = window.Telegram?.WebApp;
-    if (!tg) return false;
-
-    tg.ready();
-    tg.expand();
-    if (typeof tg.disableVerticalSwipes === 'function') tg.disableVerticalSwipes();
-    document.body.classList.add('telegram-app');
-    if (tg.setHeaderColor) tg.setHeaderColor('#000000');
-    if (tg.setBackgroundColor) tg.setBackgroundColor('#000000');
-
-    tg.onEvent('viewportChanged', () => {
-        if (mapLayoutReady) initMapLayout();
-    });
-
-    return true;
-}
-
-function showMapView() {
-    const map = document.getElementById('background-map');
-    const overlay = document.getElementById('content-overlay');
-    map.classList.add('active');
-    overlay.classList.add('hidden-map');
-    overlay.style.display = 'none';
-    createMiningStars();
-    document.querySelectorAll('.bg-object').forEach(o => o.style.display = 'block');
-    renderMiningScene();
-}
-
-function renderMiningScene() {
-    drawPlanet();
-    refreshPlayerShipSprite();
-    initMapLayout();
-}
-
-function initMapLayout() {
-    const bg = document.getElementById('galaxy-bg');
-    if (!bg || !bg.offsetWidth) {
-        requestAnimationFrame(initMapLayout);
-        return;
-    }
-    if (!mapLayoutReady) {
-        parkShipOnPlanet();
-        mapLayoutReady = true;
-    } else {
-        ensurePlayerShip();
-        setShipPosition(shipPosition.x, shipPosition.y);
-    }
-}
-
-// ----------------------------------------------------------------------
-//  4. ДОБЫЧА (PvE)
-// ----------------------------------------------------------------------
-
-let galaxyObjects = [];
-let isShipFlying = false;
-let isShipMoving = false;
-let shipMoveTimer = null;
-let shipPosition = { x: 0, y: 0 };
-let mapLayoutReady = false;
-const SHIP_MOVE_SPEED = 90;
-const FUEL_COST_PER_FLIGHT = 10;
-let fuelInterval = null; // для перезапуска интервала при изменении буста
-
-function startFuelRegeneration() {
-    if (fuelInterval) clearInterval(fuelInterval);
-    const interval = getFuelRegenInterval();
-    fuelInterval = setInterval(() => {
-        if (state.resources.fuel < state.maxFuel) {
-            state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + 1);
-            saveState();
-            updateTopPanel();
-        }
-    }, interval);
-}
-
-function getFuelRegenInterval() {
-    const boost = state.boosts.find(b => b.type === 'fuel' && b.expires > Date.now());
-    return boost ? 2 * 60 * 1000 : 4 * 60 * 1000;
-}
-
-function generateObjects() {
-    const bg = document.getElementById('galaxy-bg');
-    bg.querySelectorAll('.bg-object').forEach(e => e.remove());
-    galaxyObjects = [];
-    const center = getMapCenter();
-    const types = ['asteroid','asteroid','asteroid','pirate','pirate','pirate','wreck','wreck','wreck'];
-    types.sort(() => Math.random()-0.5);
-    const placed = [];
-    const minDist = 60;
-    const maxDist = 150;
-    const minDistFromCenter = 80;
-    types.forEach(type => {
-        let attempts = 0;
-        let x, y, ok;
-        do {
-            const angle = Math.random() * Math.PI * 2;
-            const dist = minDistFromCenter + Math.random() * (maxDist - minDistFromCenter);
-            x = center.x + Math.cos(angle) * dist;
-            y = center.y + Math.sin(angle) * dist;
-            ok = true;
-            for (let p of placed) {
-                const dx = x - p.x;
-                const dy = y - p.y;
-                if (dx*dx + dy*dy < minDist*minDist) {
-                    ok = false;
-                    break;
-                }
-            }
-            attempts++;
-            if (attempts > 100) break;
-        } while (!ok);
-        const obj = { type, x, y, element:null };
-        const div = document.createElement('div');
-        div.className = 'bg-object';
-        div.style.left = x+'px';
-        div.style.top = y+'px';
-        if (type === 'asteroid') div.innerHTML = '🪨';
-        else if (type === 'pirate') div.appendChild(window.createEnemyShip(Math.floor(Math.random()*3)));
-        else div.innerHTML = '🛸';
-        div.onclick = (e) => {
-            e.stopPropagation();
-            if (state.resources.fuel >= FUEL_COST_PER_FLIGHT && !isShipFlying && !isShipMoving && state.faction) {
-                flyToObject(obj, div);
-            }
-        };
-        bg.appendChild(div);
-        obj.element = div;
-        galaxyObjects.push(obj);
-        placed.push({x, y});
-    });
-}
-
-function getBoostMultiplier() {
-    const boost = state.boosts.find(b => b.type === 'mining' && b.expires > Date.now());
-    return boost ? 1.5 : 1.0;
-}
-
-function addExp(amount) {
-    state.exp += amount;
-    while (state.exp >= state.level * 100 && state.level < 100) {
-        state.exp -= state.level * 100;
-        state.level++;
-        showLoot('Уровень', state.level);
-    }
-    saveState();
-    updateTopPanel();
-}
-
-function generateLoot() {
-    const mult = (state.vip === 0) ? 1 : (1 + state.vip * 0.2);
-    const boostMult = getBoostMultiplier();
-    let nothingChance = 55 - state.upgrades.luck * 2;
-    if (nothingChance < 5) nothingChance = 5;
-    const r = Math.random() * 100;
-    if (r < nothingChance) {
-        addExp(5);
-        return null;
-    }
-    const remaining = 100 - nothingChance;
-    const creditsChance = 20 / 50 * remaining;
-    const fuelChance = 10 / 50 * remaining;
-    const shieldChance = 6 / 50 * remaining;
-    const weaponChance = 6 / 50 * remaining;
-    const speedChance = 6 / 50 * remaining;
-    const spiceChance = 2 / 50 * remaining;
-    let roll = Math.random() * remaining;
-    let loot = null;
-    if (roll < creditsChance) {
-        const amt = Math.floor((10 + Math.random()*91) * mult * boostMult);
-        state.resources.credits += amt;
-        loot = { name:'Кредиты', amount:amt };
-    } else if (roll < creditsChance + fuelChance) {
-        const amt = Math.floor((5 + Math.random()*11) * mult * boostMult);
-        state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + amt);
-        loot = { name:'Топливо', amount:amt };
-    } else if (roll < creditsChance + fuelChance + shieldChance) {
-        const amt = Math.floor((1 + Math.random()*5) * mult * boostMult);
-        state.resources.shieldParts += amt;
-        loot = { name:'Детали щита', amount:amt };
-    } else if (roll < creditsChance + fuelChance + shieldChance + weaponChance) {
-        const amt = Math.floor((1 + Math.random()*5) * mult * boostMult);
-        state.resources.weaponParts += amt;
-        loot = { name:'Детали оружия', amount:amt };
-    } else if (roll < creditsChance + fuelChance + shieldChance + weaponChance + speedChance) {
-        const amt = Math.floor((1 + Math.random()*5) * mult * boostMult);
-        state.resources.speedParts += amt;
-        loot = { name:'Детали скорости', amount:amt };
-    } else {
-        const amt = Math.floor((1 + Math.random()*3) * mult * boostMult);
-        state.resources.spice += amt;
-        loot = { name:'Спайс', amount:amt };
-    }
-    addExp(10 + Math.floor(Math.random() * 20));
-    return loot;
-}
-
-function flyToObject(obj, element) {
-    if (isShipFlying) return;
-    if (state.resources.fuel < FUEL_COST_PER_FLIGHT) return;
-    isShipFlying = true;
-    state.resources.fuel -= FUEL_COST_PER_FLIGHT;
-    saveState();
-    updateTopPanel();
-
-    const startX = shipPosition.x;
-    const startY = shipPosition.y;
-    document.getElementById('player-docked').style.display = 'none';
-    const bg = document.getElementById('galaxy-bg');
-    const shipEl = window.createPlayerShip(0.3, 0);
-    shipEl.style.position = 'absolute';
-    shipEl.style.left = startX + 'px';
-    shipEl.style.top = startY + 'px';
-    shipEl.style.transform = 'translate(-50%, -50%) rotate(0deg)';
-    shipEl.style.transition = 'all 5s cubic-bezier(0.25,0.1,0.25,1)';
-    bg.appendChild(shipEl);
-    const angle = Math.atan2(obj.y - startY, obj.x - startX);
-    const deg = angle * 180 / Math.PI;
-    shipEl.style.transform = `translate(-50%, -50%) rotate(${deg}deg) scale(0.6)`;
-    requestAnimationFrame(() => {
-        shipEl.style.left = obj.x + 'px';
-        shipEl.style.top = obj.y + 'px';
-        shipEl.style.transform = `translate(-50%, -50%) rotate(${deg}deg) scale(0.6)`;
-    });
-    setTimeout(() => {
-        const loot = generateLoot();
-        if (loot) showLoot(loot.name, loot.amount);
-        saveState();
-        updateTopPanel();
-        element.style.opacity = '0';
-        setTimeout(() => element.remove(), 300);
-        const returnAngle = Math.atan2(startY - obj.y, startX - obj.x);
-        const returnDeg = returnAngle * 180 / Math.PI;
-        shipEl.style.transition = 'all 5s cubic-bezier(0.25,0.1,0.25,1)';
-        shipEl.style.left = startX + 'px';
-        shipEl.style.top = startY + 'px';
-        shipEl.style.transform = `translate(-50%, -50%) rotate(${returnDeg}deg) scale(0.3)`;
-        setTimeout(() => {
-            shipEl.remove();
-            galaxyObjects = galaxyObjects.filter(o => o !== obj);
-            isShipFlying = false;
-            setShipPosition(startX, startY);
-            if (document.querySelectorAll('.bg-object').length === 0) generateObjects();
-        }, 5000);
-    }, 5000);
-}
-
-function freeRefuel() {
-    if (state.freeRefuelUsed) return;
-    state.resources.fuel = state.maxFuel;
-    state.freeRefuelUsed = true;
-    saveState();
-    updateTopPanel();
-}
-
-// Запуск восстановления топлива
-startFuelRegeneration();
-
-// ----------------------------------------------------------------------
-//  5. АНГАР
-// ----------------------------------------------------------------------
-
-function getUpgradeCost(type) {
-    const lvl = state.upgrades[type];
-    if (type === 'fuelTank') {
-        const credits = Math.floor(100 * Math.pow(2, lvl));
-        const spice = Math.floor(50 * Math.pow(1.5, lvl));
-        return { credits, spice, partsType: null, parts:0 };
-    } else {
-        const partsType = type==='shield'?'shieldParts':(type==='damage'?'weaponParts':(type==='speed'?'speedParts':'shieldParts'));
-        const baseParts = 5, baseCredits = 50;
-        let parts = Math.floor(baseParts * Math.pow(1.5, lvl));
-        let credits = Math.floor(baseCredits * Math.pow(2, lvl));
-        let spice = 0;
-        if (lvl >= 15) {
-            spice = (lvl === 15) ? 10 : Math.floor(10 * Math.pow(1.6, lvl - 15));
-        }
-        const discount = Math.min(state.vip * 5, 30);
-        parts = Math.floor(parts * (1 - discount/100));
-        credits = Math.floor(credits * (1 - discount/100));
-        if (spice) spice = Math.floor(spice * (1 - discount/100));
-        return { credits, spice, partsType, parts };
-    }
-}
-
-function canBuyUpgrade(type) {
-    const max = (type === 'fuelTank') ? 10 : (type === 'luck' ? 5 : 30);
-    if (state.upgrades[type] >= max) return false;
-    const cost = getUpgradeCost(type);
-    if (state.resources.credits < cost.credits) return false;
-    if (cost.spice && state.resources.spice < cost.spice) return false;
-    if (cost.partsType && state.resources[cost.partsType] < cost.parts) return false;
-    return true;
-}
-
-function buyUpgrade(type) {
-    if (!canBuyUpgrade(type)) return;
-    const cost = getUpgradeCost(type);
-    state.resources.credits -= cost.credits;
-    if (cost.spice) state.resources.spice -= cost.spice;
-    if (cost.partsType) state.resources[cost.partsType] -= cost.parts;
-    state.upgrades[type]++;
-    if (type === 'fuelTank') {
-        state.maxFuel += 10;
-        state.resources.fuel = Math.min(state.resources.fuel + 10, state.maxFuel);
-    }
-    addExp(50);
-    saveState();
-    updateHangar();
-    updateTopPanel();
-}
-
-function updateHangar() {
+function updateHUD() {
     const r = state.resources;
-    document.getElementById('hangar-resources').innerHTML =
-        `🪙${r.credits} ⛽${Math.floor(r.fuel)}/${state.maxFuel} 🛡️${r.shieldParts} ⚔️${r.weaponParts} ⚡${r.speedParts} 💎${r.spice} 🧩${r.shards}`;
-    const list = document.getElementById('upgrades-list');
-    const types = ['damage','shield','speed','luck','fuelTank'];
-    const names = { damage:'УРОН', shield:'ЗАЩИТА', speed:'СКОРОСТЬ', luck:'УДАЧА', fuelTank:'ТОПЛИВНЫЙ БАК' };
-    const maxMap = { damage:30, shield:30, speed:30, luck:5, fuelTank:10 };
-    list.innerHTML = types.map(t => {
-        const lvl = state.upgrades[t], max = maxMap[t];
-        const cost = getUpgradeCost(t);
-        const can = canBuyUpgrade(t);
-        let costStr = `${cost.credits}🪙`;
-        if (cost.spice) costStr += ` ${cost.spice}💎`;
-        if (cost.partsType) costStr += ` ${cost.parts} ${cost.partsType==='shieldParts'?'🛡️':(cost.partsType==='weaponParts'?'⚔️':'⚡')}`;
-        return `<div class="upgrade-row"><span>${names[t]} Ур.${lvl}/${max}</span><button class="btn btn-small" ${can&&lvl<max?'':'disabled'} onclick="buyUpgrade('${t}')">${costStr}</button></div>`;
-    }).join('');
-    updateArtifactSection();
+    $('ui-name').textContent = state.playerName || 'Игрок';
+    $('ui-level').textContent = `Lvl ${state.level}`;
+    $('ui-vip').textContent = `⭐ VIP ${state.vip}`;
+    $('ui-spice').textContent = r.spice;
+    $('ui-fuel').textContent = `${Math.floor(r.fuel)}/${state.maxFuel}`;
+    $('ui-credits').textContent = Math.floor(r.credits);
+    $('ui-shards').textContent = r.shards;
+    $('avatar').textContent = state.playerName ? state.playerName[0].toUpperCase() : '?';
 }
 
-// ----------------------------------------------------------------------
-//  6. АРТЕФАКТЫ
-// ----------------------------------------------------------------------
-
-function getArtifactCost(currentLevel) {
-    const costs = {
-        0: { shards: 5, spice: 30 },
-        1: { shards: 8, spice: 30 },
-        2: { shards: 16, spice: 30 },
-        3: { shards: 31, spice: 30 },
-        4: { shards: 43, spice: 30 }
-    };
-    return costs[currentLevel] || null;
-}
-
-function upgradeArtifact(artifactId) {
-    if (state.artifact.id && state.artifact.id !== artifactId) {
-        alert('Сначала снимите текущий артефакт');
-        return;
-    }
-    let level = state.artifact.level || 0;
-    if (level >= 5) { alert('Максимальный уровень'); return; }
-    const cost = getArtifactCost(level);
-    if (!cost) return;
-    if (state.resources.shards < cost.shards || state.resources.spice < cost.spice) {
-        alert('Не хватает ресурсов');
-        return;
-    }
-    state.resources.shards -= cost.shards;
-    state.resources.spice -= cost.spice;
-    state.artifact.id = artifactId;
-    state.artifact.level = level + 1;
-    addExp(100);
-    saveState();
-    updateHangar();
-}
-
-function unequipArtifact() {
-    state.artifact.id = null;
-    state.artifact.level = 0;
-    saveState();
-    updateHangar();
-}
-
-function updateArtifactSection() {
-    const container = document.getElementById('artifact-section');
-    let html = `<div style="font-size:4px;margin:4px 0;">Экипирован: ${state.artifact.id ? ARTIFACTS.find(a=>a.id===state.artifact.id).name + ' (ур.'+state.artifact.level+')' : 'нет'}</div>`;
-    html += `<div class="flex-row">`;
-    ARTIFACTS.forEach(art => {
-        const isEquipped = state.artifact.id === art.id;
-        const level = isEquipped ? state.artifact.level : 0;
-        const canUpgrade = isEquipped && level < 5 && getArtifactCost(level);
-        html += `<div class="artifact-card ${isEquipped?'selected':''}" onclick="upgradeArtifact('${art.id}')">
-            <div style="font-size:5px;">${art.name}</div>
-            <div style="font-size:3px;">${art.desc}</div>
-            <div style="font-size:3px;">ур.${level}/5</div>
-            ${canUpgrade ? `<div style="font-size:3px;">${getArtifactCost(level).shards}🧩 ${getArtifactCost(level).spice}💎</div>` : ''}
-        </div>`;
-    });
-    html += `</div>`;
-    if (state.artifact.id) {
-        html += `<button class="btn btn-small" onclick="unequipArtifact()">СНЯТЬ</button>`;
-    }
-    container.innerHTML = html;
-}
-
-// ----------------------------------------------------------------------
-//  7. PvP (КОСМОБИТВА)
-// ----------------------------------------------------------------------
-
-function getFinalStats() {
-    const base = FACTION_STATS[state.factionBonus] || { shield:20, damage:20, speed:15 };
-    let shield = base.shield + state.upgrades.shield * 2;
-    let damage = base.damage + state.upgrades.damage * 2;
-    let speed = base.speed + state.upgrades.speed * 2;
-    if (state.artifact.id) {
-        const art = ARTIFACTS.find(a => a.id === state.artifact.id);
-        const lvl = state.artifact.level;
-        const bonus = art.perLevel * lvl;
-        if (art.effect === 'damage') damage *= (1 + bonus/100);
-        else if (art.effect === 'shield') shield *= (1 + bonus/100);
-        else if (art.effect === 'speed') speed *= (1 + bonus/100);
-    }
-    let critChance = 5 + state.upgrades.luck * 2;
-    const pvpBoost = state.boosts.find(b => b.type === 'pvp' && b.expires > Date.now());
-    if (pvpBoost) {
-        damage *= 1.2;
-        shield *= 1.2;
-    }
-    return { damage, shield, speed, critChance };
-}
-
-function generateEnemyStats() {
-    const base = FACTION_STATS[['tank','dps','sniper'][Math.floor(Math.random()*3)]];
-    let shield = base.shield + Math.floor(Math.random() * 20);
-    let damage = base.damage + Math.floor(Math.random() * 20);
-    let speed = base.speed + Math.floor(Math.random() * 20);
-    const hasArtifact = Math.random() < 0.5;
-    if (hasArtifact) {
-        const art = ARTIFACTS[Math.floor(Math.random()*5)];
-        const lvl = Math.floor(Math.random()*5)+1;
-        const bonus = art.perLevel * lvl;
-        if (art.effect === 'damage') damage *= (1 + bonus/100);
-        else if (art.effect === 'shield') shield *= (1 + bonus/100);
-        else if (art.effect === 'speed') speed *= (1 + bonus/100);
-    }
-    const critChance = 5 + Math.floor(Math.random() * 10);
-    return { damage, shield, speed, critChance };
-}
-
-function simulatePvP(playerStats, enemyStats) {
-    const HP = 1000;
-    let pShield = playerStats.shield;
-    let pHP = HP;
-    let eShield = enemyStats.shield;
-    let eHP = HP;
-    let pNext = 0, eNext = 0;
-    const myDelay = 100 / playerStats.speed;
-    const enemyDelay = 100 / enemyStats.speed;
-    const myVampireChance = (state.artifact.id && ARTIFACTS.find(a=>a.id===state.artifact.id).effect === 'vampire') ? state.artifact.level * 3 : 0;
-    const myDodgeChance = (state.artifact.id && ARTIFACTS.find(a=>a.id===state.artifact.id).effect === 'dodge') ? state.artifact.level * 3 : 0;
-    const enemyVampireChance = (Math.random() < 0.2) ? 5 : 0;
-    const enemyDodgeChance = (Math.random() < 0.2) ? 5 : 0;
-
-    let history = [];
-
-    for (let t = 0; t < 10; t += 0.05) { // меньший шаг для более плавной анимации
-        // Атака игрока
-        if (t >= pNext) {
-            let dmg = Math.max(0, playerStats.damage - enemyStats.shield * 0.5);
-            if (Math.random() * 100 < playerStats.critChance) dmg *= 1.5;
-            if (enemyDodgeChance && Math.random() * 100 < enemyDodgeChance) dmg = 0;
-            if (eShield > 0) {
-                let shieldDmg = Math.min(dmg, eShield);
-                eShield -= shieldDmg;
-                dmg -= shieldDmg;
-            }
-            if (dmg > 0) eHP -= dmg;
-            if (myVampireChance && Math.random() * 100 < myVampireChance) {
-                pHP = Math.min(HP, pHP + HP * 0.1);
-            }
-            history.push({ time: t, type: 'player_hit' });
-            pNext = t + myDelay;
-        }
-        // Атака врага
-        if (t >= eNext) {
-            let dmg = Math.max(0, enemyStats.damage - playerStats.shield * 0.5);
-            if (Math.random() * 100 < enemyStats.critChance) dmg *= 1.5;
-            if (myDodgeChance && Math.random() * 100 < myDodgeChance) dmg = 0;
-            if (pShield > 0) {
-                let shieldDmg = Math.min(dmg, pShield);
-                pShield -= shieldDmg;
-                dmg -= shieldDmg;
-            }
-            if (dmg > 0) pHP -= dmg;
-            if (enemyVampireChance && Math.random() * 100 < enemyVampireChance) {
-                eHP = Math.min(HP, eHP + HP * 0.1);
-            }
-            history.push({ time: t, type: 'enemy_hit' });
-            eNext = t + enemyDelay;
-        }
-        if (pHP <= 0 || eHP <= 0) break;
-    }
-    return { pHP, pShield, eHP, eShield, history };
-}
-
-let pvpInterval = null; // теперь реально используется
-let pvpTimerInterval = null;
-
-function searchPvP() {
-    if (!state.faction) return;
-    if (pvpInterval) return; // предотвращает повторные запуски
-    const playerStats = getFinalStats();
-    const enemyStats = generateEnemyStats();
-
-    const pvpPlayerShip = document.getElementById('pvp-player-ship-display');
-    pvpPlayerShip.innerHTML = '';
-    pvpPlayerShip.appendChild(window.createPlayerShip(0.6, 0));
-    const pvpEnemyShip = document.getElementById('pvp-enemy-ship-display');
-    pvpEnemyShip.innerHTML = '';
-    pvpEnemyShip.appendChild(window.createEnemyShip(Math.floor(Math.random()*3)));
-
-    document.getElementById('pvp-enemy-name').innerText = 'Противник';
-    document.getElementById('pvp-player-name').innerText = state.playerName;
-    document.getElementById('pvp-player-stats').innerText = `Урон:${Math.floor(playerStats.damage)} Защ:${Math.floor(playerStats.shield)} Ск:${Math.floor(playerStats.speed)}`;
-    document.getElementById('pvp-enemy-stats').innerText = `Урон:${Math.floor(enemyStats.damage)} Защ:${Math.floor(enemyStats.shield)} Ск:${Math.floor(enemyStats.speed)}`;
-    document.getElementById('pvp-status').innerText = 'Бой...';
-    let timer = 10;
-    document.getElementById('pvp-timer').innerText = timer;
-
-    const result = simulatePvP(playerStats, enemyStats);
-    let step = 0;
-    const totalSteps = result.history.length;
-    const maxTime = 10;
-
-    function updateBars() {
-        const pShieldPct = Math.max(0, (result.pShield / playerStats.shield) * 100);
-        const pHPPct = Math.max(0, (result.pHP / 1000) * 100);
-        const eShieldPct = Math.max(0, (result.eShield / enemyStats.shield) * 100);
-        const eHPPct = Math.max(0, (result.eHP / 1000) * 100);
-        document.getElementById('pvp-player-shield').style.width = pShieldPct + '%';
-        document.getElementById('pvp-player-hp').style.width = pHPPct + '%';
-        document.getElementById('pvp-enemy-shield').style.width = eShieldPct + '%';
-        document.getElementById('pvp-enemy-hp').style.width = eHPPct + '%';
-    }
-
-    function animateHit(type) {
-        // Создаём лазерный выстрел
-        let fromX, fromY, toX, toY;
-        const leftShip = document.getElementById('pvp-player-ship-display');
-        const rightShip = document.getElementById('pvp-enemy-ship-display');
-        if (type === 'player_hit') {
-            fromX = leftShip.getBoundingClientRect().right;
-            fromY = leftShip.getBoundingClientRect().top + leftShip.offsetHeight/2;
-            toX = rightShip.getBoundingClientRect().left;
-            toY = rightShip.getBoundingClientRect().top + rightShip.offsetHeight/2;
-            // Вспышка на враге
-            const enemyShip = rightShip.firstChild;
-            if (enemyShip) {
-                enemyShip.classList.add('hit-flash', 'ship-shake');
-                setTimeout(() => {
-                    enemyShip.classList.remove('hit-flash', 'ship-shake');
-                }, 300);
-            }
-        } else {
-            fromX = rightShip.getBoundingClientRect().left;
-            fromY = rightShip.getBoundingClientRect().top + rightShip.offsetHeight/2;
-            toX = leftShip.getBoundingClientRect().right;
-            toY = leftShip.getBoundingClientRect().top + leftShip.offsetHeight/2;
-            const playerShip = leftShip.firstChild;
-            if (playerShip) {
-                playerShip.classList.add('hit-flash', 'ship-shake');
-                setTimeout(() => {
-                    playerShip.classList.remove('hit-flash', 'ship-shake');
-                }, 300);
-            }
-        }
-        // Создаём лазер
-        const laser = document.createElement('div');
-        laser.className = 'laser-shot';
-        laser.style.left = fromX + 'px';
-        laser.style.top = fromY + 'px';
-        document.body.appendChild(laser);
-        // Анимируем перемещение к цели
-        const dx = toX - fromX;
-        const dy = toY - fromY;
-        laser.style.transition = 'all 0.15s linear';
-        requestAnimationFrame(() => {
-            laser.style.left = toX + 'px';
-            laser.style.top = toY + 'px';
-        });
-        setTimeout(() => {
-            laser.remove();
-        }, 200);
-    }
-
-    let timeIdx = 0;
-    pvpInterval = setInterval(() => { // присваиваем переменной
-        timer--;
-        document.getElementById('pvp-timer').innerText = timer;
-        const targetTime = maxTime - timer;
-        while (timeIdx < result.history.length && result.history[timeIdx].time <= targetTime) {
-            animateHit(result.history[timeIdx].type);
-            timeIdx++;
-        }
-        updateBars();
-        if (timer <= 0) {
-            clearInterval(pvpInterval);
-            pvpInterval = null;
-            let outcome;
-            if (result.pHP <= 0 && result.eHP <= 0) outcome = 'НИЧЬЯ! +2';
-            else if (result.eHP <= 0) outcome = 'ПОБЕДА! +15';
-            else if (result.pHP <= 0) outcome = 'ПОРАЖЕНИЕ... -12';
-            else if (result.pHP > result.eHP) outcome = 'ПОБЕДА! +15';
-            else if (result.pHP < result.eHP) outcome = 'ПОРАЖЕНИЕ... -12';
-            else outcome = 'НИЧЬЯ! +2';
-            document.getElementById('pvp-status').innerText = outcome;
-            if (outcome.includes('ПОБЕДА')) state.pvpScore += 15;
-            else if (outcome.includes('ПОРАЖЕНИЕ')) state.pvpScore = Math.max(0, state.pvpScore - 12);
-            else state.pvpScore += 2;
-            addExp(30);
-            updateLeaderboard();
-            saveState();
-            if (pvpTimerInterval) { clearInterval(pvpTimerInterval); pvpTimerInterval = null; }
-        }
-    }, 1000);
-}
-
-function updateLeaderboard() {
-    const idx = state.leaderboard.findIndex(p => p.name === state.playerName);
-    if (idx >= 0) state.leaderboard[idx].score = state.pvpScore;
-    else if (state.playerName) state.leaderboard.push({ name: state.playerName, score: state.pvpScore });
-    state.leaderboard.sort((a,b) => b.score - a.score);
-    state.leaderboard = state.leaderboard.slice(0, 15);
-    const list = document.getElementById('leaderboard');
-    if (list) list.innerHTML = '<div style="color:#aa9933">ТОП 15</div>' +
-        state.leaderboard.map((p,i) => `<div>#${i+1} ${p.name}: ${p.score}</div>`).join('');
-    saveState();
-}
-
-// ----------------------------------------------------------------------
-//  8. ЧЕКИН
-// ----------------------------------------------------------------------
-
-function openCheckin() {
-    showWindow('checkin');
-    renderCheckin();
-}
-
-function renderCheckin() {
-    const container = document.getElementById('checkin-calendar');
-    let html = '<div class="calendar-grid">';
-    for (let i = 1; i <= 7; i++) {
-        const reward = CHECKIN_REWARDS[i-1];
-        const claimed = (state.checkinDay > i) || (state.checkinDay === i && state.checkinClaimedToday);
-        const today = (i === state.checkinDay && !state.checkinClaimedToday);
-        html += `<div class="calendar-day ${claimed?'claimed':''} ${today?'today':''}">
-            <div>День ${i}</div>
-            <div style="font-size:3px;">${reward.credits}🪙 ${reward.fuel}⛽ ${reward.parts>0?reward.parts+'🧩':''} ${reward.spice>0?reward.spice+'💎':''}</div>
-            ${claimed ? '✅' : (today ? '<button onclick="claimCheckin()">ЗАБРАТЬ</button>' : '🔒')}
-        </div>`;
-    }
-    html += '</div>';
-    container.innerHTML = html;
-}
-
-function claimCheckin() {
-    if (state.checkinClaimedToday) {
-        alert('Вы уже забрали награду сегодня');
-        return;
-    }
-    const now = Date.now();
-    const last = state.checkinLastClaim ? new Date(state.checkinLastClaim) : null;
-    if (last) {
-        const diffDays = Math.floor((now - last) / (24*60*60*1000));
-        if (diffDays > 1) {
-            state.checkinDay = 1;
-            state.checkinClaimedToday = false;
-            state.checkinLastClaim = null;
-            saveState();
-            renderCheckin();
-            alert('Прогресс сброшен из-за пропуска дня');
-            return;
-        } else if (diffDays === 0) {
-            alert('Уже сегодня забирали');
-            return;
-        }
-    }
-    const reward = CHECKIN_REWARDS[state.checkinDay-1];
-    state.resources.credits += reward.credits;
-    state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + reward.fuel);
-    if (reward.parts > 0) {
-        const types = ['shieldParts','weaponParts','speedParts'];
-        const p = types[Math.floor(Math.random()*3)];
-        state.resources[p] += reward.parts;
-    }
-    state.resources.spice += reward.spice;
-    state.checkinClaimedToday = true;
-    state.checkinLastClaim = now;
-    if (state.checkinDay === 7) {
-        state.checkinDay = 1;
-        state.checkinClaimedToday = false;
-    } else {
-        state.checkinDay++;
-    }
-    addExp(20);
-    saveState();
-    updateTopPanel();
-    renderCheckin();
-    showLoot('Чекин', reward.credits + '🪙');
-}
-
-// ----------------------------------------------------------------------
-//  9. БАТЛ-ПАСС
-// ----------------------------------------------------------------------
-
-function openBattlePass() {
-    showWindow('battlepass');
-    renderBP();
-}
-
-function renderBP() {
-    const container = document.getElementById('bp-calendar');
-    let html = '<div class="calendar-grid" style="grid-template-columns: repeat(5, 1fr);">';
-    for (let i = 1; i <= 30; i++) {
-        const reward = getBPReward(i);
-        const claimed = (state.bpDay > i) || (state.bpDay === i && state.bpClaimedToday);
-        const today = (i === state.bpDay && !state.bpClaimedToday);
-        html += `<div class="calendar-day ${claimed?'claimed':''} ${today?'today':''}" style="font-size:3px;">
-            <div>День ${i}</div>
-            <div>${reward.credits}🪙 ${reward.fuel}⛽ ${reward.parts}🧩 ${reward.spice}💎</div>
-            ${claimed ? '✅' : (today ? '<button onclick="claimBP()">ЗАБРАТЬ</button>' : '🔒')}
-        </div>`;
-    }
-    html += '</div>';
-    container.innerHTML = html;
-    document.getElementById('bp-status').innerText = state.bpPaid ? 'Куплен' : 'Не куплен';
-}
-
-function buyBattlePass() {
-    if (state.bpPaid) { alert('Уже куплен'); return; }
-    state.bpPaid = true;
-    saveState();
-    renderBP();
-    alert('Батл-пасс активирован!');
-}
-
-function claimBP() {
-    if (!state.bpPaid) { alert('Сначала купите батл-пасс'); return; }
-    if (state.bpClaimedToday) { alert('Уже забрали сегодня'); return; }
-    const now = Date.now();
-    const last = state.bpLastClaim ? new Date(state.bpLastClaim) : null;
-    if (last) {
-        const diffDays = Math.floor((now - last) / (24*60*60*1000));
-        if (diffDays === 0) {
-            alert('Уже сегодня забирали');
-            return;
-        } else if (diffDays > 1) {
-            state.bpDay = Math.min(30, state.bpDay + diffDays);
-        }
-    }
-    const reward = getBPReward(state.bpDay);
-    state.resources.credits += reward.credits;
-    state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + reward.fuel);
-    if (reward.parts > 0) {
-        const types = ['shieldParts','weaponParts','speedParts'];
-        const p = types[Math.floor(Math.random()*3)];
-        state.resources[p] += reward.parts;
-    }
-    state.resources.spice += reward.spice;
-    state.bpClaimedToday = true;
-    state.bpLastClaim = now;
-    if (state.bpDay < 30) state.bpDay++;
-    addExp(50);
-    saveState();
-    updateTopPanel();
-    renderBP();
-    showLoot('Батл-пасс', reward.credits + '🪙');
-}
-
-// ----------------------------------------------------------------------
-//  10. УСИЛЕНИЯ (БУСТЫ)
-// ----------------------------------------------------------------------
-
-let selectedBoostType = null;
-let selectedBoostDuration = null;
-
-function openBoosts() {
-    showWindow('boosts');
-    renderBoosts();
-}
-
-function renderBoosts() {
-    const container = document.getElementById('boost-selection');
-    let html = '<div style="font-size:5px;margin:4px 0;">Тип усиления:</div><div class="flex-row">';
-    BOOST_TYPES.forEach(bt => {
-        const active = state.boosts.some(b => b.type === bt.id && b.expires > Date.now());
-        html += `<div class="boost-card ${selectedBoostType===bt.id?'selected':''}" onclick="selectBoostType('${bt.id}')">
-            <div>${bt.name}</div>
-            <div style="font-size:3px;">${bt.desc}</div>
-            ${active ? '<div style="color:#00aa44;">АКТИВНО</div>' : ''}
-        </div>`;
-    });
-    html += '</div>';
-    html += '<div style="font-size:5px;margin:4px 0;">Длительность:</div><div class="flex-row">';
-    BOOST_DURATIONS.forEach(d => {
-        const price = BOOST_PRICES[d];
-        html += `<div class="boost-card ${selectedBoostDuration===d?'selected':''}" onclick="selectBoostDuration(${d})">
-            ${d} дней (${price} USDT)
-        </div>`;
-    });
-    html += '</div>';
-    container.innerHTML = html;
-}
-
-function selectBoostType(id) {
-    selectedBoostType = id;
-    renderBoosts();
-}
-
-function selectBoostDuration(d) {
-    selectedBoostDuration = d;
-    renderBoosts();
-}
-
-function buyBoost() {
-    if (!selectedBoostType || !selectedBoostDuration) {
-        alert('Выберите тип и длительность');
-        return;
-    }
-    const price = BOOST_PRICES[selectedBoostDuration];
-    const expires = Date.now() + selectedBoostDuration * 24 * 60 * 60 * 1000;
-    state.boosts.push({ type: selectedBoostType, expires: expires });
-    addExp(100);
-    saveState();
-    renderBoosts();
-    alert(`Усиление "${BOOST_TYPES.find(b=>b.id===selectedBoostType).name}" на ${selectedBoostDuration} дней активировано!`);
-    selectedBoostType = null;
-    selectedBoostDuration = null;
-    // Перезапускаем восстановление топлива, если активирован буст топлива
-    if (selectedBoostType === 'fuel') {
-        startFuelRegeneration();
-    }
-}
-
-// ----------------------------------------------------------------------
-//  11. ИНИЦИАЛИЗАЦИЯ
-// ----------------------------------------------------------------------
-
-function setPlayerName() {
-    const name = document.getElementById('input-player-name').value.trim();
-    if (name.length < 2) { alert('Минимум 2 символа'); return; }
-    state.playerName = name;
-    saveState();
-    showWindow('faction');
-}
-
-function selectFaction(name, color, bonus) {
-    state.faction = name;
-    state.factionColor = color;
-    state.factionBonus = bonus;
-    saveState();
-    const container = document.getElementById('ship-selection');
-    container.innerHTML = '';
-    for (let i=0; i<3; i++) {
-        const card = document.createElement('div');
-        card.style.cssText = 'cursor:pointer;padding:6px;border:2px solid #00aa44;text-align:center;width:100px;height:120px;display:flex;align-items:center;justify-content:center;';
-        const matrix = SHIP_SPRITES[`player${i+1}`] || [];
-        card.appendChild(drawShipSprite(matrix, i===0?0.8:0.5));
-        card.onclick = () => {
-            state.shipIndex = i;
-            saveState();
-            container.querySelectorAll('div').forEach(d => d.style.borderColor = '#00aa44');
-            card.style.borderColor = '#ffaa00';
-            document.getElementById('confirm-ship-btn').disabled = false;
-        };
-        container.appendChild(card);
-    }
-    document.getElementById('confirm-ship-btn').disabled = true;
-    showWindow('ship');
-}
-
-function confirmShip() {
-    if (state.shipIndex === null || state.shipIndex === undefined) {
-        alert('Выберите корабль');
-        return;
-    }
-    state.shipName = '';
-    state.profileComplete = true;
-    saveState();
-    showUI();
-    showMapView();
-    generateObjects();
-    updateHangar();
-    updateLeaderboard();
+function showLoot(text) {
+    const el = document.createElement('span');
+    el.className = 'loot'; el.textContent = text;
+    $('loot-feed').appendChild(el);
+    setTimeout(() => el.remove(), 2500);
 }
 
 function switchTab(tab) {
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('nav-'+tab).classList.add('active');
-    if (tab === 'map') {
-        showMapView();
+    currentTab = tab;
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+
+    if (tab === 'mining') {
+        $('mining-screen').classList.add('active');
+        hideOverlay();
+        layoutMining();
+        renderPlayerShip();
+        generateMineObjects();
     } else {
-        document.getElementById('background-map').classList.remove('active');
-        const overlay = document.getElementById('content-overlay');
-        overlay.classList.remove('hidden-map');
-        overlay.style.display = 'flex';
-        document.querySelectorAll('.bg-object').forEach(o => o.style.display = 'none');
-        if (tab === 'hangar') {
-            showWindow('hangar');
-            const hangarDiv = document.getElementById('hangar-ship-display');
-            hangarDiv.innerHTML = '';
-            const ship = window.createPlayerShip(0.8, 90);
-            ship.classList.add('ship-horizontal');
-            hangarDiv.appendChild(ship);
-            updateHangar();
-        } else if (tab === 'pvp') {
-            showWindow('pvp');
-            document.getElementById('pvp-player-ship-display').innerHTML = '';
-            document.getElementById('pvp-player-ship-display').appendChild(window.createPlayerShip(0.6, 0));
-            document.getElementById('pvp-enemy-ship-display').innerHTML = '';
-            document.getElementById('pvp-enemy-ship-display').appendChild(window.createEnemyShip(Math.floor(Math.random()*3)));
-            document.getElementById('pvp-player-name').innerText = state.playerName;
-            document.getElementById('pvp-player-shield').style.width = '100%';
-            document.getElementById('pvp-player-hp').style.width = '100%';
-            document.getElementById('pvp-enemy-shield').style.width = '100%';
-            document.getElementById('pvp-enemy-hp').style.width = '100%';
-            document.getElementById('pvp-timer').innerText = '10';
-            document.getElementById('pvp-status').innerText = 'Нажмите НАЙТИ БОЙ';
-            updateLeaderboard();
-        } else if (tab === 'minigames') {
-            showWindow('minigames');
-        }
+        $('mining-screen').classList.remove('active');
+        $('overlay').classList.add('active');
+        if (tab === 'hangar') { showWindow('hangar'); renderHangar(); }
+        if (tab === 'pvp')     { showWindow('pvp'); renderPvP(); }
+        if (tab === 'minigames') showWindow('minigames');
     }
 }
 
-function goBack() {
-    if (state.faction) switchTab('map');
+// ─── Добыча ──────────────────────────────────────────────────
+function getFieldRect() {
+    return $('mining-field').getBoundingClientRect();
 }
 
-function devReset() {
-    if (confirm('СБРОСИТЬ ВЕСЬ ПРОГРЕСС?')) {
-        const cloud = window.Telegram?.WebApp?.CloudStorage;
-        const finishReset = () => {
-            localStorage.clear();
-            location.reload();
+function getPlanetCenter() {
+    const field = $('mining-field');
+    return { x: field.offsetWidth / 2, y: field.offsetHeight / 2 };
+}
+
+function getShipHome() {
+    const c = getPlanetCenter();
+    return { x: c.x + 90, y: c.y + 20 };
+}
+
+function setShipPos(x, y, rot = -20) {
+    shipPos = { x, y };
+    const el = $('player-ship');
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    el.style.transform = `translate(-50%,-50%) rotate(${rot}deg)`;
+}
+
+function moveShip(tx, ty) {
+    if (shipMoving || shipFlying) return;
+    const field = $('mining-field');
+    const margin = 20;
+    tx = Math.max(margin, Math.min(field.offsetWidth - margin, tx));
+    ty = Math.max(margin, Math.min(field.offsetHeight - margin, ty));
+    const dx = tx - shipPos.x, dy = ty - shipPos.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist < 10) return;
+
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    const ms = Math.max(300, dist / SHIP_SPEED * 1000);
+    shipMoving = true;
+    const el = $('player-ship');
+    el.style.transition = `left ${ms}ms linear, top ${ms}ms linear, transform ${ms}ms linear`;
+    setShipPos(tx, ty, angle);
+    setTimeout(() => { shipMoving = false; el.style.transition = ''; }, ms);
+}
+
+function layoutMining() {
+    fillStars($('mining-stars'), 200);
+    if (!shipPos.x && !shipPos.y) setShipPos(...Object.values(getShipHome()));
+    else setShipPos(shipPos.x, shipPos.y);
+}
+
+function generateMineObjects() {
+    $('mining-field').querySelectorAll('.mine-object').forEach(e => e.remove());
+    mineObjects = [];
+    const center = getPlanetCenter();
+    const types = ['🪨','🪨','👾','👾','🛸'];
+    types.forEach(type => {
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 100 + Math.random() * 80;
+        const x = center.x + Math.cos(angle) * dist;
+        const y = center.y + Math.sin(angle) * dist;
+        const el = document.createElement('div');
+        el.className = 'mine-object';
+        el.textContent = type;
+        el.style.left = x + 'px'; el.style.top = y + 'px';
+        el.onclick = (e) => { e.stopPropagation(); flyToMine({ x, y, el, type }); };
+        $('mining-field').appendChild(el);
+        mineObjects.push({ x, y, el, type });
+    });
+}
+
+function rollLoot() {
+    const r = Math.random() * 100;
+    if (r < 50) return null;
+    const pool = [
+        () => { const n = 10+Math.floor(Math.random()*40); state.resources.credits+=n; return `+${n} 🪙`; },
+        () => { const n = 3+Math.floor(Math.random()*8); state.resources.fuel=Math.min(state.maxFuel,state.resources.fuel+n); return `+${n} ⛽`; },
+        () => { const n = 1+Math.floor(Math.random()*3); state.resources.spice+=n; return `+${n} 💎`; },
+        () => { state.resources.weaponParts++; return '+1 ⚔️'; },
+    ];
+    return pool[Math.floor(Math.random()*pool.length)]();
+}
+
+function flyToMine(obj) {
+    if (shipFlying || shipMoving || state.resources.fuel < FUEL_PER_FLIGHT) return;
+    shipFlying = true;
+    state.resources.fuel -= FUEL_PER_FLIGHT;
+    Storage.save(); updateHUD();
+
+    const start = { ...shipPos };
+    const el = $('player-ship');
+    const dx = obj.x - start.x, dy = obj.y - start.y;
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    const ms = Math.hypot(dx, dy) / SHIP_SPEED * 1000 + 400;
+
+    el.style.transition = `left ${ms}ms linear, top ${ms}ms linear, transform ${ms}ms linear`;
+    setShipPos(obj.x, obj.y, angle);
+
+    setTimeout(() => {
+        const loot = rollLoot();
+        if (loot) showLoot(loot);
+        state.exp += 10;
+        if (state.exp >= state.level * 100) { state.exp -= state.level * 100; state.level++; showLoot(`Уровень ${state.level}!`); }
+        obj.el.style.opacity = '0';
+        setTimeout(() => obj.el.remove(), 300);
+        mineObjects = mineObjects.filter(o => o !== obj);
+
+        el.style.transition = `left ${ms}ms linear, top ${ms}ms linear`;
+        setShipPos(start.x, start.y, -20);
+
+        setTimeout(() => {
+            shipFlying = false;
+            el.style.transition = '';
+            if (!mineObjects.length) generateMineObjects();
+            Storage.save(); updateHUD();
+        }, ms);
+    }, ms);
+}
+
+function initMiningTap() {
+    const tap = $('mining-tap');
+    if (tap.dataset.ready) return;
+    tap.dataset.ready = '1';
+    let lastTouch = 0;
+
+    const onTap = (cx, cy) => {
+        if (!state.profileComplete || shipFlying) return;
+        const rect = getFieldRect();
+        moveShip(cx - rect.left, cy - rect.top);
+    };
+
+    tap.addEventListener('touchstart', e => e.preventDefault(), { passive: false });
+    tap.addEventListener('touchend', e => {
+        e.preventDefault();
+        const t = e.changedTouches[0];
+        if (!t) return;
+        lastTouch = Date.now();
+        onTap(t.clientX, t.clientY);
+    }, { passive: false });
+    tap.addEventListener('click', e => {
+        if (Date.now() - lastTouch < 400) return;
+        onTap(e.clientX, e.clientY);
+    });
+}
+
+// ─── Ангар ───────────────────────────────────────────────────
+function upgradeCost(key) {
+    const lvl = state.upgrades[key];
+    if (key === 'fuelTank') return { credits: 100 * 2**lvl, parts: 0 };
+    return { credits: 50 * 2**lvl, parts: Math.ceil(5 * 1.5**lvl) };
+}
+
+function renderHangar() {
+    const r = state.resources;
+    $('hangar-ship').innerHTML = '';
+    $('hangar-ship').appendChild(drawMatrix(SHIP_MATRIX, 0.9));
+    $('hangar-res').textContent = `🪙${Math.floor(r.credits)} ⛽${Math.floor(r.fuel)}/${state.maxFuel} 🛡️${r.shieldParts} ⚔️${r.weaponParts} 💎${r.spice} 🧩${r.shards}`;
+
+    $('upgrade-list').innerHTML = UPGRADES.map(u => {
+        const lvl = state.upgrades[u.key];
+        const cost = upgradeCost(u.key);
+        const can = lvl < u.max && r.credits >= cost.credits;
+        return `<div class="upgrade-row"><span>${u.label} ${lvl}/${u.max}</span><button class="btn btn-sm" ${can?'':'disabled'} data-upg="${u.key}">${cost.credits}🪙</button></div>`;
+    }).join('');
+
+    $('upgrade-list').querySelectorAll('[data-upg]').forEach(btn => {
+        btn.onclick = () => {
+            const key = btn.dataset.upg;
+            const u = UPGRADES.find(x => x.key === key);
+            const cost = upgradeCost(key);
+            if (state.upgrades[key] >= u.max || state.resources.credits < cost.credits) return;
+            state.resources.credits -= cost.credits;
+            state.upgrades[key]++;
+            if (key === 'fuelTank') { state.maxFuel += 10; state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + 10); }
+            Storage.save(); updateHUD(); renderHangar();
         };
-        if (cloud) {
-            cloud.removeItem('sd_state', finishReset);
-        } else {
-            finishReset();
-        }
-    }
+    });
+
+    $('artifact-list').innerHTML = ARTIFACTS.map(a => {
+        const eq = state.artifact.id === a.id;
+        return `<div class="card ${eq?'selected':''}" data-art="${a.id}"><div>${a.name}</div><div style="font-size:3px;margin-top:3px">${eq?'ур.'+state.artifact.level:'нет'}</div></div>`;
+    }).join('');
 }
 
-function resumeGame() {
-    if (isProfileComplete()) {
-        showUI();
-        showMapView();
-        generateObjects();
-        updateHangar();
-        updateLeaderboard();
-        updateTopPanel();
-        startFuelRegeneration();
+// ─── PvP (упрощённый) ───────────────────────────────────────
+function renderPvP() {
+    $('pvp-my-ship').innerHTML = ''; $('pvp-en-ship').innerHTML = '';
+    $('pvp-my-ship').appendChild(drawMatrix(SHIP_MATRIX, 0.5));
+    const en = document.createElement('span'); en.textContent = '👾'; en.style.fontSize='22px';
+    $('pvp-en-ship').appendChild(en);
+    $('pvp-my-bars').innerHTML = '<div class="bar"><div class="bar-fill bar-shield" style="width:100%"></div></div><div class="bar"><div class="bar-fill bar-hp" style="width:100%"></div></div>';
+    $('pvp-en-bars').innerHTML = '<div class="bar"><div class="bar-fill bar-shield" style="width:100%"></div></div><div class="bar"><div class="bar-fill bar-hp" style="width:100%"></div></div>';
+    $('leaderboard').innerHTML = '<div style="color:var(--gold)">ТОП 10</div>' +
+        state.leaderboard.slice(0,10).map((p,i)=>`<div>#${i+1} ${p.name}: ${p.score}</div>`).join('');
+}
+
+function startPvP() {
+    const result = Math.random() > 0.45 ? 'win' : 'lose';
+    if (result === 'win') { state.pvpScore += 15; $('pvp-status').textContent = 'ПОБЕДА! +15'; showLoot('+15 PvP'); }
+    else { state.pvpScore = Math.max(0, state.pvpScore - 10); $('pvp-status').textContent = 'ПОРАЖЕНИЕ... -10'; }
+    const idx = state.leaderboard.findIndex(p => p.name === state.playerName);
+    if (idx >= 0) state.leaderboard[idx].score = state.pvpScore;
+    else state.leaderboard.push({ name: state.playerName, score: state.pvpScore });
+    state.leaderboard.sort((a,b) => b.score - a.score);
+    Storage.save(); renderPvP();
+}
+
+// ─── Онбординг ───────────────────────────────────────────────
+function renderFactions() {
+    $('faction-list').innerHTML = FACTIONS.map(f =>
+        `<button class="btn" style="border-color:${f.color};color:${f.color}" data-fid="${f.id}">
+            ◆ ${f.name}<br><small style="font-size:4px">Щ:${f.shield} У:${f.damage} С:${f.speed}</small>
+        </button>`
+    ).join('');
+    $('faction-list').querySelectorAll('[data-fid]').forEach(btn => {
+        btn.onclick = () => { state.factionId = btn.dataset.fid; Storage.save(); renderShips(); showWindow('ship'); };
+    });
+}
+
+function renderShips() {
+    $('ship-list').innerHTML = [0,1,2].map(i =>
+        `<div class="card ${state.shipIndex===i?'selected':''}" data-ship="${i}"></div>`
+    ).join('');
+    $('ship-list').querySelectorAll('[data-ship]').forEach(card => {
+        card.appendChild(drawMatrix(SHIP_MATRIX, 0.5 + +card.dataset.ship * 0.1));
+        card.onclick = () => {
+            state.shipIndex = +card.dataset.ship;
+            Storage.save();
+            $('ship-list').querySelectorAll('.card').forEach(c => c.classList.toggle('selected', +c.dataset.ship === state.shipIndex));
+            $('btn-ship-confirm').disabled = false;
+        };
+    });
+}
+
+function completeProfile() {
+    state.profileComplete = true;
+    Storage.save();
+    showGameUI();
+    switchTab('mining');
+}
+
+function resumeOrStart() {
+    if (state.profileComplete) {
+        showGameUI();
+        switchTab('mining');
+        updateHUD();
         return;
     }
-    if (state.playerName && state.faction && state.shipIndex !== null) {
-        state.profileComplete = true;
-        saveState();
-        showUI();
-        showMapView();
-        generateObjects();
-        updateHangar();
-        updateLeaderboard();
-        updateTopPanel();
-        startFuelRegeneration();
-        return;
-    }
-    if (state.playerName && state.faction) {
-        selectFaction(state.faction, state.factionColor, state.factionBonus);
-        if (state.shipIndex !== null) {
-            document.getElementById('confirm-ship-btn').disabled = false;
-        }
+    if (state.playerName && state.factionId !== null) {
+        renderShips();
+        showWindow('ship');
         return;
     }
     if (state.playerName) {
+        renderFactions();
         showWindow('faction');
         return;
     }
     showWindow('start');
 }
 
-async function bootstrap() {
-    initTelegramApp();
+// ─── Инициализация ───────────────────────────────────────────
+function bindEvents() {
+    $('btn-start').onclick = () => {
+        const name = $('inp-name').value.trim();
+        if (name.length < 2) return alert('Минимум 2 символа');
+        state.playerName = name;
+        Storage.save();
+        renderFactions();
+        showWindow('faction');
+    };
+
+    $('btn-ship-confirm').onclick = completeProfile;
+
+    $('btn-reset').onclick = () => {
+        if (confirm('Сбросить весь прогресс?')) Storage.reset();
+    };
+
+    document.querySelectorAll('[data-tab]').forEach(btn => {
+        btn.onclick = () => switchTab(btn.dataset.tab);
+    });
+
+    document.querySelectorAll('[data-open]').forEach(btn => {
+        btn.onclick = () => showWindow(btn.dataset.open);
+    });
+
+    $('btn-pvp').onclick = startPvP;
+    $('btn-checkin').onclick = () => {
+        if (state.checkin.claimedToday) return alert('Уже забрали сегодня');
+        state.resources.credits += 20; state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + 5);
+        state.checkin.claimedToday = true; state.checkin.day = Math.min(7, state.checkin.day + 1);
+        Storage.save(); updateHUD(); showLoot('+20 🪙 +5 ⛽');
+    };
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') Storage.save();
+    });
+    window.addEventListener('pagehide', () => Storage.save());
+}
+
+async function boot() {
+    initTelegram();
+    fillStars($('stars-global'), 300);
     drawPlanet();
-    initMapTapControls();
+    initMiningTap();
+    bindEvents();
+    await Storage.load();
+    resumeOrStart();
+    updateHUD();
 
-    const cloudLoaded = await loadStateFromCloud();
-    if (!cloudLoaded) {
-        state = loadStateFromLocal();
-    }
-
-    resumeGame();
+    // Восстановление топлива
+    setInterval(() => {
+        if (state.resources.fuel < state.maxFuel) {
+            state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + 1);
+            updateHUD();
+            Storage.save();
+        }
+    }, 4 * 60 * 1000);
 }
 
-function init() {
-    bootstrap();
-}
-
-document.addEventListener('DOMContentLoaded', init);
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') saveState();
-});
-window.addEventListener('pagehide', saveState);
-window.addEventListener('resize', () => {
-    if (document.getElementById('background-map').classList.contains('active')) {
-        parkShipOnPlanet();
-    }
-});
+document.addEventListener('DOMContentLoaded', boot);
 </script>
 </body>
 </html>
