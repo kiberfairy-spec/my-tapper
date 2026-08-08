@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Space Dream v2.12.4</title>
+    <title>Space Dream v2.12.5</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -44,8 +44,8 @@
         .star { position: absolute; border-radius: 50%; background: #fff; animation: twinkle var(--d, 2s) infinite; animation-delay: var(--delay, 0s); }
         @keyframes twinkle { 0%,100% { opacity: .15; transform: scale(.8); } 50% { opacity: .9; transform: scale(1.2); } }
         @keyframes planetSlowSpin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+            from { transform: rotate(0deg) translateZ(0); }
+            to { transform: rotate(360deg) translateZ(0); }
         }
 
         /* ── Верхняя панель ── */
@@ -98,9 +98,10 @@
             z-index: 1; display: none; overflow: hidden;
         }
         .mining-screen.active { display: block; }
-        .mining-stars { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+        .mining-stars { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
         .mining-viewport {
             position: relative; width: 100%; height: 100%;
+            z-index: 1;
             overflow: hidden; touch-action: none;
             cursor: crosshair;
         }
@@ -118,44 +119,28 @@
             transform: translate(-50%, -50%);
             width: 480px; aspect-ratio: 1;
             pointer-events: none; z-index: 3;
-        }
-        .planet-glow {
-            position: absolute; inset: -4%; border-radius: 50%;
-            background:
-                radial-gradient(circle at 35% 32%, rgba(255, 120, 220, .55) 0%, transparent 42%),
-                radial-gradient(circle at 68% 72%, rgba(80, 200, 255, .35) 0%, transparent 48%),
-                radial-gradient(circle, rgba(160, 80, 255, .28) 0%, transparent 68%);
-            z-index: 0;
-            filter: blur(2px);
+            isolation: isolate;
         }
         .planet-wrap {
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             z-index: 1;
-            border-radius: 50%;
+            clip-path: circle(50% at 50% 50%);
             overflow: hidden;
-            background: transparent;
-        }
-        .planet-disc-bg {
-            position: absolute; inset: 0; border-radius: 50%; z-index: 0;
-            background: radial-gradient(circle at 38% 32%, #602090 0%, #381060 48%, #200840 100%);
+            background: #2a1050;
         }
         .planet-rotator {
             position: relative;
             z-index: 1;
             width: 100%;
             height: 100%;
-            border-radius: 50%;
-            overflow: hidden;
             animation: planetSlowSpin 360s linear infinite;
+            backface-visibility: hidden;
         }
-        .planet-wrap canvas { position: relative; z-index: 1; }
+        .planet-wrap canvas { position: relative; z-index: 1; display: block; }
         .planet-canvas {
-            width: 100%; height: 100%; display: block;
+            width: 100%; height: 100%;
             image-rendering: auto;
-            filter:
-                drop-shadow(0 0 18px rgba(255, 100, 200, .55))
-                drop-shadow(0 0 32px rgba(100, 180, 255, .28));
         }
         .player-ship {
             position: absolute; z-index: 10; pointer-events: none;
@@ -342,7 +327,6 @@
     <div class="mining-viewport" id="mining-viewport">
         <div class="mining-world" id="mining-world">
             <div class="mining-hub" id="mining-hub">
-                <div class="planet-glow"></div>
                 <div class="planet-wrap" id="planet-wrap"></div>
             </div>
             <svg class="laser-layer" id="laser-layer"></svg>
@@ -426,7 +410,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.12.4';
+const VERSION = '2.12.5';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -1334,7 +1318,7 @@ function getPlanetDpr() {
     return Math.min(window.devicePixelRatio || 1, 2);
 }
 
-function solidifyPlanetAlpha(ctx, cx, cy, r) {
+function sealCanvasOpaque(ctx, cx, cy, r) {
     const w = ctx.canvas.width;
     const h = ctx.canvas.height;
     const img = ctx.getImageData(0, 0, w, h);
@@ -1346,17 +1330,17 @@ function solidifyPlanetAlpha(ctx, cx, cy, r) {
             const dx = x - cx;
             const dy = y - cy;
             if (dx * dx + dy * dy > r2) {
-                d[i] = 32;
-                d[i + 1] = 8;
-                d[i + 2] = 64;
+                d[i] = 42;
+                d[i + 1] = 16;
+                d[i + 2] = 80;
                 d[i + 3] = 255;
                 continue;
             }
-            if (d[i + 3] >= 250) continue;
+            if (d[i + 3] >= 255) continue;
             const a = d[i + 3] / 255;
-            d[i] = Math.round(d[i] * a + 58 * (1 - a));
-            d[i + 1] = Math.round(d[i + 1] * a + 12 * (1 - a));
-            d[i + 2] = Math.round(d[i + 2] * a + 88 * (1 - a));
+            d[i] = Math.round(d[i] * a + 48 * (1 - a));
+            d[i + 1] = Math.round(d[i + 1] * a + 16 * (1 - a));
+            d[i + 2] = Math.round(d[i + 2] * a + 82 * (1 - a));
             d[i + 3] = 255;
         }
     }
@@ -1478,10 +1462,6 @@ function drawPlanet() {
         wrap.style.width = size + 'px';
         wrap.style.height = size + 'px';
 
-        const discBg = document.createElement('div');
-        discBg.className = 'planet-disc-bg';
-        wrap.appendChild(discBg);
-
         const rotator = document.createElement('div');
         rotator.className = 'planet-rotator';
         wrap.appendChild(rotator);
@@ -1503,7 +1483,7 @@ function drawPlanet() {
         const imgX = (size - imgW) / 2;
         const imgY = (size - imgH) / 2;
 
-        ctx.fillStyle = '#200840';
+        ctx.fillStyle = '#301060';
         ctx.fillRect(0, 0, size, size);
 
         ctx.save();
@@ -1511,16 +1491,9 @@ function drawPlanet() {
         ctx.arc(cx, cy, r, 0, Math.PI * 2);
         ctx.clip();
         ctx.drawImage(img, imgX, imgY, imgW, imgH);
-
-        const shine = ctx.createRadialGradient(cx - r * 0.42, cy - r * 0.4, 0, cx - r * 0.1, cy - r * 0.1, r * 0.85);
-        shine.addColorStop(0, 'rgba(255, 240, 255, 0.14)');
-        shine.addColorStop(0.35, 'rgba(255, 180, 255, 0.04)');
-        shine.addColorStop(1, 'rgba(255, 180, 255, 0)');
-        ctx.fillStyle = shine;
-        ctx.fillRect(0, 0, size, size);
         ctx.restore();
 
-        solidifyPlanetAlpha(ctx, cx * dpr, cy * dpr, r * dpr);
+        sealCanvasOpaque(ctx, cx * dpr, cy * dpr, r * dpr);
 
         rotator.appendChild(cvs);
 
