@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.14.0</title>
+    <title>Space Dream v2.14.1</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -61,38 +61,43 @@
             right: var(--game-inset-right);
             z-index: 100;
             background: rgba(0, 0, 0, .9);
-            border-bottom: 1px solid rgba(0, 232, 255, 0.25);
-            padding: 5px 6px 6px;
-            display: grid;
-            grid-template-columns: auto minmax(0, 1fr) auto;
-            align-items: start;
-            gap: 6px 8px;
+            padding: 5px 6px 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
             font-family: 'Rajdhani', 'Segoe UI', sans-serif;
             font-weight: 300;
         }
+        .top-upper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 38px;
+        }
 
-        /* Блок игрока — слева */
+        /* Блок игрока — слева: аватар + VIP / ник / lvl */
         .top-player {
             display: flex;
             align-items: center;
-            gap: 5px;
-            background: rgba(0, 0, 0, 0.55);
-            border: 1px solid rgba(0, 232, 255, 0.22);
-            border-radius: 4px;
-            padding: 3px 5px;
-            max-width: 34vw;
+            gap: 6px;
+            flex-shrink: 0;
+            max-width: 32vw;
         }
         .top-player .avatar {
-            width: 26px;
-            height: 26px;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
             border: 2px solid var(--accent);
-            background: #222;
+            background: #222 center/cover no-repeat;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 11px;
+            font-size: 13px;
             flex-shrink: 0;
+            overflow: hidden;
+        }
+        .top-player .avatar.has-photo {
+            color: transparent;
         }
         .player-meta {
             display: flex;
@@ -101,25 +106,21 @@
             min-width: 0;
         }
         .player-vip {
-            align-self: flex-start;
-            padding: 1px 5px;
             font-size: 8px;
-            font-weight: 500;
+            font-weight: 600;
             letter-spacing: 0.06em;
-            background: rgba(0, 0, 0, 0.85);
-            border: 1px solid #ffd400;
             color: #ffd400;
-            border-radius: 2px;
             white-space: nowrap;
         }
         .top-player .pname {
             font-size: 10px;
-            line-height: 1.2;
+            line-height: 1.15;
             font-weight: 500;
             letter-spacing: 0.04em;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            color: #e8e8f0;
         }
         .top-player .plevel {
             font-size: 8px;
@@ -127,15 +128,18 @@
             font-weight: 300;
         }
 
-        /* Ресурсы — от центра вправо */
+        /* Ресурсы — одна линия, спайс в центре и крупнее */
         .top-resources {
-            display: flex;
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr auto auto auto auto 1fr;
             align-items: center;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 4px;
-            padding-top: 2px;
+            column-gap: 5px;
         }
+        .resource-fuel    { grid-column: 2; }
+        .resource-credits { grid-column: 3; }
+        .resource-spice   { grid-column: 4; }
+        .resource-shards  { grid-column: 5; }
         .top-panel .resource-neon {
             --neon-color: #00e8ff;
             --neon-glow: rgba(0, 232, 255, 0.95);
@@ -145,7 +149,7 @@
             font-family: 'Rajdhani', 'Segoe UI', sans-serif;
             font-weight: 500;
             letter-spacing: 0.06em;
-            font-size: 10px;
+            font-size: 9px;
             padding: 2px 6px;
             border-radius: 2px;
             white-space: nowrap;
@@ -154,6 +158,20 @@
                 0 0 14px var(--neon-glow),
                 inset 0 0 10px rgba(255, 255, 255, 0.05);
             text-shadow: 0 0 6px var(--neon-glow);
+        }
+        .resource-spice {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 11px;
+            border-width: 2px;
+            transform: scale(1.08);
+            z-index: 2;
+            box-shadow:
+                0 0 10px var(--neon-glow),
+                0 0 22px var(--neon-glow),
+                0 0 36px rgba(255, 92, 244, 0.45),
+                inset 0 0 14px rgba(255, 255, 255, 0.08);
+            text-shadow: 0 0 10px var(--neon-glow), 0 0 18px var(--neon-glow);
         }
         .neon-cyan   { --neon-color: #00e8ff; --neon-glow: rgba(0, 232, 255, 0.85); }
         .neon-magenta{ --neon-color: #ff2bd6; --neon-glow: rgba(255, 43, 214, 0.85); }
@@ -182,12 +200,23 @@
         }
         .top-panel .resource-neon.neon-flicker { animation: neonBurnout 1.15s linear forwards; }
 
-        /* Кнопки действий — справа, тёмно-красный неон, объём */
+        /* Зелёная полоска-разделитель */
+        .top-divider {
+            height: 0;
+            border: none;
+            border-top: 1px solid var(--accent);
+            margin: 4px 0 4px;
+            box-shadow: 0 0 6px rgba(0, 170, 68, 0.35);
+        }
+
+        /* Кнопки действий — под полоской, тёмно-красный неон */
         .top-actions {
             display: flex;
-            flex-direction: column;
-            gap: 3px;
-            flex-shrink: 0;
+            flex-direction: row;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 5px;
+            flex-wrap: wrap;
         }
         .btn-action {
             --action-neon: #a80028;
@@ -201,8 +230,10 @@
             text-transform: uppercase;
             color: #ff8a96;
             cursor: pointer;
-            padding: 5px 8px;
-            min-width: 82px;
+            padding: 4px 7px;
+            min-width: 0;
+            flex: 1 1 auto;
+            max-width: 34%;
             border: 2px solid var(--action-neon);
             border-radius: 3px;
             background: linear-gradient(180deg, #520018 0%, #2a000c 48%, #140006 100%);
@@ -456,19 +487,23 @@
 
 <!-- Верхняя панель -->
 <div class="top-panel hidden" id="top-panel">
-    <div class="top-player">
-        <div class="avatar" id="avatar">?</div>
-        <div class="player-meta">
-            <div class="player-vip" id="ui-vip">⭐ VIP 0</div>
-            <div class="pname"><div id="ui-name">Игрок</div><div class="plevel" id="ui-level">Lvl 1</div></div>
+    <div class="top-upper">
+        <div class="top-player">
+            <div class="avatar" id="avatar">?</div>
+            <div class="player-meta">
+                <div class="player-vip" id="ui-vip">⭐ VIP 0</div>
+                <div class="pname" id="ui-name">Игрок</div>
+                <div class="plevel" id="ui-level">Lvl 1</div>
+            </div>
+        </div>
+        <div class="top-resources">
+            <div class="resource-neon neon-blue resource-fuel">⛽ <span id="ui-fuel">100</span></div>
+            <div class="resource-neon neon-gold resource-credits">🪙 <span id="ui-credits">0</span></div>
+            <div class="resource-neon neon-pink resource-spice">💎 <span id="ui-spice">0</span></div>
+            <div class="resource-neon neon-green resource-shards">🧩 <span id="ui-shards">0</span></div>
         </div>
     </div>
-    <div class="top-resources">
-        <div class="resource-neon neon-pink">💎 <span id="ui-spice">0</span></div>
-        <div class="resource-neon neon-blue">⛽ <span id="ui-fuel">100</span></div>
-        <div class="resource-neon neon-gold">🪙 <span id="ui-credits">0</span></div>
-        <div class="resource-neon neon-green">🧩 <span id="ui-shards">0</span></div>
-    </div>
+    <hr class="top-divider">
     <div class="top-actions">
         <button class="btn-action" data-open="battlepass">🎫 БАТЛ-ПАСС</button>
         <button class="btn-action" data-open="boosts">⚡ УСИЛЕНИЯ</button>
@@ -566,7 +601,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.14.0';
+const VERSION = '2.14.1';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -1230,12 +1265,29 @@ function initTelegram() {
         applyGameInsets();
         syncPanelHeights();
         onMiningResize();
+        applyTelegramAvatar();
     }, 120);
     setTimeout(() => {
         applyGameInsets();
         syncPanelHeights();
         onMiningResize();
+        applyTelegramAvatar();
     }, 450);
+}
+
+function applyTelegramAvatar() {
+    const av = $('avatar');
+    if (!av) return;
+    const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
+    if (user?.photo_url) {
+        av.style.backgroundImage = `url("${user.photo_url}")`;
+        av.textContent = '';
+        av.classList.add('has-photo');
+        return;
+    }
+    av.style.backgroundImage = '';
+    av.classList.remove('has-photo');
+    av.textContent = state.playerName ? state.playerName[0].toUpperCase() : '?';
 }
 
 function applyGameInsets() {
@@ -1766,7 +1818,7 @@ function updateHUD() {
     $('ui-fuel').textContent = `${Math.floor(r.fuel)}/${state.maxFuel}`;
     $('ui-credits').textContent = Math.floor(r.credits);
     $('ui-shards').textContent = r.shards;
-    $('avatar').textContent = state.playerName ? state.playerName[0].toUpperCase() : '?';
+    applyTelegramAvatar();
 }
 
 function showLoot(text) {
