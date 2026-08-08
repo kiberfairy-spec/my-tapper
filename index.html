@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.14.2</title>
+    <title>Space Dream v2.14.3</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -103,7 +103,7 @@
         .player-meta {
             display: flex;
             flex-direction: column;
-            gap: 1px;
+            gap: 0;
             min-width: 0;
         }
         .player-vip {
@@ -113,22 +113,26 @@
             color: #ffd400;
             white-space: nowrap;
             text-shadow: 0 0 6px rgba(255, 212, 0, 0.45);
+            margin-bottom: 2px;
         }
         .top-player .pname {
             font-size: 10px;
-            line-height: 1.2;
+            line-height: 1.25;
             font-weight: 300;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.04em;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            color: #dce2f0;
+            color: #eef2fa;
         }
         .top-player .plevel {
-            font-size: 10px;
-            color: #b8c4dc;
-            font-weight: 500;
-            letter-spacing: 0.06em;
+            font-size: 9px;
+            color: #8a93a8;
+            font-weight: 400;
+            letter-spacing: 0.08em;
+            margin-top: 3px;
+            padding-top: 3px;
+            border-top: 1px solid rgba(255, 255, 255, 0.07);
         }
 
         /* Ресурсы — одна линия, спайс в центре и крупнее */
@@ -210,55 +214,65 @@
             height: 0;
             border: none;
             border-top: 1px solid var(--accent);
-            margin: 4px 0 4px;
+            margin: 4px 0 5px;
             box-shadow: 0 0 6px rgba(0, 170, 68, 0.35);
         }
 
-        /* Кнопки действий — справа сверху, столбиком */
+        /* Кнопки доната — под полоской, справа столбиком */
+        .top-lower {
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-start;
+        }
         .top-actions {
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
-            align-items: stretch;
-            gap: 3px;
-            flex-shrink: 0;
-            margin-left: auto;
+            align-items: flex-end;
+            gap: 4px;
         }
         .btn-action {
-            --action-neon: #a80028;
-            --action-glow: rgba(168, 0, 40, 0.9);
+            --action-neon: #b80030;
+            --action-glow: rgba(184, 0, 48, 0.85);
             -webkit-appearance: none;
             appearance: none;
             font-family: 'Rajdhani', 'Segoe UI', sans-serif;
-            font-size: 8px;
+            font-size: 7px;
             font-weight: 600;
-            letter-spacing: 0.06em;
+            letter-spacing: 0.05em;
             text-transform: uppercase;
-            color: #ff8a96;
+            color: #ffb0ba;
             cursor: pointer;
-            padding: 4px 7px;
-            min-width: 76px;
-            width: 100%;
+            width: 72px;
+            height: 34px;
+            padding: 1px 3px;
+            line-height: 1.05;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             border: 2px solid var(--action-neon);
-            border-radius: 3px;
-            background: linear-gradient(180deg, #520018 0%, #2a000c 48%, #140006 100%);
+            border-radius: 5px;
+            background:
+                linear-gradient(180deg, rgba(255, 120, 140, 0.12) 0%, transparent 40%),
+                linear-gradient(180deg, #5a001c 0%, #320010 52%, #180008 100%);
             box-shadow:
-                0 4px 0 #1a0008,
-                0 5px 14px rgba(0, 0, 0, 0.55),
+                0 3px 0 #220008,
+                0 4px 12px rgba(0, 0, 0, 0.5),
                 0 0 10px var(--action-glow),
-                inset 0 1px 0 rgba(255, 110, 120, 0.28),
-                inset 0 -3px 5px rgba(0, 0, 0, 0.5);
-            text-shadow: 0 0 8px var(--action-glow);
-            transition: transform 0.07s ease, box-shadow 0.07s ease, filter 0.07s ease;
+                inset 0 1px 0 rgba(255, 140, 150, 0.25),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.45);
+            text-shadow: 0 0 6px var(--action-glow);
+            transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.08s ease;
         }
         .btn-action:active {
-            transform: translateY(3px);
-            filter: brightness(1.2);
+            transform: translateY(2px);
+            filter: brightness(1.15);
             box-shadow:
-                0 1px 0 #1a0008,
-                0 2px 8px rgba(0, 0, 0, 0.5),
-                0 0 16px var(--action-glow),
-                inset 0 3px 8px rgba(0, 0, 0, 0.55);
+                0 1px 0 #220008,
+                0 2px 6px rgba(0, 0, 0, 0.45),
+                0 0 14px var(--action-glow),
+                inset 0 2px 6px rgba(0, 0, 0, 0.5);
         }
 
         /* ── Нижняя навигация ── */
@@ -507,13 +521,15 @@
             <div class="resource-neon neon-pink resource-spice">💎 <span id="ui-spice">0</span></div>
             <div class="resource-neon neon-green resource-shards">🧩 <span id="ui-shards">0</span></div>
         </div>
-        <div class="top-actions">
-            <button class="btn-action" data-open="battlepass">🎫 БАТЛ-ПАСС</button>
-            <button class="btn-action" data-open="boosts">⚡ УСИЛЕНИЯ</button>
-            <button class="btn-action" data-open="checkin">📅 ЧЕКИН</button>
-        </div>
     </div>
     <hr class="top-divider">
+    <div class="top-lower">
+        <div class="top-actions">
+            <button class="btn-action" data-open="battlepass">🎫<br>БАТЛ-ПАСС</button>
+            <button class="btn-action" data-open="boosts">⚡<br>УСИЛЕНИЯ</button>
+            <button class="btn-action" data-open="checkin">📅<br>ЧЕКИН</button>
+        </div>
+    </div>
 </div>
 
 <!-- Экран добычи -->
@@ -606,7 +622,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.14.2';
+const VERSION = '2.14.3';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
