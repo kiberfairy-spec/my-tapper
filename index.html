@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Space Dream v2.1</title>
+    <title>Space Dream v2.2</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -130,7 +130,8 @@
         .btn-sm { width: auto; padding: 3px 6px; font-size: 4px; }
         .hidden { display: none !important; }
         .row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
-        .card { border: 2px solid var(--accent); padding: 6px; text-align: center; cursor: pointer; font-size: 5px; min-width: 80px; }
+        .card { border: 2px solid var(--accent); padding: 6px; text-align: center; cursor: pointer; font-size: 5px; min-width: 90px; min-height: 110px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
+        .ship-name { font-size: 4px; color: var(--gold); margin-bottom: 6px; }
         .card.selected { border-color: #ffaa00; }
         .upgrade-row { display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--accent); padding: 4px; margin: 3px 0; font-size: 5px; }
         .loot-feed { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 200; pointer-events: none; display: flex; gap: 6px; flex-wrap: wrap; }
@@ -265,26 +266,134 @@ const SHIP_SPEED = 100;
 const FUEL_PER_FLIGHT = 10;
 
 const FACTIONS = [
-    { id: 'tank',   name: 'Конфедерация',    color: '#4488aa', shield: 40, damage: 20, speed: 15 },
-    { id: 'dps',    name: 'Повстанцы',       color: '#aa5533', shield: 15, damage: 25, speed: 35 },
-    { id: 'sniper', name: 'Торговая гильдия', color: '#aa9933', shield: 20, damage: 40, speed: 15 },
+    { id: 'tank',   name: 'Конфедерация',   color: '#4488aa', shield: 40, damage: 20, speed: 15 },
+    { id: 'dps',    name: 'Повстанцы',      color: '#aa5533', shield: 15, damage: 25, speed: 35 },
+    { id: 'sniper', name: 'Торговый альянс', color: '#aa9933', shield: 20, damage: 40, speed: 15 },
 ];
 
-const PALETTE = { A:'#2E0A4E',B:'#5B2C8E',C:'#8B5FBF',P:'#FF44AA',Q:'#44CCFF',R:'#8B0000',D:'#2A2A2A',E:'#FF4500',F:'#FF6600',G:'#FFAA00',H:'#FFD700','_':null };
+// Палитры кораблей по фракциям
+const FACTION_PALETTES = {
+    tank:   { M:'#8a9bb0', S:'#c5d5e8', D:'#2d3a4a', L:'#40d0ff', W:'#f0f8ff', H:'#607080', '_':null },
+    dps:    { R:'#a05030', P:'#6a6a6a', S:'#9a9080', D:'#3a2518', W:'#e09040', K:'#5a6048', '_':null },
+    sniper: { B:'#30a060', P:'#9050c0', M:'#c080e0', C:'#50ffb0', D:'#182838', W:'#d0fff0', '_':null },
+};
 
-const SHIP_MATRIX = [
-    "__________A___________","_________AAA__________","_________AAA__________",
-    "________AAAAA_________","________AACAA_________","________ACCCA_________",
-    "________ACCCA_________","________AAAAA_________","________APBBA_________",
-    "________ABBBB_________","________ABBBB_________","_______AABABAA_______",
-    "_______ABBABB_______","_______ABBCBA_______","_______ABBCBA_______",
-    "_____AAABBABBAAA_____","____ABBABBBBBABB____","___ABBBABBBBBABBBA___",
-    "__ABBBBABBBBBABBBB__","_ABBBBBAPBBBPABBBBB_","ABBBBBBAAAAAAABBBBBBA",
-    "ABQQBBBABBBBBABBBQQBA","AAAAAAAAABBBBBAAAAAAAAA","_______AAAAAAA_______",
-    "________AAAAA_________","_______AAA_AAA_______","_______AAA_AAA_______",
-    "________QQ_QQ_________","________QQ_QQ_________","________QB_QB_________",
-    "_________Q__Q________","_________Q__Q________"
-];
+// 9 кораблей: по 3 на фракцию (косметика)
+const SHIP_CATALOG = {
+    tank: [
+        {
+            name: 'Страж',
+            desc: 'Строгий перехватчик',
+            matrix: [
+                "__________SSS__________","_________SSMSS_________","________SSMDMSS________",
+                "_______SSMMMMSS_______","______SSMMLMMSS______","_____SSMMMMMMSS_____",
+                "____SSMMLLLMMSS____","___SSMMMMMMMMSS___","__SSMMLLLLLMMSS__",
+                "_SSMMMMMMMMMMSS_","SSMMMMMMMMMMMMSS","_SSMMMMMMMMMMSS_",
+                "__SSMMMMMMSS__","___SSMLLMMSS___","____SSMMMMSS____",
+                "_____SSMMSS_____","______SSSS______","_______LL_______"
+            ]
+        },
+        {
+            name: 'Клинок',
+            desc: 'Длинный разведчик',
+            matrix: [
+                "___________L___________","__________LML__________","_________LMMML_________",
+                "________LMDMML_______","_______LMMMMML_______","______LMMMMMMML______",
+                "_____LMMMMMMMML_____","____LMMMLLLMMML____","___LMMMMMMMMMMML___",
+                "__LMMMMMMMMMMMMML__","_LMMMMMMMMMMMMMMML_","LMMMMMMMMMMMMMMMMML",
+                "_LMMMMMMMMMMMMMMML_","__LMMMMMMMMMMMMML__","___LMMMMMMMMMMML___",
+                "____LMMMMMMMMML____","_____LMMMMMMML_____","______LLLLLL______"
+            ]
+        },
+        {
+            name: 'Бастион',
+            desc: 'Тяжёлый крейсер',
+            matrix: [
+                "____SSSSSSSSSSSS____","___SSMMMMMMMMSS___","__SSMMMMMMMMMMSS__",
+                "_SSMMMMMMMMMMMMSS_","SSMMMMMMMMMMMMMMSS","SSMMLMMMMMMLMMSS",
+                "SSMMMMMMMMMMMMMMSS","SSMMMMMMMMMMMMMMSS","SSMMLLLLLLLMMSS",
+                "SSMMMMMMMMMMMMMMSS","SSMMMMMMMMMMMMMMSS","_SSMMMMMMMMMMSS_",
+                "__SSMMMMMMMMSS__","___SSMMMMMMSS___","____SSMMMMSS____",
+                "_____SSMMSS_____","______SSSS______"
+            ]
+        }
+    ],
+    dps: [
+        {
+            name: 'Шрам',
+            desc: 'Кривой корпус из обломков',
+            matrix: [
+                "_________PPP_________","________PPRPP________","_______PPSRPPP_______",
+                "______PPPDRPPP______","_____PPPSRRPPP_____","____PPP_RPPPPP____",
+                "___PPPSPPPPPP___","__PPPPSPPPPPP__","_PPPPPPPPPPPP_",
+                "PPPPPPPPPPPPPP","PPPPWPPPPPPPPP","PPPPPPPPWPPPPP",
+                "_PPPPPPPPPPP_","__PPPPPPPP__","___PPPPPP___",
+                "____PPPP____","_____PP_____","______P______"
+            ]
+        },
+        {
+            name: 'Сборка',
+            desc: 'Сваренные пластины',
+            matrix: [
+                "_______PPPPP_______","______PPSPPP______","_____PPRWPPP_____",
+                "____PPPSRPPPP____","___PPP_RPPPPP___","__PPPPSPPPPPP__",
+                "_PPPPWPPPPPPP_","PPPPPPPPPPPPPP","PPPPPPWPPPPPPP",
+                "PPPPPPPPWPPPPP","_PPPPPPPPPPP_","__PPPPWPPP__",
+                "___PPPPPP___","____PPWPP____","_____PPP_____",
+                "_____KPK_____","______P______"
+            ]
+        },
+        {
+            name: 'Улом',
+            desc: 'Каркас и мусор',
+            matrix: [
+                "________P________","_______PRP_______","______PSPP______",
+                "_____PDRPP_____","____PSRRPP____","___P__RPPP___",
+                "__PPSPPPPP__","_PPPPPPPPP_","PPPPWPPPPPP",
+                "PPPPPPWPPPP","PPPPPPPPPPP","_PPPPPPPPP_",
+                "__PPPPPP__","___PPWPP___","____PPP____",
+                "____PKP____","_____P_____","____K_K____"
+            ]
+        }
+    ],
+    sniper: [
+        {
+            name: 'Спираль',
+            desc: 'Закрученная форма',
+            matrix: [
+                "__________CCC__________","_________CBMC_________","________CBMMC________",
+                "_______CBMMMC_______","______CBMPMBC______","_____CBMMMMMC_____",
+                "____CBMCCCMBC____","___CBMMMMMMBC___","__CBMCPPPPMBC__",
+                "_CBMMMMMMMMMBC_","CBMMMMMMMMMMMBC","_CBMMMMMMMMMBC_",
+                "__CBMMMMMMBC__","___CBMCMCBC___","____CBMMBC____",
+                "_____CBMBC_____","______CBC______","_______CC_______"
+            ]
+        },
+        {
+            name: 'Жнец',
+            desc: 'Биомеханический сборщик',
+            matrix: [
+                "_________BBB_________","________BMPB________","_______BMMMB_______",
+                "______BMPPMB______","_____BMMMMMMB_____","____BMPWWPMB____",
+                "___BMMMMMMMMB___","__BMPBBBBBPMB__","_BMMMMMMMMMMMB_",
+                "BMPBMMMMMMBPMB","BMMMMMMMMMMMMMB","BMPBMMMMMMBPMB",
+                "_BMMMMMMMMMMMB_","__BMPBBBBPMB__","___BMMMMMMB___",
+                "____BMPPMB____","_____BMMMB_____","______BBB______"
+            ]
+        },
+        {
+            name: 'Сеть',
+            desc: 'Щупальца и мембраны',
+            matrix: [
+                "_____B_____B_____","____BM___MB____","___BMM_B_MMB___",
+                "__BMPM_B_MPMB__","_BMMMPMPMMMB_","BMPMMBMBMMPMB",
+                "BMMMMMMMMMMMB","BMPWMBMBWMPMB","BMMMMMMMMMMMB",
+                "_BMMMPMPMMMB_","__BMPM_B_MPMB__","___BMM_B_MMB___",
+                "____BM___MB____","_____B_____B_____","_____M_____M_____"
+            ]
+        }
+    ]
+};
 
 const ARTIFACTS = [
     { id:'blade',  name:'Клинок Фантома',       effect:'damage', per:5 },
@@ -387,12 +496,26 @@ function initTelegram() {
 }
 
 // ─── Графика ─────────────────────────────────────────────────
-function drawMatrix(matrix, scale = 1) {
+function getFactionPalette(factionId = state.factionId) {
+    return FACTION_PALETTES[factionId] || FACTION_PALETTES.tank;
+}
+
+function getShipList(factionId = state.factionId) {
+    return SHIP_CATALOG[factionId] || SHIP_CATALOG.tank;
+}
+
+function getCurrentShip() {
+    const list = getShipList();
+    return list[state.shipIndex ?? 0] || list[0];
+}
+
+function drawMatrix(matrix, scale = 1, palette = null) {
     if (!matrix?.length) {
         const s = document.createElement('span');
         s.textContent = '🚀'; s.style.fontSize = '24px';
         return s;
     }
+    const pal = palette || FACTION_PALETTES.tank;
     const rows = matrix.length, cols = matrix[0].length;
     const ts = Math.max(2, Math.round(4 * scale));
     const cvs = document.createElement('canvas');
@@ -402,13 +525,18 @@ function drawMatrix(matrix, scale = 1) {
     for (let y = 0; y < rows; y++) {
         for (let x = 0; x < cols; x++) {
             const ch = matrix[y][x];
-            if (ch === '_' || !PALETTE[ch]) continue;
-            ctx.fillStyle = PALETTE[ch];
+            if (ch === '_' || !pal[ch]) continue;
+            ctx.fillStyle = pal[ch];
             ctx.fillRect(x * ts, y * ts, ts, ts);
         }
     }
     cvs.style.imageRendering = 'pixelated';
     return cvs;
+}
+
+function drawCurrentShip(scale = 0.55) {
+    const ship = getCurrentShip();
+    return drawMatrix(ship.matrix, scale, getFactionPalette());
 }
 
 function drawPlanet() {
@@ -436,7 +564,7 @@ function drawPlanet() {
 function renderPlayerShip(rotation = -20) {
     const el = document.getElementById('player-ship');
     el.innerHTML = '';
-    el.appendChild(drawMatrix(SHIP_MATRIX, 0.55));
+    el.appendChild(drawCurrentShip(0.55));
     el.style.transform = `translate(-50%,-50%) rotate(${rotation}deg)`;
 }
 
@@ -659,7 +787,7 @@ function upgradeCost(key) {
 function renderHangar() {
     const r = state.resources;
     $('hangar-ship').innerHTML = '';
-    $('hangar-ship').appendChild(drawMatrix(SHIP_MATRIX, 0.9));
+    $('hangar-ship').appendChild(drawCurrentShip(0.9));
     $('hangar-res').textContent = `🪙${Math.floor(r.credits)} ⛽${Math.floor(r.fuel)}/${state.maxFuel} 🛡️${r.shieldParts} ⚔️${r.weaponParts} 💎${r.spice} 🧩${r.shards}`;
 
     $('upgrade-list').innerHTML = UPGRADES.map(u => {
@@ -691,7 +819,7 @@ function renderHangar() {
 // ─── PvP (упрощённый) ───────────────────────────────────────
 function renderPvP() {
     $('pvp-my-ship').innerHTML = ''; $('pvp-en-ship').innerHTML = '';
-    $('pvp-my-ship').appendChild(drawMatrix(SHIP_MATRIX, 0.5));
+    $('pvp-my-ship').appendChild(drawCurrentShip(0.5));
     const en = document.createElement('span'); en.textContent = '👾'; en.style.fontSize='22px';
     $('pvp-en-ship').appendChild(en);
     $('pvp-my-bars').innerHTML = '<div class="bar"><div class="bar-fill bar-shield" style="width:100%"></div></div><div class="bar"><div class="bar-fill bar-hp" style="width:100%"></div></div>';
@@ -719,23 +847,43 @@ function renderFactions() {
         </button>`
     ).join('');
     $('faction-list').querySelectorAll('[data-fid]').forEach(btn => {
-        btn.onclick = () => { state.factionId = btn.dataset.fid; Storage.save(); renderShips(); showWindow('ship'); };
+        btn.onclick = () => {
+            state.factionId = btn.dataset.fid;
+            state.shipIndex = 0;
+            Storage.save();
+            renderShips();
+            showWindow('ship');
+        };
     });
 }
 
 function renderShips() {
-    $('ship-list').innerHTML = [0,1,2].map(i =>
-        `<div class="card ${state.shipIndex===i?'selected':''}" data-ship="${i}"></div>`
+    const ships = getShipList();
+    const palette = getFactionPalette();
+    const faction = FACTIONS.find(f => f.id === state.factionId);
+
+    $('ship-list').innerHTML = ships.map((ship, i) =>
+        `<div class="card ${state.shipIndex === i ? 'selected' : ''}" data-ship="${i}">
+            <div class="ship-name">${ship.name}</div>
+            <div style="font-size:3px;color:#888;margin-bottom:4px">${ship.desc}</div>
+        </div>`
     ).join('');
+
     $('ship-list').querySelectorAll('[data-ship]').forEach(card => {
-        card.appendChild(drawMatrix(SHIP_MATRIX, 0.5 + +card.dataset.ship * 0.1));
+        const i = +card.dataset.ship;
+        card.appendChild(drawMatrix(ships[i].matrix, 0.52, palette));
+        if (faction) card.style.borderColor = state.shipIndex === i ? '#ffaa00' : faction.color;
         card.onclick = () => {
-            state.shipIndex = +card.dataset.ship;
+            state.shipIndex = i;
             Storage.save();
-            $('ship-list').querySelectorAll('.card').forEach(c => c.classList.toggle('selected', +c.dataset.ship === state.shipIndex));
+            renderShips();
             $('btn-ship-confirm').disabled = false;
         };
     });
+
+    if (state.shipIndex !== null && state.shipIndex !== undefined) {
+        $('btn-ship-confirm').disabled = false;
+    }
 }
 
 function completeProfile() {
