@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Space Dream v2.11.0</title>
+    <title>Space Dream v2.11.1</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -113,7 +113,7 @@
         .mining-hub {
             position: absolute;
             transform: translate(-50%, -50%);
-            width: 300px; aspect-ratio: 1;
+            width: 480px; aspect-ratio: 1;
             pointer-events: none; z-index: 3;
         }
         .planet-glow {
@@ -395,11 +395,13 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.11.0';
-const ORBIT_DIST = 75;
-const PLANET_SCALE = 0.75;
+const VERSION = '2.11.1';
+const ORBIT_DIST = 120;
+const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
 const PLANET_DISPLAY_W = Math.round(360 * PLANET_SCALE);
+const PLANET_FLASH_MIN = 4;
+const PLANET_FLASH_MAX = 10;
 const PLANET_FLASH_GOLDS = ['rgba(255, 215, 0, 0.95)', 'rgba(255, 196, 0, 0.92)', 'rgba(255, 230, 120, 0.95)'];
 let planetFlashTimer = null;
 const SAVE_KEY = 'space_dream_save';
@@ -1276,12 +1278,12 @@ function startPlanetFlashes(wrap, displayW, displayH) {
             const dist = Math.random() * radius;
             const lx = cx + Math.cos(angle) * dist;
             const ly = cy + Math.sin(angle) * dist;
-            const diameter = 1 + Math.floor(Math.random() * 4);
+            const diameter = PLANET_FLASH_MIN + Math.floor(Math.random() * (PLANET_FLASH_MAX - PLANET_FLASH_MIN + 1));
             const r = diameter / 2;
             ctx.strokeStyle = PLANET_FLASH_GOLDS[Math.floor(Math.random() * PLANET_FLASH_GOLDS.length)];
-            ctx.lineWidth = 1;
+            ctx.lineWidth = Math.max(1.5, diameter * 0.35);
             ctx.shadowColor = 'rgba(255, 215, 0, 0.95)';
-            ctx.shadowBlur = 3 + diameter;
+            ctx.shadowBlur = 4 + diameter * 1.2;
             ctx.beginPath();
             ctx.arc(lx, ly, r, 0, Math.PI * 2);
             ctx.stroke();
