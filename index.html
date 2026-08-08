@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Space Dream v2.8.2</title>
+    <title>Space Dream v2.9</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -87,6 +87,9 @@
             position: absolute; left: 0; top: 0;
             will-change: transform;
             background: radial-gradient(ellipse at 50% 50%, rgba(8,12,32,.4) 0%, rgba(0,0,8,.15) 100%);
+            box-sizing: border-box;
+            border: 1px solid rgba(0, 170, 68, .35);
+            box-shadow: inset 0 0 40px rgba(0, 40, 20, .25);
         }
         .mining-tap { position: absolute; inset: 0; z-index: 20; }
         .mining-hub {
@@ -131,9 +134,14 @@
         @keyframes laserPulse { from { opacity: .55; stroke-width: 1.5; } to { opacity: 1; stroke-width: 2.5; } }
         .mine-object {
             position: absolute; z-index: 8; transform: translate(-50%, -50%);
-            font-size: 28px; cursor: pointer; pointer-events: auto;
+            cursor: pointer; pointer-events: auto;
             filter: drop-shadow(0 0 6px rgba(255,200,80,.45));
             transition: opacity .3s, transform .2s;
+        }
+        .mine-object canvas {
+            display: block;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
         }
         .mine-object:active { transform: translate(-50%, -50%) scale(1.15); }
         .mine-label {
@@ -314,22 +322,23 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.8.2';
+const VERSION = '2.9';
 const SAVE_KEY = 'space_dream_save';
-const SHIP_MOVE_SPEED = 85; // px/s — полёт по карте
+const SHIP_MOVE_SPEED = 85;
 const SHIP_ROT_LERP = 0.22;
 const FUEL_PER_FLIGHT = 10;
 
-// Карта добычи: ±10000 px от центра (планета в центре)
-const WORLD_R = 10000;
-const WORLD_SIZE = WORLD_R * 2;
-const MAP_CENTER = { x: WORLD_R, y: WORLD_R };
+// Карта: экран + 300 px запаса с каждой стороны
+const WORLD_PAD = 300;
+let worldBounds = { width: 960, height: 1160, centerX: 480, centerY: 580 };
+let MAP_CENTER = { x: 480, y: 580 };
 const MINE_STOP_DIST = 10;
 const MINE_LASER_MS = 3000;
+const MINE_PER_WAVE = 9;
 const MINE_KINDS = {
-    meteor: { icon: '🪨', label: 'Метеорит' },
-    wreck:  { icon: '🛸', label: 'Обломки' },
-    pirate: { icon: '👾', label: 'Пират' },
+    meteor: { label: 'Метеорит' },
+    wreck:  { label: 'Обломки' },
+    pirate: { label: 'Пират' },
 };
 
 // PNG-спрайты из папки ships/
@@ -819,7 +828,7 @@ const defaultState = () => ({
     version: VERSION,
     playerName: '',
     factionId: null,
-    shipIndex: 0,
+    shipIndex: null,
     profileComplete: false,
     level: 1, exp: 0, vip: 0, pvpScore: 0,
     resources: { credits:0, fuel:100, spice:0, shards:0, shieldParts:0, weaponParts:0, speedParts:0 },
@@ -960,14 +969,27 @@ function lerpAngle(from, to, t) {
     return from + d * t;
 }
 
+function refreshWorldBounds() {
+    const vp = $('mining-viewport');
+    const vw = Math.max(280, vp?.clientWidth || 360);
+    const vh = Math.max(400, vp?.clientHeight || 560);
+    worldBounds = {
+        width: vw + WORLD_PAD * 2,
+        height: vh + WORLD_PAD * 2,
+        centerX: (vw + WORLD_PAD * 2) / 2,
+        centerY: (vh + WORLD_PAD * 2) / 2,
+    };
+    MAP_CENTER = { x: worldBounds.centerX, y: worldBounds.centerY };
+}
+
 function updateCamera() {
     const vp = $('mining-viewport');
     if (!vp) return;
     const vw = vp.clientWidth, vh = vp.clientHeight;
     let cx = shipPos.x - vw / 2;
     let cy = shipPos.y - vh / 2;
-    cx = Math.max(0, Math.min(WORLD_SIZE - vw, cx));
-    cy = Math.max(0, Math.min(WORLD_SIZE - vh, cy));
+    cx = Math.max(0, Math.min(worldBounds.width - vw, cx));
+    cy = Math.max(0, Math.min(worldBounds.height - vh, cy));
     camera.x = cx;
     camera.y = cy;
     $('mining-world').style.transform = `translate(${-cx}px, ${-cy}px)`;
@@ -1045,7 +1067,8 @@ function ensureShipFlightLoop() {
 }
 
 function flyShipTo(x, y, onArrive) {
-    shipTarget = { x, y, onArrive };
+    const p = clampWorld(x, y);
+    shipTarget = { x: p.x, y: p.y, onArrive };
     ensureShipFlightLoop();
 }
 
@@ -1149,17 +1172,74 @@ function switchTab(tab) {
 }
 
 // ─── Добыча ──────────────────────────────────────────────────
+function drawMeteorSprite(ctx, ps) {
+    for (let y = 0; y < 14; y++) for (let x = 0; x < 14; x++) {
+        const dx = x - 6.5, dy = y - 7;
+        if (dx * dx + dy * dy > 30) continue;
+        const c = ((x + y) % 5);
+        ctx.fillStyle = ['#4a3020', '#6a4830', '#8a6850', '#5a3828', '#3a2018'][c];
+        ctx.fillRect(x * ps, y * ps, ps, ps);
+    }
+    ctx.fillStyle = '#2a1810';
+    ctx.fillRect(4 * ps, 5 * ps, 2 * ps, ps);
+    ctx.fillRect(8 * ps, 8 * ps, 2 * ps, ps);
+    ctx.fillRect(5 * ps, 9 * ps, ps, ps);
+}
+
+function drawWreckSprite(ctx, ps) {
+    const plate = (x, y, w, h, col) => {
+        ctx.fillStyle = col;
+        ctx.fillRect(x * ps, y * ps, w * ps, h * ps);
+    };
+    plate(2, 6, 10, 2, '#3a4050');
+    plate(4, 4, 6, 2, '#5a6070');
+    plate(1, 8, 4, 2, '#aa5533');
+    plate(9, 7, 3, 3, '#6a7078');
+    plate(6, 9, 5, 1, '#404850');
+    plate(3, 2, 2, 3, '#cc6633');
+    plate(10, 3, 2, 2, '#888890');
+    ctx.fillStyle = '#40e8ff';
+    ctx.fillRect(5 * ps, 5 * ps, ps, ps);
+}
+
+function drawPirateSprite(ctx, ps) {
+    const px = (x, y, c) => { ctx.fillStyle = c; ctx.fillRect(x * ps, y * ps, ps, ps); };
+    const body = '#aa2222', dark = '#661010', wing = '#882828', cockpit = '#ffcc44';
+    for (let y = 2; y < 14; y++) px(6, y, body);
+    for (let x = 2; x < 11; x++) { px(x, 4, wing); px(x, 9, wing); }
+    px(5, 1, dark); px(6, 1, dark); px(7, 1, dark);
+    px(6, 3, cockpit);
+    px(4, 6, dark); px(8, 6, dark);
+    px(5, 12, dark); px(7, 12, dark);
+    px(6, 13, '#ff4444');
+}
+
+function createMineSprite(kind) {
+    const ps = 2;
+    const size = { meteor: [14, 14], wreck: [14, 12], pirate: [12, 14] }[kind];
+    const cvs = document.createElement('canvas');
+    cvs.width = size[0] * ps;
+    cvs.height = size[1] * ps;
+    const ctx = cvs.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    if (kind === 'meteor') drawMeteorSprite(ctx, ps);
+    else if (kind === 'wreck') drawWreckSprite(ctx, ps);
+    else drawPirateSprite(ctx, ps);
+    return cvs;
+}
+
 function initMiningWorld() {
+    refreshWorldBounds();
     const world = $('mining-world');
-    world.style.width = WORLD_SIZE + 'px';
-    world.style.height = WORLD_SIZE + 'px';
+    world.style.width = worldBounds.width + 'px';
+    world.style.height = worldBounds.height + 'px';
     const hub = $('mining-hub');
     hub.style.left = MAP_CENTER.x + 'px';
     hub.style.top = MAP_CENTER.y + 'px';
     const laser = $('laser-layer');
-    laser.setAttribute('width', WORLD_SIZE);
-    laser.setAttribute('height', WORLD_SIZE);
-    laser.setAttribute('viewBox', `0 0 ${WORLD_SIZE} ${WORLD_SIZE}`);
+    laser.setAttribute('width', worldBounds.width);
+    laser.setAttribute('height', worldBounds.height);
+    laser.setAttribute('viewBox', `0 0 ${worldBounds.width} ${worldBounds.height}`);
     if (!world.dataset.planet) {
         drawPlanet();
         world.dataset.planet = '1';
@@ -1167,13 +1247,13 @@ function initMiningWorld() {
 }
 
 function getShipHome() {
-    return { x: MAP_CENTER.x + 140, y: MAP_CENTER.y + 50 };
+    return { x: MAP_CENTER.x + 90, y: MAP_CENTER.y + 40 };
 }
 
-function clampWorld(x, y, margin = 40) {
+function clampWorld(x, y, margin = 28) {
     return {
-        x: Math.max(margin, Math.min(WORLD_SIZE - margin, x)),
-        y: Math.max(margin, Math.min(WORLD_SIZE - margin, y)),
+        x: Math.max(margin, Math.min(worldBounds.width - margin, x)),
+        y: Math.max(margin, Math.min(worldBounds.height - margin, y)),
     };
 }
 
@@ -1214,51 +1294,63 @@ function findMineAt(wx, wy, radius = 32) {
     return mineObjects.find(o => Math.hypot(o.x - wx, o.y - wy) <= radius);
 }
 
-function generateMineObjects() {
-    $('mining-world').querySelectorAll('.mine-object').forEach(e => e.remove());
-    mineObjects = [];
-
-    const kinds = shuffleArr([
+function buildMineKinds() {
+    // 9 объектов: по 3 каждого типа, порядок случайный
+    return shuffleArr([
         ...Array(3).fill('meteor'),
         ...Array(3).fill('wreck'),
         ...Array(3).fill('pirate'),
     ]);
+}
+
+function generateMineObjects() {
+    const world = $('mining-world');
+    if (!world) return;
+    world.querySelectorAll('.mine-object').forEach(e => e.remove());
+    mineObjects = [];
+    refreshWorldBounds();
+
+    const kinds = buildMineKinds();
     const placed = [];
-    const MIN_FROM_PLANET = 900;
-    const MIN_FROM_OBJ = 500;
-    const edge = 300;
+    const minSide = Math.min(worldBounds.width, worldBounds.height);
+    const MIN_FROM_PLANET = Math.max(80, minSide * 0.14);
+    const MIN_FROM_OBJ = Math.max(55, minSide * 0.09);
+    const edge = 36;
 
     kinds.forEach(kind => {
         let x, y, ok = false;
-        for (let attempt = 0; attempt < 300 && !ok; attempt++) {
-            x = edge + Math.random() * (WORLD_SIZE - edge * 2);
-            y = edge + Math.random() * (WORLD_SIZE - edge * 2);
+        for (let attempt = 0; attempt < 400 && !ok; attempt++) {
+            x = edge + Math.random() * (worldBounds.width - edge * 2);
+            y = edge + Math.random() * (worldBounds.height - edge * 2);
             if (Math.hypot(x - MAP_CENTER.x, y - MAP_CENTER.y) < MIN_FROM_PLANET) continue;
             if (placed.some(p => Math.hypot(x - p.x, y - p.y) < MIN_FROM_OBJ)) continue;
             ok = true;
         }
         if (!ok) {
             const angle = Math.random() * Math.PI * 2;
-            const dist = MIN_FROM_PLANET + Math.random() * 4000;
-            x = MAP_CENTER.x + Math.cos(angle) * dist;
-            y = MAP_CENTER.y + Math.sin(angle) * dist;
+            const dist = MIN_FROM_PLANET + Math.random() * (minSide * 0.35);
+            const p = clampWorld(
+                MAP_CENTER.x + Math.cos(angle) * dist,
+                MAP_CENTER.y + Math.sin(angle) * dist
+            );
+            x = p.x;
+            y = p.y;
         }
         placed.push({ x, y });
 
         const meta = MINE_KINDS[kind];
         const el = document.createElement('div');
-        el.className = 'mine-object';
-        el.textContent = meta.icon;
+        el.className = 'mine-object mine-' + kind;
         el.style.left = x + 'px';
         el.style.top = y + 'px';
+        el.appendChild(createMineSprite(kind));
         const lbl = document.createElement('div');
         lbl.className = 'mine-label';
         lbl.textContent = meta.label;
         el.appendChild(lbl);
 
-        const obj = { x, y, kind, el };
-        $('mining-world').insertBefore(el, $('player-ship'));
-        mineObjects.push(obj);
+        mineObjects.push({ x, y, kind, el });
+        world.insertBefore(el, $('player-ship'));
     });
 }
 
@@ -1334,7 +1426,7 @@ function flyToMine(obj) {
             setTimeout(() => {
                 obj.el.remove();
                 shipFlying = false;
-                if (!mineObjects.length) generateMineObjects();
+                if (mineObjects.length === 0) generateMineObjects();
                 Storage.save();
                 updateHUD();
             }, 300);
@@ -1455,7 +1547,7 @@ function renderShips() {
     const faction = FACTIONS.find(f => f.id === state.factionId);
 
     $('ship-list').innerHTML = ships.map((ship, i) =>
-        `<div class="card ${state.shipIndex === i ? 'selected' : ''}" data-ship="${i}">
+        `<div class="card ${(state.shipIndex ?? -1) === i ? 'selected' : ''}" data-ship="${i}">
             <div class="ship-name">${ship.name}</div>
             <div class="ship-desc">${ship.desc}</div>
             <div class="ship-preview" data-preview="${i}"></div>
@@ -1467,7 +1559,7 @@ function renderShips() {
         card.querySelector('[data-preview]').appendChild(
             renderShipGraphic(ships[i], state.factionId, 6)
         );
-        if (faction) card.style.borderColor = state.shipIndex === i ? '#ffaa00' : faction.color;
+        if (faction) card.style.borderColor = (state.shipIndex ?? -1) === i ? '#ffaa00' : faction.color;
         card.onclick = () => {
             state.shipIndex = i;
             Storage.save();
@@ -1478,6 +1570,8 @@ function renderShips() {
 
     if (state.shipIndex !== null && state.shipIndex !== undefined) {
         $('btn-ship-confirm').disabled = false;
+    } else {
+        $('btn-ship-confirm').disabled = true;
     }
 }
 
@@ -1495,24 +1589,13 @@ function resumeOrStart() {
         updateHUD();
         return;
     }
-    if (state.playerName && state.factionId !== null) {
-        renderShips();
-        showWindow('ship');
-        return;
-    }
-    if (state.playerName) {
-        renderFactions();
-        showWindow('faction');
-        return;
-    }
+    $('inp-name').value = state.playerName || '';
+    $('start-hint')?.classList.add('hidden');
     showWindow('start');
 }
 
 async function resetGame() {
-    const savedName = state.playerName;
-
     state = defaultState();
-    state.playerName = savedName;
     state.profileComplete = false;
 
     shipPos = { x: 0, y: 0 };
@@ -1529,19 +1612,12 @@ async function resetGame() {
     await Storage.saveAsync();
 
     $('mining-screen').classList.remove('active');
+    $('top-panel').classList.add('hidden');
     $('bottom-nav').classList.add('hidden');
     $('btn-ship-confirm').disabled = true;
-    $('inp-name').value = savedName || '';
-
-    if (savedName) {
-        $('top-panel').classList.remove('hidden');
-        renderFactions();
-        showWindow('faction');
-    } else {
-        $('top-panel').classList.add('hidden');
-        showWindow('start');
-    }
-
+    $('inp-name').value = '';
+    $('start-hint')?.classList.add('hidden');
+    showWindow('start');
     updateHUD();
 }
 
