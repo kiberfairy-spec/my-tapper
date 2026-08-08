@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Space Dream v2.9.7</title>
+    <title>Space Dream v2.9.8</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -15,6 +15,12 @@
             --accent: #00aa44;
             --gold: #bb9922;
             --panel: rgba(2, 2, 14, 0.95);
+            --game-inset-top: env(safe-area-inset-top, 0px);
+            --game-inset-bottom: env(safe-area-inset-bottom, 0px);
+            --game-inset-left: env(safe-area-inset-left, 0px);
+            --game-inset-right: env(safe-area-inset-right, 0px);
+            --panel-top-h: 72px;
+            --panel-bottom-h: 72px;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -30,8 +36,7 @@
             user-select: none;
             -webkit-user-select: none;
             -webkit-touch-callout: none;
-            padding-top: var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px));
-            padding-bottom: var(--tg-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+            padding: 0;
         }
 
         /* ── Звёзды ── */
@@ -42,7 +47,11 @@
 
         /* ── Верхняя панель ── */
         .top-panel {
-            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            position: fixed;
+            top: var(--game-inset-top);
+            left: var(--game-inset-left);
+            right: var(--game-inset-right);
+            z-index: 100;
             background: rgba(0,0,0,.88); border-bottom: 1px solid var(--accent);
             padding: 4px 8px; display: flex; flex-direction: column; gap: 2px;
         }
@@ -61,8 +70,12 @@
 
         /* ── Нижняя навигация ── */
         .bottom-nav {
-            position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-            height: 72px; background: rgba(2,2,10,.96); border-top: 1px solid var(--accent);
+            position: fixed;
+            bottom: var(--game-inset-bottom);
+            left: var(--game-inset-left);
+            right: var(--game-inset-right);
+            z-index: 100;
+            min-height: 72px; background: rgba(2,2,10,.96); border-top: 1px solid var(--accent);
             display: flex; align-items: center; justify-content: space-around; padding: 4px;
         }
         .nav-btn {
@@ -74,7 +87,11 @@
 
         /* ── Экран добычи ── */
         .mining-screen {
-            position: fixed; top: 72px; left: 0; right: 0; bottom: 72px;
+            position: fixed;
+            top: calc(var(--game-inset-top) + var(--panel-top-h));
+            bottom: calc(var(--game-inset-bottom) + var(--panel-bottom-h));
+            left: var(--game-inset-left);
+            right: var(--game-inset-right);
             z-index: 1; display: none; overflow: hidden;
         }
         .mining-screen.active { display: block; }
@@ -181,7 +198,11 @@
 
         /* ── Окна ── */
         .overlay {
-            position: fixed; top: 72px; left: 0; right: 0; bottom: 72px;
+            position: fixed;
+            top: calc(var(--game-inset-top) + var(--panel-top-h));
+            bottom: calc(var(--game-inset-bottom) + var(--panel-bottom-h));
+            left: var(--game-inset-left);
+            right: var(--game-inset-right);
             z-index: 50; display: none; align-items: center; justify-content: center;
             pointer-events: none;
         }
@@ -359,7 +380,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.9.7';
+const VERSION = '2.9.8';
 const ORBIT_DIST = 100;
 const PLANET_W = 72, PLANET_H = 44, PLANET_PS = 6;
 const PLANET_CX = 36, PLANET_CY = 22, PLANET_R = 18;
@@ -981,12 +1002,96 @@ const Storage = {
 // ─── Telegram ───────────────────────────────────────────────
 function initTelegram() {
     const tg = window.Telegram?.WebApp;
-    if (!tg) return;
+    if (!tg) {
+        applyGameInsets();
+        return;
+    }
     tg.ready();
     tg.expand();
     if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
     if (tg.setHeaderColor) tg.setHeaderColor('#000000');
     if (tg.setBackgroundColor) tg.setBackgroundColor('#000000');
+    applyGameInsets();
+    tg.onEvent?.('viewportChanged', () => {
+        applyGameInsets();
+        syncPanelHeights();
+        onMiningResize();
+    });
+    tg.onEvent?.('safeAreaChanged', () => {
+        applyGameInsets();
+        syncPanelHeights();
+        onMiningResize();
+    });
+    tg.onEvent?.('contentSafeAreaChanged', () => {
+        applyGameInsets();
+        syncPanelHeights();
+        onMiningResize();
+    });
+    setTimeout(() => {
+        applyGameInsets();
+        syncPanelHeights();
+        onMiningResize();
+    }, 120);
+    setTimeout(() => {
+        applyGameInsets();
+        syncPanelHeights();
+        onMiningResize();
+    }, 450);
+}
+
+function applyGameInsets() {
+    const root = document.documentElement;
+    const tg = window.Telegram?.WebApp;
+    if (tg?.safeAreaInset || tg?.contentSafeAreaInset) {
+        const safe = tg.safeAreaInset || {};
+        const content = tg.contentSafeAreaInset || {};
+        root.style.setProperty('--game-inset-top', ((safe.top || 0) + (content.top || 0)) + 'px');
+        root.style.setProperty('--game-inset-bottom', ((safe.bottom || 0) + (content.bottom || 0)) + 'px');
+        root.style.setProperty('--game-inset-left', ((safe.left || 0) + (content.left || 0)) + 'px');
+        root.style.setProperty('--game-inset-right', ((safe.right || 0) + (content.right || 0)) + 'px');
+        return;
+    }
+    root.style.setProperty('--game-inset-top', 'env(safe-area-inset-top, 0px)');
+    root.style.setProperty('--game-inset-bottom', 'env(safe-area-inset-bottom, 0px)');
+    root.style.setProperty('--game-inset-left', 'env(safe-area-inset-left, 0px)');
+    root.style.setProperty('--game-inset-right', 'env(safe-area-inset-right, 0px)');
+}
+
+function syncPanelHeights() {
+    const top = $('top-panel');
+    const nav = document.querySelector('.bottom-nav');
+    const topH = top && !top.classList.contains('hidden') ? top.offsetHeight : 0;
+    const botH = nav ? nav.offsetHeight : 72;
+    document.documentElement.style.setProperty('--panel-top-h', topH + 'px');
+    document.documentElement.style.setProperty('--panel-bottom-h', botH + 'px');
+}
+
+function getMiningViewportMetrics() {
+    const vp = $('mining-viewport');
+    if (!vp) return { w: 360, h: 560, ox: 0, oy: 0 };
+    const rect = vp.getBoundingClientRect();
+    let w = rect.width;
+    let h = rect.height;
+    let ox = 0;
+    let oy = 0;
+    const vv = window.visualViewport;
+    if (vv && w > 0 && h > 0) {
+        const left = Math.max(rect.left, vv.offsetLeft);
+        const top = Math.max(rect.top, vv.offsetTop);
+        const right = Math.min(rect.left + w, vv.offsetLeft + vv.width);
+        const bottom = Math.min(rect.top + h, vv.offsetTop + vv.height);
+        w = Math.max(1, right - left);
+        h = Math.max(1, bottom - top);
+        ox = left - rect.left;
+        oy = top - rect.top;
+    }
+    if (w < 1 || h < 1) {
+        w = Math.max(1, vp.clientWidth || 360);
+        h = Math.max(1, vp.clientHeight || 560);
+        ox = 0;
+        oy = 0;
+    }
+    return { w, h, ox, oy };
 }
 
 // ─── Графика ─────────────────────────────────────────────────
@@ -1014,38 +1119,33 @@ function lerpAngle(from, to, t) {
 }
 
 function refreshWorldBounds() {
-    const vp = $('mining-viewport');
-    if (!vp) return;
-    const rect = vp.getBoundingClientRect();
-    const vw = Math.max(280, rect.width || vp.clientWidth || 360);
-    const vh = Math.max(400, rect.height || vp.clientHeight || 560);
-    // Идеальный квадрат: одинаковый запас WORLD_PAD во все стороны от viewport
-    const side = Math.round(Math.max(vw, vh) + WORLD_PAD * 2);
+    const { w: vw, h: vh } = getMiningViewportMetrics();
+    if (vw < 1 || vh < 1) return;
+    const pad = WORLD_PAD;
+    const width = Math.round(vw + pad * 2);
+    const height = Math.round(vh + pad * 2);
     worldBounds = {
-        width: side,
-        height: side,
-        centerX: side / 2,
-        centerY: side / 2,
+        width,
+        height,
+        centerX: width / 2,
+        centerY: height / 2,
     };
     MAP_CENTER = { x: worldBounds.centerX, y: worldBounds.centerY };
 }
 
 function getViewportSize() {
-    const vp = $('mining-viewport');
-    const rect = vp.getBoundingClientRect();
-    return {
-        w: rect.width || vp.clientWidth || 360,
-        h: rect.height || vp.clientHeight || 560,
-    };
+    const { w, h } = getMiningViewportMetrics();
+    return { w, h };
 }
 
 function updateCamera() {
     const vp = $('mining-viewport');
     if (!vp) return;
-    const { w: vw, h: vh } = getViewportSize();
-    // Камера на планете — симметричный обзор; сдвигается, если корабль у края экрана
-    let cx = MAP_CENTER.x - vw / 2;
-    let cy = MAP_CENTER.y - vh / 2;
+    const { w: vw, h: vh, ox, oy } = getMiningViewportMetrics();
+    const focusX = ox + vw / 2;
+    const focusY = oy + vh / 2;
+    let cx = MAP_CENTER.x - focusX;
+    let cy = MAP_CENTER.y - focusY;
     const sx = shipPos.x - cx;
     const sy = shipPos.y - cy;
     const padX = vw * 0.3;
@@ -1058,7 +1158,7 @@ function updateCamera() {
     cy = Math.max(0, Math.min(worldBounds.height - vh, cy));
     camera.x = cx;
     camera.y = cy;
-    $('mining-world').style.transform = `translate(${-Math.round(cx)}px, ${-Math.round(cy)}px)`;
+    $('mining-world').style.transform = `translate3d(${-Math.round(cx)}px, ${-Math.round(cy)}px, 0)`;
 }
 
 function updateShipVisual() {
@@ -1222,6 +1322,8 @@ function hideOverlay() {
 function showGameUI() {
     $('top-panel').classList.remove('hidden');
     $('bottom-nav').classList.remove('hidden');
+    syncPanelHeights();
+    applyGameInsets();
 }
 
 function updateHUD() {
@@ -1283,8 +1385,19 @@ function switchTab(tab) {
     if (tab === 'mining') {
         $('mining-screen').classList.add('active');
         hideOverlay();
-        layoutMining();
-        renderPlayerShip();
+        syncPanelHeights();
+        applyGameInsets();
+        requestAnimationFrame(() => {
+            syncPanelHeights();
+            refreshWorldBounds();
+            layoutMining();
+            renderPlayerShip();
+            requestAnimationFrame(() => {
+                syncPanelHeights();
+                onMiningResize();
+                resetShipToOrbit();
+            });
+        });
     } else {
         $('mining-screen').classList.remove('active');
         $('overlay').classList.add('active');
@@ -1419,6 +1532,9 @@ function layoutMining() {
 
 function onMiningResize() {
     if (currentTab !== 'mining') return;
+    syncPanelHeights();
+    applyGameInsets();
+    const prevCenter = { x: MAP_CENTER.x, y: MAP_CENTER.y };
     refreshWorldBounds();
     const world = $('mining-world');
     if (world) {
@@ -1433,6 +1549,9 @@ function onMiningResize() {
             laser.setAttribute('viewBox', `0 0 ${worldBounds.width} ${worldBounds.height}`);
             world.appendChild(laser);
         }
+    }
+    if (Math.abs(prevCenter.x - MAP_CENTER.x) > 1 || Math.abs(prevCenter.y - MAP_CENTER.y) > 1) {
+        generateMineObjects();
     }
     resetShipToOrbit();
 }
@@ -1487,11 +1606,10 @@ function generateMineObjects() {
 
     const kinds = buildMineKinds();
     const placed = [];
-    const side = worldBounds.width;
     const cx = MAP_CENTER.x, cy = MAP_CENTER.y;
     const PLANET_R = 200;
     const MIN_FROM_PLANET = PLANET_R + 90;
-    const MAX_FROM_PLANET = side / 2 - 55;
+    const MAX_FROM_PLANET = Math.min(worldBounds.width, worldBounds.height) / 2 - 55;
     const MIN_FROM_OBJ = 75;
     const margin = 40;
 
@@ -1502,8 +1620,8 @@ function generateMineObjects() {
             const dist = MIN_FROM_PLANET + Math.random() * (MAX_FROM_PLANET - MIN_FROM_PLANET);
             x = cx + Math.cos(angle) * dist;
             y = cy + Math.sin(angle) * dist;
-            x = Math.max(margin, Math.min(side - margin, x));
-            y = Math.max(margin, Math.min(side - margin, y));
+            x = Math.max(margin, Math.min(worldBounds.width - margin, x));
+            y = Math.max(margin, Math.min(worldBounds.height - margin, y));
             if (Math.hypot(x - cx, y - cy) < MIN_FROM_PLANET) continue;
             if (placed.some(p => Math.hypot(x - p.x, y - p.y) < MIN_FROM_OBJ)) continue;
             ok = true;
@@ -1905,16 +2023,39 @@ function bindEvents() {
 
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') Storage.save();
+        if (document.visibilityState === 'visible') {
+            applyGameInsets();
+            syncPanelHeights();
+            onMiningResize();
+        }
     });
     window.addEventListener('pagehide', () => Storage.save());
-    window.addEventListener('resize', onMiningResize);
+    const relayout = () => {
+        syncPanelHeights();
+        applyGameInsets();
+        onMiningResize();
+    };
+    window.addEventListener('resize', relayout);
+    window.addEventListener('orientationchange', () => setTimeout(relayout, 150));
     if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', onMiningResize);
+        window.visualViewport.addEventListener('resize', relayout);
+        window.visualViewport.addEventListener('scroll', relayout);
+    }
+    if (typeof ResizeObserver !== 'undefined') {
+        const ro = new ResizeObserver(() => relayout());
+        const top = $('top-panel');
+        const nav = document.querySelector('.bottom-nav');
+        const mvp = $('mining-viewport');
+        if (top) ro.observe(top);
+        if (nav) ro.observe(nav);
+        if (mvp) ro.observe(mvp);
     }
 }
 
 async function boot() {
     initTelegram();
+    applyGameInsets();
+    syncPanelHeights();
     fillStars($('stars-global'), 300);
     initMiningTap();
     await Storage.load();
