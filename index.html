@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Space Dream v2.8.1</title>
+    <title>Space Dream v2.8.2</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -165,6 +165,7 @@
         @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .wtitle { color: var(--gold); font-size: 7px; text-align: center; margin-bottom: 8px; }
         .input { width: 100%; padding: 6px; margin: 6px 0; background: #040410; border: 2px solid var(--accent); color: var(--text); font-family: inherit; font-size: 6px; text-align: center; }
+        .start-hint { font-size: 5px; color: #ff6666; text-align: center; min-height: 10px; margin-top: 2px; }
         .btn { width: 100%; padding: 7px; margin: 5px 0; background: #040c04; border: 2px solid var(--accent); color: var(--text); font-family: inherit; font-size: 6px; cursor: pointer; }
         .btn:disabled { opacity: .4; cursor: not-allowed; }
         .btn-sm { width: auto; padding: 3px 6px; font-size: 4px; }
@@ -246,6 +247,7 @@
     <div class="window" id="win-start">
         <div class="wtitle">SPACE DREAM</div>
         <input class="input" id="inp-name" placeholder="ИМЯ ИГРОКА" maxlength="12">
+        <div class="start-hint hidden" id="start-hint"></div>
         <button class="btn" id="btn-start">ДАЛЕЕ</button>
     </div>
     <div class="window hidden" id="win-faction">
@@ -312,7 +314,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.8.1';
+const VERSION = '2.8.2';
 const SAVE_KEY = 'space_dream_save';
 const SHIP_MOVE_SPEED = 85; // px/s — полёт по карте
 const SHIP_ROT_LERP = 0.22;
@@ -844,20 +846,32 @@ let selectedBoost = null;
 
 // ─── Хранилище ───────────────────────────────────────────────
 const Storage = {
+    cloud() {
+        try { return window.Telegram?.WebApp?.CloudStorage || null; }
+        catch (e) { return null; }
+    },
+
     save() {
         const json = JSON.stringify(state);
-        try { localStorage.setItem(SAVE_KEY, json); } catch(e) {}
-        const cloud = window.Telegram?.WebApp?.CloudStorage;
-        if (cloud) cloud.setItem(SAVE_KEY, json, () => {});
+        try { localStorage.setItem(SAVE_KEY, json); } catch (e) {}
+        try {
+            const cloud = this.cloud();
+            if (cloud) cloud.setItem(SAVE_KEY, json, () => {});
+        } catch (e) { /* CloudStorage недоступен в части WebView */ }
     },
 
     saveAsync() {
         return new Promise(resolve => {
             const json = JSON.stringify(state);
-            try { localStorage.setItem(SAVE_KEY, json); } catch(e) {}
-            const cloud = window.Telegram?.WebApp?.CloudStorage;
-            if (cloud) cloud.setItem(SAVE_KEY, json, () => resolve());
-            else resolve();
+            try { localStorage.setItem(SAVE_KEY, json); } catch (e) {}
+            try {
+                const cloud = this.cloud();
+                if (cloud) {
+                    cloud.setItem(SAVE_KEY, json, () => resolve());
+                    return;
+                }
+            } catch (e) {}
+            resolve();
         });
     },
 
@@ -865,14 +879,12 @@ const Storage = {
         try {
             const raw = localStorage.getItem(SAVE_KEY);
             if (raw) return { ...defaultState(), ...JSON.parse(raw) };
-        } catch(e) {}
+        } catch (e) {}
         return defaultState();
     },
 
     loadCloud() {
         return new Promise(resolve => {
-            const cloud = window.Telegram?.WebApp?.CloudStorage;
-            if (!cloud) return resolve(null);
             let settled = false;
             const finish = val => {
                 if (settled) return;
@@ -880,11 +892,17 @@ const Storage = {
                 resolve(val);
             };
             setTimeout(() => finish(null), 2500);
-            cloud.getItem(SAVE_KEY, (err, val) => {
-                if (err || !val) return finish(null);
-                try { finish({ ...defaultState(), ...JSON.parse(val) }); }
-                catch(e) { finish(null); }
-            });
+            try {
+                const cloud = this.cloud();
+                if (!cloud) return finish(null);
+                cloud.getItem(SAVE_KEY, (err, val) => {
+                    if (err || !val) return finish(null);
+                    try { finish({ ...defaultState(), ...JSON.parse(val) }); }
+                    catch (e) { finish(null); }
+                });
+            } catch (e) {
+                finish(null);
+            }
         });
     },
 
@@ -1531,7 +1549,13 @@ async function resetGame() {
 function bindEvents() {
     $('btn-start').onclick = () => {
         const name = $('inp-name').value.trim();
-        if (name.length < 2) return alert('Минимум 2 символа');
+        const hint = $('start-hint');
+        if (name.length < 2) {
+            hint.textContent = 'Минимум 2 символа';
+            hint.classList.remove('hidden');
+            return;
+        }
+        hint.classList.add('hidden');
         state.playerName = name;
         Storage.save();
         renderFactions();
@@ -1571,8 +1595,8 @@ async function boot() {
     initTelegram();
     fillStars($('stars-global'), 300);
     initMiningTap();
-    bindEvents();
     await Storage.load();
+    bindEvents();
     resumeOrStart();
     updateHUD();
 
