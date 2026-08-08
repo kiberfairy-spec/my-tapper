@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Space Dream v2.12.1</title>
+    <title>Space Dream v2.12.2</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -165,9 +165,9 @@
             position: absolute;
             left: 50%;
             top: 50%;
-            width: 21px;
-            height: 42px;
-            transform: translate(-50%, 24px);
+            width: 12px;
+            height: 30px;
+            transform: translate(-50%, 17px);
             image-rendering: pixelated;
             image-rendering: crisp-edges;
             pointer-events: none;
@@ -415,7 +415,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.12.1';
+const VERSION = '2.12.2';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -1528,8 +1528,8 @@ function renderPlayerShip() {
     el.innerHTML = '';
     const flame = document.createElement('canvas');
     flame.className = 'ship-flame';
-    flame.width = 7;
-    flame.height = 14;
+    flame.width = 5;
+    flame.height = 10;
     el.appendChild(flame);
     const img = document.createElement('img');
     img.src = SHIP_IMG.mining;
