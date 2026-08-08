@@ -1211,27 +1211,26 @@ function drawShipFlame(cvs, frame) {
     ctx.imageSmoothingEnabled = false;
     const wobble = frame % 3;
     const sway = (frame % 2 === 0) ? 0 : (frame % 4 === 1 ? 1 : -1);
-    const cx = 3 + sway;
-    const baseY = 3 + wobble;
+    const cx = 2 + sway;
+    const baseY = 1 + wobble;
 
-    // Шлейф — 2–3 px след позади пламени
+    // Тонкий шлейф 1 px
     ctx.fillStyle = '#662200';
-    ctx.fillRect(cx, baseY + 9 + wobble, 1, 1);
-    ctx.fillRect(cx + sway, baseY + 10 + (wobble % 2), 1, 1);
+    ctx.fillRect(cx, baseY + 7 + wobble, 1, 1);
     ctx.fillStyle = '#994400';
-    ctx.fillRect(cx - sway, baseY + 8, 1, 1);
+    ctx.fillRect(cx, baseY + 6, 1, 1);
 
-    // Столб пламени 3 px шириной
+    // Узкий столб пламени ~1 px
     ctx.fillStyle = '#ff4400';
-    ctx.fillRect(cx - 1, baseY + 4, 1, 4 + wobble);
-    ctx.fillRect(cx, baseY + 3, 1, 5 + wobble);
-    ctx.fillRect(cx + 1, baseY + 5, 1, 3 + wobble);
+    ctx.fillRect(cx, baseY + 2, 1, 4 + wobble);
     ctx.fillStyle = '#ff9900';
-    ctx.fillRect(cx, baseY + 2, 1, 3);
-    ctx.fillRect(cx - 1, baseY + 5, 1, 2);
+    ctx.fillRect(cx, baseY + 1, 1, 2);
     ctx.fillStyle = '#ffdd55';
-    ctx.fillRect(cx, baseY + 3, 1, 1);
-    ctx.fillRect(cx + 1, baseY + 4, 1, 1);
+    ctx.fillRect(cx, baseY + 2, 1, 1);
+    if (sway !== 0) {
+        ctx.fillStyle = '#ff6600';
+        ctx.fillRect(cx - sway, baseY + 3, 1, 2);
+    }
 }
 
 function updateShipVisual() {
