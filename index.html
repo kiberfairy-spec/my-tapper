@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Space Dream v2.12.0</title>
+    <title>Space Dream v2.12.1</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -152,6 +152,8 @@
             transition: none;
         }
         .player-ship img {
+            position: relative;
+            z-index: 1;
             display: block;
             image-rendering: pixelated;
             image-rendering: crisp-edges;
@@ -159,6 +161,20 @@
             width: auto;
             pointer-events: none;
         }
+        .ship-flame {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 21px;
+            height: 42px;
+            transform: translate(-50%, 24px);
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0;
+        }
+        .player-ship.flying .ship-flame { opacity: 1; }
         .laser-layer {
             position: absolute; left: 0; top: 0;
             width: 100%; height: 100%;
@@ -399,7 +415,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.12.0';
+const VERSION = '2.12.1';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -413,8 +429,8 @@ let planetSparkTimer = null;
 let planetRenderState = null;
 const SAVE_KEY = 'space_dream_save';
 const DEV_FREE_FUEL = true; // временно: без ограничений топлива для тестов
-const SHIP_MOVE_SPEED = 85;
-const SHIP_ROT_LERP = 0.22;
+const SHIP_MOVE_SPEED = 98;
+const SHIP_ROT_LERP = 0.30;
 const FUEL_PER_FLIGHT = 10;
 
 // Карта: экран + 300 px запаса с каждой стороны
@@ -939,6 +955,7 @@ let shipPos = { x: 0, y: 0 };
 let shipRotation = 0;
 let shipTarget = null;
 let shipAnimFrame = null;
+let shipFlameTick = 0;
 let shipFlying = false;
 let camera = { x: 0, y: 0 };
 let mineObjects = [];
@@ -1188,11 +1205,49 @@ function updateCamera() {
     $('mining-world').style.transform = `translate3d(${-Math.round(cx)}px, ${-Math.round(cy)}px, 0)`;
 }
 
+function drawShipFlame(cvs, frame) {
+    const ctx = cvs.getContext('2d');
+    ctx.clearRect(0, 0, cvs.width, cvs.height);
+    ctx.imageSmoothingEnabled = false;
+    const wobble = frame % 3;
+    const sway = (frame % 2 === 0) ? 0 : (frame % 4 === 1 ? 1 : -1);
+    const cx = 3 + sway;
+    const baseY = 3 + wobble;
+
+    // Шлейф — 2–3 px след позади пламени
+    ctx.fillStyle = '#662200';
+    ctx.fillRect(cx, baseY + 9 + wobble, 1, 1);
+    ctx.fillRect(cx + sway, baseY + 10 + (wobble % 2), 1, 1);
+    ctx.fillStyle = '#994400';
+    ctx.fillRect(cx - sway, baseY + 8, 1, 1);
+
+    // Столб пламени 3 px шириной
+    ctx.fillStyle = '#ff4400';
+    ctx.fillRect(cx - 1, baseY + 4, 1, 4 + wobble);
+    ctx.fillRect(cx, baseY + 3, 1, 5 + wobble);
+    ctx.fillRect(cx + 1, baseY + 5, 1, 3 + wobble);
+    ctx.fillStyle = '#ff9900';
+    ctx.fillRect(cx, baseY + 2, 1, 3);
+    ctx.fillRect(cx - 1, baseY + 5, 1, 2);
+    ctx.fillStyle = '#ffdd55';
+    ctx.fillRect(cx, baseY + 3, 1, 1);
+    ctx.fillRect(cx + 1, baseY + 4, 1, 1);
+}
+
 function updateShipVisual() {
     const el = $('player-ship');
     el.style.left = shipPos.x + 'px';
     el.style.top = shipPos.y + 'px';
     el.style.transform = `translate(-50%, -50%) rotate(${shipRotation}deg)`;
+    const flying = !!shipTarget;
+    el.classList.toggle('flying', flying);
+    const flame = el.querySelector('.ship-flame');
+    if (flying && flame) {
+        shipFlameTick++;
+        drawShipFlame(flame, shipFlameTick);
+    } else if (flame) {
+        flame.getContext('2d').clearRect(0, 0, flame.width, flame.height);
+    }
     updateCamera();
 }
 
@@ -1471,6 +1526,11 @@ function drawPlanet() {
 function renderPlayerShip() {
     const el = $('player-ship');
     el.innerHTML = '';
+    const flame = document.createElement('canvas');
+    flame.className = 'ship-flame';
+    flame.width = 7;
+    flame.height = 14;
+    el.appendChild(flame);
     const img = document.createElement('img');
     img.src = SHIP_IMG.mining;
     img.alt = 'Корабль';
