@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Space Dream v2.9.2</title>
+    <title>Space Dream v2.9.3</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -96,7 +96,7 @@
         .mining-hub {
             position: absolute;
             transform: translate(-50%, -50%);
-            width: 200px; aspect-ratio: 1;
+            width: 400px; aspect-ratio: 1;
             pointer-events: none; z-index: 3;
         }
         .planet-glow {
@@ -153,25 +153,15 @@
             100% { opacity: .12; stroke-width: 1; }
         }
         .mine-object {
-            position: absolute; z-index: 25; transform: translate(-50%, -50%);
-            cursor: pointer; pointer-events: auto;
+            position: absolute; z-index: 30; transform: translate(-50%, -50%);
+            cursor: pointer; pointer-events: none;
             filter: drop-shadow(0 0 6px rgba(255,200,80,.45));
             transition: opacity .3s, transform .2s;
-            min-width: 56px; min-height: 56px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            touch-action: manipulation;
         }
         .mine-object canvas {
             display: block;
             image-rendering: pixelated;
             image-rendering: crisp-edges;
-            pointer-events: none;
-        }
-        .mine-object:active { transform: translate(-50%, -50%) scale(1.12); }
-        .mine-label {
-            position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
-            font-size: 5px; color: #aaa; white-space: nowrap; margin-top: 2px;
-            pointer-events: none;
         }
         .ship-sprite-img {
             image-rendering: pixelated;
@@ -347,7 +337,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.9.2';
+const VERSION = '2.9.3';
 const SAVE_KEY = 'space_dream_save';
 const SHIP_MOVE_SPEED = 85;
 const SHIP_ROT_LERP = 0.22;
@@ -1102,7 +1092,7 @@ function flyShipTo(x, y, onArrive) {
 function drawPlanet() {
     const wrap = document.getElementById('planet-wrap');
     wrap.innerHTML = '';
-    const W = 72, H = 44, ps = 3;
+    const W = 72, H = 44, ps = 6;
     const cvs = document.createElement('canvas');
     cvs.width = W * ps; cvs.height = H * ps;
     cvs.className = 'planet-canvas';
@@ -1242,7 +1232,7 @@ function drawPirateSprite(ctx, ps) {
 }
 
 function createMineSprite(kind) {
-    const ps = kind === 'meteor' ? 4 : 2;
+    const ps = kind === 'meteor' ? 6 : 2;
     const size = { meteor: [14, 14], wreck: [14, 12], pirate: [12, 14] }[kind];
     const cvs = document.createElement('canvas');
     cvs.width = size[0] * ps;
@@ -1274,7 +1264,7 @@ function initMiningWorld() {
 }
 
 function getShipHome() {
-    return { x: MAP_CENTER.x, y: MAP_CENTER.y + 75 };
+    return { x: MAP_CENTER.x, y: MAP_CENTER.y + 130 };
 }
 
 function clampWorld(x, y, margin = 28) {
@@ -1331,27 +1321,31 @@ function shuffleArr(arr) {
     return a;
 }
 
-function bindMineObject(obj) {
-    const el = obj.el;
-    let touchHandled = false;
+function getMineObjectAt(clientX, clientY) {
+    const isTouch = window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
+    const pad = isTouch ? 32 : 16;
+    let best = null, bestD = Infinity;
+    for (const o of mineObjects) {
+        if (!o.el.isConnected) continue;
+        const r = o.el.getBoundingClientRect();
+        if (!r.width && !r.height) continue;
+        const cx = r.left + r.width / 2;
+        const cy = r.top + r.height / 2;
+        const hw = r.width / 2 + pad;
+        const hh = r.height / 2 + pad;
+        if (clientX < cx - hw || clientX > cx + hw || clientY < cy - hh || clientY > cy + hh) continue;
+        const d = Math.hypot(clientX - cx, clientY - cy);
+        if (d < bestD) { best = o; bestD = d; }
+    }
+    return best;
+}
 
-    el.addEventListener('touchstart', e => e.stopPropagation(), { passive: true });
-
-    el.addEventListener('touchend', e => {
-        e.stopPropagation();
-        e.preventDefault();
-        touchHandled = true;
-        setTimeout(() => { touchHandled = false; }, 450);
-        if (!state.profileComplete || shipFlying) return;
-        flyToMine(obj);
-    }, { passive: false });
-
-    el.addEventListener('click', e => {
-        e.stopPropagation();
-        if (touchHandled) return;
-        if (!state.profileComplete || shipFlying) return;
-        flyToMine(obj);
-    });
+function handleMiningTap(clientX, clientY) {
+    if (!state.profileComplete || shipFlying) return;
+    const obj = getMineObjectAt(clientX, clientY);
+    if (obj) { flyToMine(obj); return; }
+    const w = screenToWorld(clientX, clientY);
+    moveShip(w.x, w.y);
 }
 
 function buildMineKinds() {
@@ -1373,7 +1367,8 @@ function generateMineObjects() {
     const kinds = buildMineKinds();
     const placed = [];
     const minSide = Math.min(worldBounds.width, worldBounds.height);
-    const MIN_FROM_PLANET = Math.max(80, minSide * 0.14);
+    const PLANET_R = 200;
+    const MIN_FROM_PLANET = Math.max(PLANET_R + 70, minSide * 0.2);
     const MIN_FROM_OBJ = Math.max(55, minSide * 0.09);
     const edge = 36;
 
@@ -1398,20 +1393,14 @@ function generateMineObjects() {
         }
         placed.push({ x, y });
 
-        const meta = MINE_KINDS[kind];
         const el = document.createElement('div');
         el.className = 'mine-object mine-' + kind;
         el.style.left = x + 'px';
         el.style.top = y + 'px';
         el.appendChild(createMineSprite(kind));
-        const lbl = document.createElement('div');
-        lbl.className = 'mine-label';
-        lbl.textContent = meta.label;
-        el.appendChild(lbl);
 
         mineObjects.push({ x, y, kind, el });
-        bindMineObject(mineObjects[mineObjects.length - 1]);
-        world.insertBefore(el, $('player-ship'));
+        world.appendChild(el);
     });
 }
 
@@ -1500,8 +1489,12 @@ function fireMineEffect(obj, onDone) {
 }
 
 function flyToMine(obj) {
-    if (shipFlying || state.resources.fuel < FUEL_PER_FLIGHT) return;
+    if (shipFlying) return;
     if (!mineObjects.includes(obj)) return;
+    if (state.resources.fuel < FUEL_PER_FLIGHT) {
+        showLoot('Недостаточно топлива ⛽');
+        return;
+    }
 
     shipFlying = true;
     state.resources.fuel -= FUEL_PER_FLIGHT;
@@ -1537,40 +1530,31 @@ function initMiningTap() {
     if (vp.dataset.ready) return;
     vp.dataset.ready = '1';
     let lastTouch = 0;
-    let touchStart = null;
+    let ptrStart = null;
 
-    const onMoveTap = (cx, cy) => {
-        if (!state.profileComplete || shipFlying) return;
-        const w = screenToWorld(cx, cy);
-        moveShip(w.x, w.y);
-    };
+    vp.addEventListener('pointerdown', e => {
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        ptrStart = { x: e.clientX, y: e.clientY, id: e.pointerId, time: Date.now() };
+    });
 
-    vp.addEventListener('touchstart', e => {
-        if (e.target.closest('.mine-object')) return;
-        const t = e.changedTouches[0] || e.touches[0];
-        if (!t) return;
-        touchStart = { x: t.clientX, y: t.clientY, time: Date.now() };
-    }, { passive: true });
+    vp.addEventListener('pointerup', e => {
+        if (!ptrStart || ptrStart.id !== e.pointerId) return;
+        if (Date.now() - ptrStart.time > 650) { ptrStart = null; return; }
+        const dx = e.clientX - ptrStart.x, dy = e.clientY - ptrStart.y;
+        if (Math.hypot(dx, dy) > 26) { ptrStart = null; return; }
+        if (e.pointerType === 'touch' || e.pointerType === 'pen') {
+            lastTouch = Date.now();
+            e.preventDefault();
+        }
+        handleMiningTap(ptrStart.x, ptrStart.y);
+        ptrStart = null;
+    });
 
-    vp.addEventListener('touchend', e => {
-        if (e.target.closest('.mine-object')) return;
-        const t = e.changedTouches[0];
-        if (!t || !touchStart) return;
-        if (Date.now() - touchStart.time > 600) { touchStart = null; return; }
-        const dx = t.clientX - touchStart.x, dy = t.clientY - touchStart.y;
-        if (Math.hypot(dx, dy) > 22) { touchStart = null; return; }
-        e.preventDefault();
-        lastTouch = Date.now();
-        onMoveTap(touchStart.x, touchStart.y);
-        touchStart = null;
-    }, { passive: false });
-
-    vp.addEventListener('touchcancel', () => { touchStart = null; });
+    vp.addEventListener('pointercancel', () => { ptrStart = null; });
 
     vp.addEventListener('click', e => {
-        if (e.target.closest('.mine-object')) return;
-        if (Date.now() - lastTouch < 450) return;
-        onMoveTap(e.clientX, e.clientY);
+        if (Date.now() - lastTouch < 500) return;
+        handleMiningTap(e.clientX, e.clientY);
     });
 }
 
