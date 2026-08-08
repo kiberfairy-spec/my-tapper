@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Space Dream v2.12.5</title>
+    <title>Space Dream v2.12.6</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -96,22 +96,23 @@
             left: var(--game-inset-left);
             right: var(--game-inset-right);
             z-index: 1; display: none; overflow: hidden;
+            background: #000;
         }
         .mining-screen.active { display: block; }
-        .mining-stars { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+        .mining-stars { display: none; }
         .mining-viewport {
             position: relative; width: 100%; height: 100%;
             z-index: 1;
             overflow: hidden; touch-action: none;
             cursor: crosshair;
+            background: #000;
         }
         .mining-world {
             position: absolute; left: 0; top: 0;
             will-change: transform;
-            background: radial-gradient(ellipse at 50% 50%, rgba(8,12,32,.4) 0%, rgba(0,0,8,.15) 100%);
+            background: #06041a;
             box-sizing: border-box;
             border: 1px solid rgba(0, 170, 68, .35);
-            box-shadow: inset 0 0 40px rgba(0, 40, 20, .25);
         }
         .mining-tap { display: none; }
         .mining-hub {
@@ -127,19 +128,10 @@
             z-index: 1;
             clip-path: circle(50% at 50% 50%);
             overflow: hidden;
-            background: #2a1050;
+            background: #301060;
         }
-        .planet-rotator {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            height: 100%;
-            animation: planetSlowSpin 360s linear infinite;
-            backface-visibility: hidden;
-        }
-        .planet-wrap canvas { position: relative; z-index: 1; display: block; }
         .planet-canvas {
-            width: 100%; height: 100%;
+            width: 100%; height: 100%; display: block;
             image-rendering: auto;
         }
         .player-ship {
@@ -410,7 +402,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.12.5';
+const VERSION = '2.12.6';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -422,6 +414,10 @@ const SPICE_SPARK_HALO = ['#ffb800', '#cc9900', '#aa7700'];
 let planetFlashTimer = null;
 let planetSparkTimer = null;
 let planetRenderState = null;
+let planetSpinAngle = 0;
+let planetSpinRaf = null;
+let planetActiveSparks = [];
+let planetSparkUntil = 0;
 const SAVE_KEY = 'space_dream_save';
 const DEV_FREE_FUEL = true; // временно: без ограничений топлива для тестов
 const SHIP_MOVE_SPEED = 98;
@@ -1347,22 +1343,68 @@ function sealCanvasOpaque(ctx, cx, cy, r) {
     ctx.putImageData(img, 0, 0);
 }
 
-function drawSpiceSparkle(ctx, x, y) {
+function setGlobalStarsVisible(show) {
+    const g = $('stars-global');
+    if (g) g.style.visibility = show ? 'visible' : 'hidden';
+}
+
+function stopPlanetSpin() {
+    if (planetSpinRaf) cancelAnimationFrame(planetSpinRaf);
+    planetSpinRaf = null;
+}
+
+function paintPlanetSurface() {
+    if (!planetRenderState) return;
+    const st = planetRenderState;
+    const { ctx, cx, cy, radius, size, img, imgX, imgY, imgW, imgH, dpr } = st;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = '#301060';
+    ctx.fillRect(0, 0, size, size);
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(planetSpinAngle);
+    ctx.translate(-cx, -cy);
+    ctx.drawImage(img, imgX, imgY, imgW, imgH);
+    ctx.restore();
+    sealCanvasOpaque(ctx, cx * dpr, cy * dpr, radius * dpr);
+
+    if (planetActiveSparks.length && performance.now() < planetSparkUntil) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius - 1, 0, Math.PI * 2);
+        ctx.clip();
+        for (const s of planetActiveSparks) drawSpiceSparkle(ctx, s.x, s.y, s.kind);
+        ctx.restore();
+    }
+
+    st.base = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
+}
+
+function startPlanetSpin() {
+    stopPlanetSpin();
+    const tick = () => {
+        if (!planetRenderState) return;
+        planetSpinAngle += 0.00027;
+        if (planetSpinAngle > Math.PI * 2) planetSpinAngle -= Math.PI * 2;
+        paintPlanetSurface();
+        planetSpinRaf = requestAnimationFrame(tick);
+    };
+    planetSpinRaf = requestAnimationFrame(tick);
+}
+
+function drawSpiceSparkle(ctx, x, y, kind = Math.floor(Math.random() * 4)) {
     ctx.imageSmoothingEnabled = false;
     const ix = Math.floor(x);
     const iy = Math.floor(y);
-    const kind = Math.floor(Math.random() * 4);
     const core = SPICE_SPARK_CORE[Math.floor(Math.random() * SPICE_SPARK_CORE.length)];
     const halo = SPICE_SPARK_HALO[Math.floor(Math.random() * SPICE_SPARK_HALO.length)];
 
     if (kind === 0) {
-        // Одна золотая крупица спайса
         ctx.fillStyle = halo;
         ctx.fillRect(ix, iy, 1, 1);
         ctx.fillStyle = core;
         ctx.fillRect(ix, iy, 1, 1);
     } else if (kind === 1) {
-        // Искра-крест
         ctx.fillStyle = halo;
         ctx.fillRect(ix - 1, iy, 3, 1);
         ctx.fillRect(ix, iy - 1, 1, 3);
@@ -1371,7 +1413,6 @@ function drawSpiceSparkle(ctx, x, y) {
         if (Math.random() > 0.4) ctx.fillRect(ix - 1, iy, 1, 1);
         if (Math.random() > 0.4) ctx.fillRect(ix + 1, iy, 1, 1);
     } else if (kind === 2) {
-        // Кристалл 2×2 px
         ctx.fillStyle = halo;
         ctx.fillRect(ix, iy, 2, 2);
         ctx.fillStyle = core;
@@ -1380,7 +1421,6 @@ function drawSpiceSparkle(ctx, x, y) {
         ctx.fillRect(ix + 1, iy, 1, 1);
         ctx.fillRect(ix, iy + 1, 1, 1);
     } else {
-        // Диагональная искра (блик с космоса)
         ctx.fillStyle = halo;
         ctx.fillRect(ix - 1, iy - 1, 1, 1);
         ctx.fillRect(ix + 1, iy + 1, 1, 1);
@@ -1394,13 +1434,25 @@ function drawSpiceSparkle(ctx, x, y) {
     ctx.imageSmoothingEnabled = true;
 }
 
-function paintSpiceTwinkle(ctx, cx, cy, radius) {
-    const count = 8 + Math.floor(Math.random() * 12);
+function makeSpiceSparkPoints(cx, cy, radius, count) {
+    const pts = [];
     for (let i = 0; i < count; i++) {
         const angle = Math.random() * Math.PI * 2;
         const dist = Math.random() * (radius - 8) * 0.92;
-        drawSpiceSparkle(ctx, cx + Math.cos(angle) * dist, cy + Math.sin(angle) * dist);
+        pts.push({
+            x: cx + Math.cos(angle) * dist,
+            y: cy + Math.sin(angle) * dist,
+            kind: Math.floor(Math.random() * 4),
+        });
     }
+    return pts;
+}
+
+function triggerSpiceTwinkle(count) {
+    if (!planetRenderState) return;
+    const { cx, cy, radius } = planetRenderState;
+    planetActiveSparks = makeSpiceSparkPoints(cx, cy, radius, count);
+    planetSparkUntil = performance.now() + PLANET_SPARK_MS;
 }
 
 function startPlanetFlashes() {
@@ -1408,43 +1460,13 @@ function startPlanetFlashes() {
     if (planetSparkTimer) clearInterval(planetSparkTimer);
     if (!planetRenderState) return;
 
-    const twinkle = () => {
-        const { base, ctx, cx, cy, radius } = planetRenderState;
-        ctx.putImageData(base, 0, 0);
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(cx, cy, radius - 1, 0, Math.PI * 2);
-        ctx.clip();
-        paintSpiceTwinkle(ctx, cx, cy, radius);
-        ctx.restore();
-        setTimeout(() => {
-            if (planetRenderState?.ctx === ctx) ctx.putImageData(base, 0, 0);
-        }, PLANET_SPARK_MS);
-    };
+    const twinkle = () => triggerSpiceTwinkle(8 + Math.floor(Math.random() * 12));
 
     twinkle();
     planetFlashTimer = setInterval(twinkle, PLANET_SPARK_INTERVAL);
-    // Редкие одиночные блики между волнами — спайс мерцает с орбиты
     planetSparkTimer = setInterval(() => {
         if (Math.random() > 0.55) return;
-        const { base, ctx, cx, cy, radius } = planetRenderState;
-        ctx.putImageData(base, 0, 0);
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(cx, cy, radius - 1, 0, Math.PI * 2);
-        ctx.clip();
-        const angle = Math.random() * Math.PI * 2;
-        const dist = Math.random() * (radius - 8) * 0.92;
-        drawSpiceSparkle(ctx, cx + Math.cos(angle) * dist, cy + Math.sin(angle) * dist);
-        if (Math.random() > 0.5) {
-            const a2 = Math.random() * Math.PI * 2;
-            const d2 = Math.random() * (radius - 8) * 0.92;
-            drawSpiceSparkle(ctx, cx + Math.cos(a2) * d2, cy + Math.sin(a2) * d2);
-        }
-        ctx.restore();
-        setTimeout(() => {
-            if (planetRenderState?.ctx === ctx) ctx.putImageData(base, 0, 0);
-        }, 280);
+        triggerSpiceTwinkle(1 + Math.floor(Math.random() * 2));
     }, 1100);
 }
 
@@ -1462,10 +1484,6 @@ function drawPlanet() {
         wrap.style.width = size + 'px';
         wrap.style.height = size + 'px';
 
-        const rotator = document.createElement('div');
-        rotator.className = 'planet-rotator';
-        wrap.appendChild(rotator);
-
         const cvs = document.createElement('canvas');
         cvs.width = Math.round(size * dpr);
         cvs.height = Math.round(size * dpr);
@@ -1473,7 +1491,6 @@ function drawPlanet() {
         cvs.style.height = size + 'px';
         cvs.className = 'planet-canvas';
         const ctx = cvs.getContext('2d');
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
 
@@ -1483,29 +1500,26 @@ function drawPlanet() {
         const imgX = (size - imgW) / 2;
         const imgY = (size - imgH) / 2;
 
-        ctx.fillStyle = '#301060';
-        ctx.fillRect(0, 0, size, size);
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(cx, cy, r, 0, Math.PI * 2);
-        ctx.clip();
-        ctx.drawImage(img, imgX, imgY, imgW, imgH);
-        ctx.restore();
-
-        sealCanvasOpaque(ctx, cx * dpr, cy * dpr, r * dpr);
-
-        rotator.appendChild(cvs);
+        wrap.appendChild(cvs);
 
         planetRenderState = {
-            base: ctx.getImageData(0, 0, cvs.width, cvs.height),
             ctx,
             cx,
             cy,
             radius: r,
+            size,
+            img,
+            imgX,
+            imgY,
+            imgW,
+            imgH,
+            dpr,
             displayW: size,
             displayH: size,
         };
+        planetSpinAngle = 0;
+        paintPlanetSurface();
+        startPlanetSpin();
         startPlanetFlashes();
     };
 
@@ -1617,6 +1631,7 @@ function switchTab(tab) {
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
 
     if (tab === 'mining') {
+        setGlobalStarsVisible(false);
         $('mining-screen').classList.add('active');
         hideOverlay();
         syncPanelHeights();
@@ -1633,6 +1648,8 @@ function switchTab(tab) {
             });
         });
     } else {
+        stopPlanetSpin();
+        setGlobalStarsVisible(true);
         $('mining-screen').classList.remove('active');
         $('overlay').classList.add('active');
         if (tab === 'hangar') { showWindow('hangar'); renderHangar(); }
@@ -1758,7 +1775,6 @@ function moveShip(wx, wy) {
 }
 
 function layoutMining() {
-    fillStars($('mining-stars'), 200);
     initMiningWorld();
     resetShipToOrbit();
     if (!mineObjects.length) generateMineObjects();
@@ -2201,7 +2217,10 @@ async function resetGame() {
     mineObjects = [];
     if (planetFlashTimer) { clearInterval(planetFlashTimer); planetFlashTimer = null; }
     if (planetSparkTimer) { clearInterval(planetSparkTimer); planetSparkTimer = null; }
+    stopPlanetSpin();
     planetRenderState = null;
+    planetActiveSparks = [];
+    planetSparkUntil = 0;
     $('mining-world')?.querySelectorAll('.mine-object, .mine-loot').forEach(el => el.remove());
     delete $('mining-world')?.dataset.planet;
 
