@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Space Dream v2.12.3</title>
+    <title>Space Dream v2.12.4</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -134,27 +134,28 @@
             z-index: 1;
             border-radius: 50%;
             overflow: hidden;
-            background: #0a0214;
+            background: transparent;
+        }
+        .planet-disc-bg {
+            position: absolute; inset: 0; border-radius: 50%; z-index: 0;
+            background: radial-gradient(circle at 38% 32%, #602090 0%, #381060 48%, #200840 100%);
         }
         .planet-rotator {
+            position: relative;
+            z-index: 1;
             width: 100%;
             height: 100%;
             border-radius: 50%;
             overflow: hidden;
             animation: planetSlowSpin 360s linear infinite;
         }
-        .planet-solid-bg {
-            position: absolute; inset: 0; border-radius: 50%; z-index: 0;
-            background: radial-gradient(circle at 34% 28%, #682898 0%, #3a1058 38%, #180828 72%, #060210 100%);
-        }
         .planet-wrap canvas { position: relative; z-index: 1; }
         .planet-canvas {
-            width: 100%; height: auto; display: block;
+            width: 100%; height: 100%; display: block;
             image-rendering: auto;
             filter:
-                drop-shadow(0 0 18px rgba(255, 100, 200, .65))
-                drop-shadow(0 0 36px rgba(100, 180, 255, .35))
-                drop-shadow(0 8px 28px rgba(0, 0, 0, .55));
+                drop-shadow(0 0 18px rgba(255, 100, 200, .55))
+                drop-shadow(0 0 32px rgba(100, 180, 255, .28));
         }
         .player-ship {
             position: absolute; z-index: 10; pointer-events: none;
@@ -425,7 +426,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.12.3';
+const VERSION = '2.12.4';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -1341,10 +1342,16 @@ function solidifyPlanetAlpha(ctx, cx, cy, r) {
     const r2 = r * r;
     for (let y = 0; y < h; y++) {
         for (let x = 0; x < w; x++) {
+            const i = (y * w + x) * 4;
             const dx = x - cx;
             const dy = y - cy;
-            if (dx * dx + dy * dy > r2) continue;
-            const i = (y * w + x) * 4;
+            if (dx * dx + dy * dy > r2) {
+                d[i] = 32;
+                d[i + 1] = 8;
+                d[i + 2] = 64;
+                d[i + 3] = 255;
+                continue;
+            }
             if (d[i + 3] >= 250) continue;
             const a = d[i + 3] / 255;
             d[i] = Math.round(d[i] * a + 58 * (1 - a));
@@ -1464,59 +1471,56 @@ function drawPlanet() {
     img.src = SHIP_IMG.planet;
 
     const build = () => {
-        const displayW = PLANET_DISPLAY_W;
-        const displayH = Math.round(displayW * (img.naturalHeight / img.naturalWidth));
+        const imgW = PLANET_DISPLAY_W;
+        const imgH = Math.round(imgW * (img.naturalHeight / img.naturalWidth));
+        const size = Math.max(imgW, imgH);
         const dpr = getPlanetDpr();
-        wrap.style.width = displayW + 'px';
-        wrap.style.height = displayH + 'px';
+        wrap.style.width = size + 'px';
+        wrap.style.height = size + 'px';
+
+        const discBg = document.createElement('div');
+        discBg.className = 'planet-disc-bg';
+        wrap.appendChild(discBg);
 
         const rotator = document.createElement('div');
         rotator.className = 'planet-rotator';
         wrap.appendChild(rotator);
 
-        const solidBg = document.createElement('div');
-        solidBg.className = 'planet-solid-bg';
-        rotator.appendChild(solidBg);
-
         const cvs = document.createElement('canvas');
-        cvs.width = Math.round(displayW * dpr);
-        cvs.height = Math.round(displayH * dpr);
-        cvs.style.width = displayW + 'px';
-        cvs.style.height = displayH + 'px';
+        cvs.width = Math.round(size * dpr);
+        cvs.height = Math.round(size * dpr);
+        cvs.style.width = size + 'px';
+        cvs.style.height = size + 'px';
         cvs.className = 'planet-canvas';
         const ctx = cvs.getContext('2d');
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
 
-        const cx = displayW / 2;
-        const cy = displayH / 2;
-        const r = Math.min(displayW, displayH) / 2;
+        const cx = size / 2;
+        const cy = size / 2;
+        const r = Math.min(imgW, imgH) / 2;
+        const imgX = (size - imgW) / 2;
+        const imgY = (size - imgH) / 2;
 
-        const core = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.32, r * 0.05, cx, cy, r);
-        core.addColorStop(0, '#6a2890');
-        core.addColorStop(0.4, '#3a1058');
-        core.addColorStop(0.78, '#180828');
-        core.addColorStop(1, '#060210');
-        ctx.fillStyle = core;
-        ctx.beginPath();
-        ctx.arc(cx, cy, r, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.fillStyle = '#200840';
+        ctx.fillRect(0, 0, size, size);
 
         ctx.save();
         ctx.beginPath();
-        ctx.arc(cx, cy, r - 0.5, 0, Math.PI * 2);
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
         ctx.clip();
-        ctx.drawImage(img, 0, 0, displayW, displayH);
+        ctx.drawImage(img, imgX, imgY, imgW, imgH);
 
         const shine = ctx.createRadialGradient(cx - r * 0.42, cy - r * 0.4, 0, cx - r * 0.1, cy - r * 0.1, r * 0.85);
-        shine.addColorStop(0, 'rgba(255, 240, 255, 0.18)');
-        shine.addColorStop(0.35, 'rgba(255, 180, 255, 0.05)');
+        shine.addColorStop(0, 'rgba(255, 240, 255, 0.14)');
+        shine.addColorStop(0.35, 'rgba(255, 180, 255, 0.04)');
         shine.addColorStop(1, 'rgba(255, 180, 255, 0)');
         ctx.fillStyle = shine;
-        ctx.fillRect(0, 0, displayW, displayH);
-        solidifyPlanetAlpha(ctx, cx * dpr, cy * dpr, r * dpr);
+        ctx.fillRect(0, 0, size, size);
         ctx.restore();
+
+        solidifyPlanetAlpha(ctx, cx * dpr, cy * dpr, r * dpr);
 
         rotator.appendChild(cvs);
 
@@ -1526,8 +1530,8 @@ function drawPlanet() {
             cx,
             cy,
             radius: r,
-            displayW,
-            displayH,
+            displayW: size,
+            displayH: size,
         };
         startPlanetFlashes();
     };
