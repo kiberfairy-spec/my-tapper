@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.14.3</title>
+    <title>Space Dream v2.14.4</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -60,19 +60,34 @@
             left: var(--game-inset-left);
             right: var(--game-inset-right);
             z-index: 100;
-            background: rgba(0, 0, 0, .9);
-            padding: 5px 6px 5px;
-            display: flex;
-            flex-direction: column;
-            gap: 0;
+            background: transparent;
+            padding: 0;
+            overflow: hidden;
             font-family: 'Rajdhani', 'Segoe UI', sans-serif;
             font-weight: 300;
+        }
+        .top-panel-stars {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background: radial-gradient(ellipse at 65% 75%, #0a1035 0%, #03020a 45%, #000 78%);
+        }
+        .top-panel-inner {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 5px 6px 5px;
         }
         .top-upper {
             display: flex;
             align-items: flex-start;
             gap: 6px;
             min-height: 38px;
+            background: rgba(0, 0, 0, 0.92);
+            margin: -5px -6px 0;
+            padding: 5px 6px 4px;
         }
 
         /* Блок игрока — слева: аватар + VIP / ник / lvl */
@@ -191,44 +206,44 @@
         .neon-blue   { --neon-color: #4da6ff; --neon-glow: rgba(77, 166, 255, 0.85); }
         .neon-green  { --neon-color: #45ff9a; --neon-glow: rgba(69, 255, 154, 0.85); }
 
-        @keyframes neonBurnout {
-            0%, 100% {
-                opacity: 1;
-                filter: brightness(1);
-                box-shadow: 0 0 5px var(--neon-glow), 0 0 12px var(--neon-glow), inset 0 0 10px rgba(255, 255, 255, 0.04);
-            }
-            3%  { opacity: 0.2; filter: brightness(0.15); box-shadow: none; text-shadow: none; }
-            5%  { opacity: 1;   filter: brightness(1.8); box-shadow: 0 0 16px var(--neon-glow), 0 0 28px var(--neon-glow); }
-            7%  { opacity: 0.1; filter: brightness(0.1); box-shadow: none; text-shadow: none; }
-            9%  { opacity: 0.85; filter: brightness(1.3); }
-            11% { opacity: 0.35; filter: brightness(0.25); box-shadow: 0 0 2px var(--neon-glow); }
-            13% { opacity: 1; filter: brightness(1); }
-            15%, 88% { opacity: 1; filter: brightness(1); }
-            91% { opacity: 0.45; filter: brightness(0.35); box-shadow: 0 0 2px var(--neon-glow); }
-            94% { opacity: 1; filter: brightness(1.5); box-shadow: 0 0 14px var(--neon-glow); }
+        @keyframes neonFlicker {
+            0%, 80%, 100% { opacity: 1; filter: brightness(1); }
+            82% { opacity: 0.1; filter: brightness(0.06); }
+            84% { opacity: 1; filter: brightness(2.2); }
+            86% { opacity: 0.08; filter: brightness(0.04); }
+            88% { opacity: 0.85; filter: brightness(1.5); }
+            90% { opacity: 1; filter: brightness(1); }
         }
-        .top-panel .resource-neon.neon-flicker { animation: neonBurnout 1.15s linear forwards; }
+        .top-panel .resource-neon {
+            animation: neonFlicker 12s ease-in-out infinite;
+        }
+        .resource-fuel    { animation-delay: 0s; }
+        .resource-credits { animation-delay: 3s; }
+        .resource-spice   { animation-delay: 6s; }
+        .resource-shards  { animation-delay: 9s; }
 
         /* Зелёная полоска-разделитель */
         .top-divider {
             height: 0;
             border: none;
             border-top: 1px solid var(--accent);
-            margin: 4px 0 5px;
+            margin: 4px 0 4px;
             box-shadow: 0 0 6px rgba(0, 170, 68, 0.35);
         }
 
-        /* Кнопки доната — под полоской, справа столбиком */
+        /* Кнопки доната — под полоской, справа столбиком, звёзды видны вокруг */
         .top-lower {
             display: flex;
             justify-content: flex-end;
             align-items: flex-start;
+            background: transparent;
+            padding-bottom: 3px;
         }
         .top-actions {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
-            gap: 4px;
+            gap: 3px;
         }
         .btn-action {
             --action-neon: #b80030;
@@ -253,7 +268,8 @@
             justify-content: center;
             border: 2px solid var(--action-neon);
             border-radius: 5px;
-            background:
+            background-color: #180008;
+            background-image:
                 linear-gradient(180deg, rgba(255, 120, 140, 0.12) 0%, transparent 40%),
                 linear-gradient(180deg, #5a001c 0%, #320010 52%, #180008 100%);
             box-shadow:
@@ -306,13 +322,13 @@
             left: var(--game-inset-left);
             right: var(--game-inset-right);
             z-index: 1; display: none; overflow: hidden;
-            background: #000;
+            background: radial-gradient(ellipse at 50% 40%, #0a1035 0%, #020208 55%, #000 100%);
         }
         .mining-screen.active { display: block; }
         .mining-stars {
             position: absolute; inset: 0;
             pointer-events: none; z-index: 0;
-            background: radial-gradient(ellipse at 50% 40%, #0a1035 0%, #000 70%);
+            background: radial-gradient(ellipse at 50% 40%, #0a1035 0%, #020208 55%, #000 100%);
         }
         .mining-viewport {
             position: relative; width: 100%; height: 100%;
@@ -327,6 +343,13 @@
             background: transparent;
             box-sizing: border-box;
             border: 1px solid rgba(0, 170, 68, .35);
+        }
+        .mining-world-bg {
+            position: absolute;
+            left: 0; top: 0;
+            z-index: 0;
+            pointer-events: none;
+            background: radial-gradient(ellipse at 50% 45%, #0a1035 0%, #03020a 50%, #000 100%);
         }
         .mining-tap { display: none; }
         .mining-hub {
@@ -506,6 +529,8 @@
 
 <!-- Верхняя панель -->
 <div class="top-panel hidden" id="top-panel">
+    <div class="top-panel-stars" id="top-panel-stars"></div>
+    <div class="top-panel-inner">
     <div class="top-upper">
         <div class="top-player">
             <div class="avatar" id="avatar">?</div>
@@ -530,6 +555,7 @@
             <button class="btn-action" data-open="checkin">📅<br>ЧЕКИН</button>
         </div>
     </div>
+    </div>
 </div>
 
 <!-- Экран добычи -->
@@ -537,6 +563,7 @@
     <div class="mining-stars" id="mining-stars"></div>
     <div class="mining-viewport" id="mining-viewport">
         <div class="mining-world" id="mining-world">
+            <div class="mining-world-bg" id="mining-world-bg"></div>
             <div class="mining-hub" id="mining-hub">
                 <div class="planet-wrap" id="planet-wrap"></div>
             </div>
@@ -622,7 +649,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.14.3';
+const VERSION = '2.14.4';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -1808,18 +1835,22 @@ function hideOverlay() {
 }
 
 function initTopNeonFlicker() {
-    if (window._neonFlickerTimer) clearInterval(window._neonFlickerTimer);
-    const flicker = () => {
-        const items = [...document.querySelectorAll('#top-panel .resource-neon')];
-        if (!items.length) return;
-        items.forEach(el => el.classList.remove('neon-flicker'));
-        const el = items[Math.floor(Math.random() * items.length)];
-        void el.offsetWidth;
-        el.classList.add('neon-flicker');
-        setTimeout(() => el.classList.remove('neon-flicker'), 1200);
-    };
-    setTimeout(flicker, 2000);
-    window._neonFlickerTimer = setInterval(flicker, 8000);
+    /* моргание ресурсов — через CSS animation на .resource-neon */
+}
+
+function ensureTopPanelStars() {
+    const el = $('top-panel-stars');
+    if (el && !el.dataset.done) fillStars(el, 55);
+}
+
+function ensureMiningWorldStars() {
+    const bg = $('mining-world-bg');
+    if (!bg) return;
+    bg.style.width = worldBounds.width + 'px';
+    bg.style.height = worldBounds.height + 'px';
+    if (bg.dataset.done) return;
+    const count = Math.min(650, Math.max(300, Math.round(worldBounds.width * worldBounds.height / 4200)));
+    fillStars(bg, count);
 }
 
 function showGameUI() {
@@ -1827,6 +1858,7 @@ function showGameUI() {
     $('bottom-nav').classList.remove('hidden');
     syncPanelHeights();
     applyGameInsets();
+    ensureTopPanelStars();
     initTopNeonFlicker();
 }
 
@@ -1976,6 +2008,7 @@ function initMiningWorld() {
     const world = $('mining-world');
     world.style.width = worldBounds.width + 'px';
     world.style.height = worldBounds.height + 'px';
+    ensureMiningWorldStars();
     const hub = $('mining-hub');
     hub.style.left = MAP_CENTER.x + 'px';
     hub.style.top = MAP_CENTER.y + 'px';
@@ -2047,6 +2080,7 @@ function onMiningResize() {
     if (world) {
         world.style.width = worldBounds.width + 'px';
         world.style.height = worldBounds.height + 'px';
+        ensureMiningWorldStars();
         $('mining-hub').style.left = MAP_CENTER.x + 'px';
         $('mining-hub').style.top = MAP_CENTER.y + 'px';
         const laser = $('laser-layer');
