@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Space Dream v2.11.2</title>
+    <title>Space Dream v2.11.3</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -145,11 +145,6 @@
                 drop-shadow(0 0 18px rgba(255, 100, 200, .65))
                 drop-shadow(0 0 36px rgba(100, 180, 255, .35))
                 drop-shadow(0 8px 28px rgba(0, 0, 0, .55));
-        }
-        .planet-flash-layer {
-            position: absolute; inset: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 3;
-            mix-blend-mode: screen;
         }
         .player-ship {
             position: absolute; z-index: 10; pointer-events: none;
@@ -404,7 +399,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.11.2';
+const VERSION = '2.11.3';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -414,6 +409,7 @@ const PLANET_FLASH_MAX = 22;
 const PLANET_FLASH_MS = 900;
 const PLANET_FLASH_GOLDS = ['rgba(255, 215, 0, 0.95)', 'rgba(255, 196, 0, 0.92)', 'rgba(255, 230, 120, 0.95)'];
 let planetFlashTimer = null;
+let planetRenderState = null;
 const SAVE_KEY = 'space_dream_save';
 const DEV_FREE_FUEL = true; // временно: без ограничений топлива для тестов
 const SHIP_MOVE_SPEED = 85;
@@ -1297,56 +1293,55 @@ function solidifyPlanetAlpha(ctx, cx, cy, r) {
 
 function drawGoldenFlash(ctx, x, y, diameter) {
     const r = diameter / 2;
-    const glow = ctx.createRadialGradient(x, y, 0, x, y, r * 2.2);
-    glow.addColorStop(0, 'rgba(255, 255, 230, 1)');
-    glow.addColorStop(0.25, 'rgba(255, 230, 60, 0.98)');
-    glow.addColorStop(0.55, 'rgba(255, 180, 0, 0.75)');
-    glow.addColorStop(1, 'rgba(255, 140, 0, 0)');
+    ctx.globalCompositeOperation = 'source-over';
+    const glow = ctx.createRadialGradient(x, y, 0, x, y, r * 1.45);
+    glow.addColorStop(0, '#ffffd0');
+    glow.addColorStop(0.28, '#ffd700');
+    glow.addColorStop(0.62, '#ffb000');
+    glow.addColorStop(1, '#cc8800');
     ctx.fillStyle = glow;
     ctx.beginPath();
-    ctx.arc(x, y, r * 2.2, 0, Math.PI * 2);
+    ctx.arc(x, y, r * 1.45, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.strokeStyle = '#fffacd';
-    ctx.lineWidth = Math.max(2, diameter * 0.22);
+    ctx.strokeStyle = '#fff8c8';
+    ctx.lineWidth = Math.max(2, diameter * 0.2);
     ctx.beginPath();
-    ctx.arc(x, y, Math.max(2, r * 0.75), 0, Math.PI * 2);
+    ctx.arc(x, y, Math.max(2.5, r * 0.72), 0, Math.PI * 2);
     ctx.stroke();
 
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+    ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc(x, y, Math.max(1.5, r * 0.28), 0, Math.PI * 2);
+    ctx.arc(x, y, Math.max(1.5, r * 0.26), 0, Math.PI * 2);
     ctx.fill();
 }
 
-function startPlanetFlashes(wrap, displayW, displayH) {
+function startPlanetFlashes() {
     if (planetFlashTimer) clearInterval(planetFlashTimer);
-    const dpr = getPlanetDpr();
-    const flashCvs = document.createElement('canvas');
-    flashCvs.width = Math.round(displayW * dpr);
-    flashCvs.height = Math.round(displayH * dpr);
-    flashCvs.className = 'planet-flash-layer';
-    flashCvs.style.width = displayW + 'px';
-    flashCvs.style.height = displayH + 'px';
-    wrap.appendChild(flashCvs);
-    const ctx = flashCvs.getContext('2d');
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const cx = displayW / 2;
-    const cy = displayH / 2;
-    const radius = Math.min(displayW, displayH) / 2 - 10;
+    if (!planetRenderState) return;
 
     planetFlashTimer = setInterval(() => {
-        ctx.clearRect(0, 0, displayW, displayH);
+        const { base, ctx, cx, cy, radius, displayW, displayH } = planetRenderState;
+        ctx.putImageData(base, 0, 0);
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius - 1, 0, Math.PI * 2);
+        ctx.clip();
+
         const count = 2 + Math.floor(Math.random() * 3);
         for (let i = 0; i < count; i++) {
             const angle = Math.random() * Math.PI * 2;
-            const dist = Math.random() * radius * 0.92;
+            const dist = Math.random() * (radius - 12) * 0.9;
             const lx = cx + Math.cos(angle) * dist;
             const ly = cy + Math.sin(angle) * dist;
             const diameter = PLANET_FLASH_MIN + Math.floor(Math.random() * (PLANET_FLASH_MAX - PLANET_FLASH_MIN + 1));
             drawGoldenFlash(ctx, lx, ly, diameter);
         }
-        setTimeout(() => ctx.clearRect(0, 0, displayW, displayH), PLANET_FLASH_MS);
+        ctx.restore();
+
+        setTimeout(() => {
+            if (planetRenderState?.ctx === ctx) ctx.putImageData(base, 0, 0);
+        }, PLANET_FLASH_MS);
     }, 4000);
 }
 
@@ -1408,7 +1403,17 @@ function drawPlanet() {
         ctx.restore();
 
         wrap.appendChild(cvs);
-        startPlanetFlashes(wrap, displayW, displayH);
+
+        planetRenderState = {
+            base: ctx.getImageData(0, 0, cvs.width, cvs.height),
+            ctx,
+            cx,
+            cy,
+            radius: r,
+            displayW,
+            displayH,
+        };
+        startPlanetFlashes();
     };
 
     if (img.complete && img.naturalWidth) build();
@@ -2097,6 +2102,7 @@ async function resetGame() {
     returningToPlanet = false;
     mineObjects = [];
     if (planetFlashTimer) { clearInterval(planetFlashTimer); planetFlashTimer = null; }
+    planetRenderState = null;
     $('mining-world')?.querySelectorAll('.mine-object, .mine-loot').forEach(el => el.remove());
     delete $('mining-world')?.dataset.planet;
 
