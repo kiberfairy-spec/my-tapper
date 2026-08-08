@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Space Dream v2.9.9</title>
+    <title>Space Dream v2.10.0</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -113,20 +113,23 @@
         .mining-hub {
             position: absolute;
             transform: translate(-50%, -50%);
-            width: 600px; aspect-ratio: 1;
+            width: 300px; aspect-ratio: 1;
             pointer-events: none; z-index: 3;
         }
         .planet-glow {
-            position: absolute; inset: 5%; border-radius: 50%;
-            background: radial-gradient(circle, rgba(180,80,255,.35) 0%, transparent 70%);
+            position: absolute; inset: 2%; border-radius: 50%;
+            background: radial-gradient(circle, rgba(180,80,255,.45) 0%, rgba(120,40,180,.15) 45%, transparent 72%);
+            z-index: 0;
         }
         .planet-wrap {
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            width: 90%; animation: spin 60s linear infinite;
+            z-index: 1;
+            border-radius: 50%;
+            overflow: hidden;
         }
         .planet-wrap canvas { position: relative; z-index: 1; }
-        .planet-canvas { width: 100%; height: auto; image-rendering: pixelated; display: block; filter: drop-shadow(0 0 16px rgba(200,100,255,.5)); }
+        .planet-canvas { width: 100%; height: auto; image-rendering: pixelated; display: block; filter: drop-shadow(0 0 12px rgba(200,100,255,.55)) drop-shadow(0 4px 18px rgba(0,0,0,.65)); }
         .planet-flash-layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
         .player-ship {
             position: absolute; z-index: 10; pointer-events: none;
@@ -381,11 +384,12 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.9.9';
-const ORBIT_DIST = 150;
-const PLANET_SCALE = 1.5;
+const VERSION = '2.10.0';
+const ORBIT_DIST = 75;
+const PLANET_SCALE = 0.75;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
 const PLANET_DISPLAY_W = Math.round(360 * PLANET_SCALE);
+const PLANET_FLASH_GOLDS = ['rgba(255, 215, 0, 0.95)', 'rgba(255, 196, 0, 0.92)', 'rgba(255, 230, 120, 0.95)'];
 let planetFlashTimer = null;
 const SAVE_KEY = 'space_dream_save';
 const DEV_FREE_FUEL = true; // временно: без ограничений топлива для тестов
@@ -1263,7 +1267,7 @@ function startPlanetFlashes(wrap, displayW, displayH) {
             const ly = cy + Math.sin(angle) * dist;
             const diameter = 1 + Math.floor(Math.random() * 4);
             const r = diameter / 2;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.92)';
+            ctx.strokeStyle = PLANET_FLASH_GOLDS[Math.floor(Math.random() * PLANET_FLASH_GOLDS.length)];
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.arc(lx, ly, r, 0, Math.PI * 2);
@@ -1276,22 +1280,63 @@ function startPlanetFlashes(wrap, displayW, displayH) {
 function drawPlanet() {
     const wrap = document.getElementById('planet-wrap');
     wrap.innerHTML = '';
-    const img = document.createElement('img');
+    const img = new Image();
     img.src = SHIP_IMG.planet;
-    img.alt = 'Планета';
-    img.className = 'planet-canvas';
-    img.draggable = false;
-    wrap.style.width = PLANET_DISPLAY_W + 'px';
-    wrap.appendChild(img);
 
-    const setupFlashes = () => {
+    const build = () => {
         const displayW = PLANET_DISPLAY_W;
         const displayH = Math.round(displayW * (img.naturalHeight / img.naturalWidth));
+        wrap.style.width = displayW + 'px';
         wrap.style.height = displayH + 'px';
+
+        const cvs = document.createElement('canvas');
+        cvs.width = displayW;
+        cvs.height = displayH;
+        cvs.className = 'planet-canvas';
+        const ctx = cvs.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+
+        const cx = displayW / 2;
+        const cy = displayH / 2;
+        const r = Math.min(displayW, displayH) / 2;
+
+        // Непрозрачное ядро — фон космоса не просвечивает, объём за счёт градиента
+        const core = ctx.createRadialGradient(cx - r * 0.28, cy - r * 0.28, r * 0.08, cx, cy, r);
+        core.addColorStop(0, '#4a2060');
+        core.addColorStop(0.45, '#2a1040');
+        core.addColorStop(0.82, '#140820');
+        core.addColorStop(1, '#080410');
+        ctx.fillStyle = core;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.drawImage(img, 0, 0, displayW, displayH);
+
+        // Блик и затенение для объёма
+        const shine = ctx.createRadialGradient(cx - r * 0.38, cy - r * 0.38, 0, cx - r * 0.15, cy - r * 0.15, r * 0.75);
+        shine.addColorStop(0, 'rgba(255, 200, 255, 0.22)');
+        shine.addColorStop(1, 'rgba(255, 200, 255, 0)');
+        ctx.fillStyle = shine;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fill();
+
+        const shade = ctx.createRadialGradient(cx + r * 0.35, cy + r * 0.3, 0, cx, cy, r);
+        shade.addColorStop(0, 'rgba(0, 0, 0, 0.35)');
+        shade.addColorStop(0.55, 'rgba(0, 0, 0, 0.08)');
+        shade.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = shade;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fill();
+
+        wrap.appendChild(cvs);
         startPlanetFlashes(wrap, displayW, displayH);
     };
-    if (img.complete && img.naturalWidth) setupFlashes();
-    else img.onload = setupFlashes;
+
+    if (img.complete && img.naturalWidth) build();
+    else img.onload = build;
 }
 
 function renderPlayerShip() {
