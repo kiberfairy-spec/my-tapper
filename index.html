@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.14.5</title>
+    <title>Space Dream v2.15.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -72,7 +72,7 @@
             z-index: 1;
             display: flex;
             flex-direction: column;
-            padding: 5px 6px 5px;
+            padding: 5px 6px 0;
             pointer-events: none;
         }
         .top-upper {
@@ -218,27 +218,64 @@
         .resource-spice   { animation-delay: 6s; }
         .resource-shards  { animation-delay: 9s; }
 
-        /* Зелёная полоска-разделитель */
+        /* Зелёная полоска — нижняя граница HUD-бара */
         .top-divider {
             height: 0;
             border: none;
             border-top: 1px solid var(--accent);
-            margin: 4px 0 4px;
+            margin: 4px 0 0;
             box-shadow: 0 0 6px rgba(0, 170, 68, 0.35);
             background: transparent;
             pointer-events: none;
         }
 
-        /* Кнопки доната — под полоской, просвечивает звёздное небо игры */
-        .top-lower {
-            display: flex;
-            justify-content: flex-end;
-            align-items: flex-start;
+        /* ── Единое игровое поле ── */
+        .mining-screen {
+            position: fixed;
+            top: var(--game-inset-top);
+            bottom: calc(var(--game-inset-bottom) + var(--panel-bottom-h));
+            left: var(--game-inset-left);
+            right: var(--game-inset-right);
+            z-index: 1;
+            display: none;
+            overflow: hidden;
             background: transparent;
-            padding-bottom: 3px;
+        }
+        .mining-screen.active { display: block; }
+        /* Один звёздный слой на всё поле */
+        .mining-stars {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background: radial-gradient(ellipse at 50% 42%, #0a1035 0%, #03020a 50%, #000 100%);
+        }
+        .mining-viewport {
+            position: absolute;
+            top: var(--panel-top-h);
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1;
+            overflow: hidden;
+            touch-action: none;
+            cursor: crosshair;
+            background: transparent;
+        }
+        /* HUD-кнопки — зафиксированы на экране, часть игрового поля */
+        .mining-hud {
+            position: absolute;
+            top: var(--panel-top-h);
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 4;
             pointer-events: none;
         }
-        .top-actions {
+        .mining-hud-actions {
+            position: absolute;
+            top: 6px;
+            right: 6px;
             display: flex;
             flex-direction: column;
             align-items: flex-end;
@@ -314,46 +351,12 @@
             flex: 0.85;
         }
 
-        /* ── Экран добычи ── */
-        .mining-screen {
-            position: fixed;
-            top: var(--game-inset-top);
-            bottom: calc(var(--game-inset-bottom) + var(--panel-bottom-h));
-            left: var(--game-inset-left);
-            right: var(--game-inset-right);
-            z-index: 1; display: none; overflow: hidden;
-            background: transparent;
-        }
-        .mining-screen.active { display: block; }
-        .mining-stars {
-            position: absolute; inset: 0;
-            pointer-events: none; z-index: 0;
-            background: radial-gradient(ellipse at 50% 40%, #0a1035 0%, #020208 55%, #000 100%);
-        }
-        .mining-viewport {
-            position: absolute;
-            top: var(--panel-top-h);
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: 1;
-            overflow: hidden; touch-action: none;
-            cursor: crosshair;
-            background: transparent;
-        }
         .mining-world {
             position: absolute; left: 0; top: 0;
             will-change: transform;
             background: transparent;
             box-sizing: border-box;
             border: 1px solid rgba(0, 170, 68, .35);
-        }
-        .mining-world-bg {
-            position: absolute;
-            left: 0; top: 0;
-            z-index: 0;
-            pointer-events: none;
-            background: radial-gradient(ellipse at 50% 45%, #0a1035 0%, #03020a 50%, #000 100%);
         }
         .mining-tap { display: none; }
         .mining-hub {
@@ -551,22 +554,21 @@
         </div>
     </div>
     <hr class="top-divider">
-    <div class="top-lower">
-        <div class="top-actions">
+    </div>
+</div>
+
+<!-- Экран добычи — единое поле -->
+<div class="mining-screen" id="mining-screen">
+    <div class="mining-stars" id="mining-stars"></div>
+    <div class="mining-hud" id="mining-hud">
+        <div class="mining-hud-actions">
             <button class="btn-action" data-open="battlepass">🎫<br>БАТЛ-ПАСС</button>
             <button class="btn-action" data-open="boosts">⚡<br>УСИЛЕНИЯ</button>
             <button class="btn-action" data-open="checkin">📅<br>ЧЕКИН</button>
         </div>
     </div>
-    </div>
-</div>
-
-<!-- Экран добычи -->
-<div class="mining-screen" id="mining-screen">
-    <div class="mining-stars" id="mining-stars"></div>
     <div class="mining-viewport" id="mining-viewport">
         <div class="mining-world" id="mining-world">
-            <div class="mining-world-bg" id="mining-world-bg"></div>
             <div class="mining-hub" id="mining-hub">
                 <div class="planet-wrap" id="planet-wrap"></div>
             </div>
@@ -652,7 +654,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.14.5';
+const VERSION = '2.15.0';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -1841,16 +1843,6 @@ function initTopNeonFlicker() {
     /* моргание ресурсов — через CSS animation на .resource-neon */
 }
 
-function ensureMiningWorldStars() {
-    const bg = $('mining-world-bg');
-    if (!bg) return;
-    bg.style.width = worldBounds.width + 'px';
-    bg.style.height = worldBounds.height + 'px';
-    if (bg.dataset.done) return;
-    const count = Math.min(650, Math.max(300, Math.round(worldBounds.width * worldBounds.height / 4200)));
-    fillStars(bg, count);
-}
-
 function showGameUI() {
     $('top-panel').classList.remove('hidden');
     $('bottom-nav').classList.remove('hidden');
@@ -2005,7 +1997,6 @@ function initMiningWorld() {
     const world = $('mining-world');
     world.style.width = worldBounds.width + 'px';
     world.style.height = worldBounds.height + 'px';
-    ensureMiningWorldStars();
     const hub = $('mining-hub');
     hub.style.left = MAP_CENTER.x + 'px';
     hub.style.top = MAP_CENTER.y + 'px';
@@ -2061,7 +2052,12 @@ function moveShip(wx, wy) {
 }
 
 function layoutMining() {
-    fillStars($('mining-stars'), 220);
+    const starsEl = $('mining-stars');
+    if (starsEl) {
+        delete starsEl.dataset.done;
+        starsEl.innerHTML = '';
+    }
+    fillStars(starsEl, 280);
     initMiningWorld();
     resetShipToOrbit();
     if (!mineObjects.length) generateMineObjects();
@@ -2077,7 +2073,6 @@ function onMiningResize() {
     if (world) {
         world.style.width = worldBounds.width + 'px';
         world.style.height = worldBounds.height + 'px';
-        ensureMiningWorldStars();
         $('mining-hub').style.left = MAP_CENTER.x + 'px';
         $('mining-hub').style.top = MAP_CENTER.y + 'px';
         const laser = $('laser-layer');
