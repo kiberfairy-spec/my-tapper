@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Space Dream v2.9</title>
+    <title>Space Dream v2.9.1</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -131,7 +131,26 @@
             filter: drop-shadow(0 0 4px #40e8ff);
             animation: laserPulse .35s ease-in-out infinite alternate;
         }
+        .laser-beam.laser-blue {
+            stroke: #4488ff;
+            filter: drop-shadow(0 0 5px #4488ff);
+        }
+        .laser-beam.laser-red {
+            stroke: #ff3333;
+            filter: drop-shadow(0 0 5px #ff3333);
+        }
         @keyframes laserPulse { from { opacity: .55; stroke-width: 1.5; } to { opacity: 1; stroke-width: 2.5; } }
+        .sound-wave {
+            fill: none;
+            stroke: rgba(255, 255, 255, .92);
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            animation: soundWavePulse .55s ease-out infinite;
+        }
+        @keyframes soundWavePulse {
+            0% { opacity: .95; stroke-width: 3; }
+            100% { opacity: .12; stroke-width: 1; }
+        }
         .mine-object {
             position: absolute; z-index: 8; transform: translate(-50%, -50%);
             cursor: pointer; pointer-events: auto;
@@ -322,7 +341,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.9';
+const VERSION = '2.9.1';
 const SAVE_KEY = 'space_dream_save';
 const SHIP_MOVE_SPEED = 85;
 const SHIP_ROT_LERP = 0.22;
@@ -332,7 +351,7 @@ const FUEL_PER_FLIGHT = 10;
 const WORLD_PAD = 300;
 let worldBounds = { width: 960, height: 1160, centerX: 480, centerY: 580 };
 let MAP_CENTER = { x: 480, y: 580 };
-const MINE_STOP_DIST = 10;
+const MINE_STOP_DIST = 36;
 const MINE_LASER_MS = 3000;
 const MINE_PER_WAVE = 9;
 const MINE_KINDS = {
@@ -971,8 +990,10 @@ function lerpAngle(from, to, t) {
 
 function refreshWorldBounds() {
     const vp = $('mining-viewport');
-    const vw = Math.max(280, vp?.clientWidth || 360);
-    const vh = Math.max(400, vp?.clientHeight || 560);
+    if (!vp) return;
+    const rect = vp.getBoundingClientRect();
+    const vw = Math.max(280, rect.width || vp.clientWidth || 360);
+    const vh = Math.max(400, rect.height || vp.clientHeight || 560);
     worldBounds = {
         width: vw + WORLD_PAD * 2,
         height: vh + WORLD_PAD * 2,
@@ -1247,7 +1268,7 @@ function initMiningWorld() {
 }
 
 function getShipHome() {
-    return { x: MAP_CENTER.x + 90, y: MAP_CENTER.y + 40 };
+    return { x: MAP_CENTER.x, y: MAP_CENTER.y + 75 };
 }
 
 function clampWorld(x, y, margin = 28) {
@@ -1281,6 +1302,20 @@ function layoutMining() {
     if (!mineObjects.length) generateMineObjects();
 }
 
+function onMiningResize() {
+    if (currentTab !== 'mining') return;
+    refreshWorldBounds();
+    const world = $('mining-world');
+    if (world) {
+        world.style.width = worldBounds.width + 'px';
+        world.style.height = worldBounds.height + 'px';
+        $('mining-hub').style.left = MAP_CENTER.x + 'px';
+        $('mining-hub').style.top = MAP_CENTER.y + 'px';
+    }
+    setShipPos(shipPos.x, shipPos.y);
+    updateCamera();
+}
+
 function shuffleArr(arr) {
     const a = [...arr];
     for (let i = a.length - 1; i > 0; i--) {
@@ -1290,8 +1325,20 @@ function shuffleArr(arr) {
     return a;
 }
 
-function findMineAt(wx, wy, radius = 32) {
-    return mineObjects.find(o => Math.hypot(o.x - wx, o.y - wy) <= radius);
+function findMineAtScreen(sx, sy) {
+    const vp = $('mining-viewport');
+    if (!vp || !mineObjects.length) return null;
+    const rect = vp.getBoundingClientRect();
+    const isTouch = window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
+    const hitR = isTouch ? 52 : 36;
+    let best = null, bestD = hitR;
+    for (const o of mineObjects) {
+        const ox = rect.left + (o.x - camera.x);
+        const oy = rect.top + (o.y - camera.y);
+        const d = Math.hypot(sx - ox, sy - oy);
+        if (d < bestD) { best = o; bestD = d; }
+    }
+    return best;
 }
 
 function buildMineKinds() {
@@ -1376,18 +1423,19 @@ function rollLootForKind(kind) {
     return `Пират: +${spice} 💎 +${credits} 🪙`;
 }
 
-function fireLasersAt(obj, onDone) {
+function fireLasersAt(obj, onDone, color = 'blue') {
     const layer = $('laser-layer');
     layer.innerHTML = '';
     const nose = getShipNose();
     const offsets = [-4, 0, 4];
+    const cls = color === 'red' ? 'laser-beam laser-red' : 'laser-beam laser-blue';
 
     offsets.forEach(off => {
         const rad = (shipRotation - 90) * Math.PI / 180;
         const px = nose.x + Math.cos(rad + Math.PI / 2) * off;
         const py = nose.y + Math.sin(rad + Math.PI / 2) * off;
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('class', 'laser-beam');
+        line.setAttribute('class', cls);
         line.setAttribute('x1', px);
         line.setAttribute('y1', py);
         line.setAttribute('x2', obj.x);
@@ -1401,6 +1449,42 @@ function fireLasersAt(obj, onDone) {
     }, MINE_LASER_MS);
 }
 
+function fireSoundWavesAt(obj, onDone) {
+    const layer = $('laser-layer');
+    layer.innerHTML = '';
+    const nose = getShipNose();
+    const dx = obj.x - nose.x, dy = obj.y - nose.y;
+    const dist = Math.max(1, Math.hypot(dx, dy));
+    const nx = dx / dist, ny = dy / dist;
+    const px = -ny, py = nx;
+
+    for (let i = 0; i < 5; i++) {
+        const t = 0.12 + (i + 1) * 0.14;
+        const mx = nose.x + dx * t;
+        const my = nose.y + dy * t;
+        const bulge = 10 + i * 7;
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        const x1 = mx - px * bulge, y1 = my - py * bulge;
+        const x2 = mx + px * bulge, y2 = my + py * bulge;
+        const cx = mx + nx * 8, cy = my + ny * 8;
+        path.setAttribute('d', `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`);
+        path.setAttribute('class', 'sound-wave');
+        path.style.animationDelay = `${i * 0.18}s`;
+        layer.appendChild(path);
+    }
+
+    setTimeout(() => {
+        layer.innerHTML = '';
+        onDone();
+    }, MINE_LASER_MS);
+}
+
+function fireMineEffect(obj, onDone) {
+    if (obj.kind === 'meteor') fireSoundWavesAt(obj, onDone);
+    else if (obj.kind === 'wreck') fireLasersAt(obj, onDone, 'blue');
+    else fireLasersAt(obj, onDone, 'red');
+}
+
 function flyToMine(obj) {
     if (shipFlying || state.resources.fuel < FUEL_PER_FLIGHT) return;
     if (!mineObjects.includes(obj)) return;
@@ -1412,7 +1496,7 @@ function flyToMine(obj) {
 
     const target = approachPoint(obj.x, obj.y, MINE_STOP_DIST);
     flyShipTo(target.x, target.y, () => {
-        fireLasersAt(obj, () => {
+        fireMineEffect(obj, () => {
             const loot = rollLootForKind(obj.kind);
             showLoot(loot);
             state.exp += 12;
@@ -1439,25 +1523,39 @@ function initMiningTap() {
     if (tap.dataset.ready) return;
     tap.dataset.ready = '1';
     let lastTouch = 0;
+    let touchStart = null;
 
     const onTap = (cx, cy) => {
         if (!state.profileComplete || shipFlying) return;
-        const w = screenToWorld(cx, cy);
-        const hit = findMineAt(w.x, w.y);
+        const hit = findMineAtScreen(cx, cy);
         if (hit) { flyToMine(hit); return; }
+        const w = screenToWorld(cx, cy);
         moveShip(w.x, w.y);
     };
 
-    tap.addEventListener('touchstart', e => e.preventDefault(), { passive: false });
+    tap.addEventListener('touchstart', e => {
+        e.preventDefault();
+        const t = e.changedTouches[0] || e.touches[0];
+        if (!t) return;
+        touchStart = { x: t.clientX, y: t.clientY, time: Date.now() };
+    }, { passive: false });
+
     tap.addEventListener('touchend', e => {
         e.preventDefault();
         const t = e.changedTouches[0];
-        if (!t) return;
+        if (!t || !touchStart) return;
+        if (Date.now() - touchStart.time > 600) { touchStart = null; return; }
+        const dx = t.clientX - touchStart.x, dy = t.clientY - touchStart.y;
+        if (Math.hypot(dx, dy) > 22) { touchStart = null; return; }
         lastTouch = Date.now();
-        onTap(t.clientX, t.clientY);
+        onTap(touchStart.x, touchStart.y);
+        touchStart = null;
     }, { passive: false });
+
+    tap.addEventListener('touchcancel', () => { touchStart = null; });
+
     tap.addEventListener('click', e => {
-        if (Date.now() - lastTouch < 400) return;
+        if (Date.now() - lastTouch < 450) return;
         onTap(e.clientX, e.clientY);
     });
 }
@@ -1665,6 +1763,10 @@ function bindEvents() {
         if (document.visibilityState === 'hidden') Storage.save();
     });
     window.addEventListener('pagehide', () => Storage.save());
+    window.addEventListener('resize', onMiningResize);
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', onMiningResize);
+    }
 }
 
 async function boot() {
