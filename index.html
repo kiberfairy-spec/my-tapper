@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Space Dream v2.8</title>
+    <title>Space Dream v2.8.1</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -312,7 +312,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.8';
+const VERSION = '2.8.1';
 const SAVE_KEY = 'space_dream_save';
 const SHIP_MOVE_SPEED = 85; // px/s — полёт по карте
 const SHIP_ROT_LERP = 0.22;
@@ -873,17 +873,34 @@ const Storage = {
         return new Promise(resolve => {
             const cloud = window.Telegram?.WebApp?.CloudStorage;
             if (!cloud) return resolve(null);
+            let settled = false;
+            const finish = val => {
+                if (settled) return;
+                settled = true;
+                resolve(val);
+            };
+            setTimeout(() => finish(null), 2500);
             cloud.getItem(SAVE_KEY, (err, val) => {
-                if (err || !val) return resolve(null);
-                try { resolve({ ...defaultState(), ...JSON.parse(val) }); }
-                catch(e) { resolve(null); }
+                if (err || !val) return finish(null);
+                try { finish({ ...defaultState(), ...JSON.parse(val) }); }
+                catch(e) { finish(null); }
             });
         });
     },
 
+    pickBestSave(local, cloud) {
+        if (!cloud) return local;
+        if (!local?.playerName && !local?.profileComplete) return cloud;
+        if (!cloud.playerName && !cloud.profileComplete) return local;
+        if (local.profileComplete && !cloud.profileComplete) return local;
+        if (cloud.profileComplete && !local.profileComplete) return cloud;
+        return cloud.playerName ? cloud : local;
+    },
+
     async load() {
+        const local = this.loadLocal();
         const cloud = await this.loadCloud();
-        state = cloud || this.loadLocal();
+        state = this.pickBestSave(local, cloud);
         if (!state.profileComplete && state.playerName && state.factionId !== null && state.shipIndex !== null) {
             state.profileComplete = true;
         }
@@ -1177,13 +1194,6 @@ function shuffleArr(arr) {
 
 function findMineAt(wx, wy, radius = 32) {
     return mineObjects.find(o => Math.hypot(o.x - wx, o.y - wy) <= radius);
-}
-    const a = [...arr];
-    for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
 }
 
 function generateMineObjects() {
