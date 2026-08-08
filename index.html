@@ -4,10 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Space Dream v2.13.0</title>
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Space Dream v2.13.1</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
         :root {
             --bg: #000;
@@ -70,21 +75,31 @@
         .pname { font-size: 11px; line-height: 1.3; font-weight: 400; letter-spacing: 0.04em; }
         .plevel { font-size: 9px; color: #9aa; font-weight: 300; }
 
-        .top-neon {
+        .top-panel .badge.top-neon,
+        .top-panel button.top-neon {
             --neon-color: #00e8ff;
-            --neon-glow: rgba(0, 232, 255, 0.8);
-            background: rgba(0, 0, 0, 0.78);
-            border: 1px solid var(--neon-color);
-            color: var(--neon-color);
-            font-family: 'Rajdhani', 'Segoe UI', sans-serif;
-            font-weight: 400;
-            letter-spacing: 0.07em;
+            --neon-glow: rgba(0, 232, 255, 0.95);
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(0, 0, 0, 0.88) !important;
+            border: 2px solid var(--neon-color) !important;
+            color: var(--neon-color) !important;
+            font-family: 'Rajdhani', 'Segoe UI', sans-serif !important;
+            font-weight: 500;
+            letter-spacing: 0.08em;
             text-transform: uppercase;
             box-shadow:
-                0 0 5px var(--neon-glow),
-                0 0 12px var(--neon-glow),
-                inset 0 0 10px rgba(255, 255, 255, 0.04);
-            text-shadow: 0 0 8px var(--neon-glow);
+                0 0 6px var(--neon-glow),
+                0 0 16px var(--neon-glow),
+                0 0 28px rgba(0, 232, 255, 0.35),
+                inset 0 0 12px rgba(255, 255, 255, 0.06);
+            text-shadow:
+                0 0 6px var(--neon-glow),
+                0 0 14px var(--neon-glow);
+        }
+        .top-panel button.top-neon:active {
+            filter: brightness(1.35);
+            transform: scale(0.97);
         }
         .neon-cyan   { --neon-color: #00e8ff; --neon-glow: rgba(0, 232, 255, 0.85); }
         .neon-magenta{ --neon-color: #ff2bd6; --neon-glow: rgba(255, 43, 214, 0.85); }
@@ -111,25 +126,27 @@
             91% { opacity: 0.45; filter: brightness(0.35); box-shadow: 0 0 2px var(--neon-glow); }
             94% { opacity: 1; filter: brightness(1.5); box-shadow: 0 0 14px var(--neon-glow); }
         }
-        .top-neon.neon-flicker { animation: neonBurnout 1.15s linear forwards; }
+        .top-panel .top-neon.neon-flicker { animation: neonBurnout 1.15s linear forwards; }
 
         .badge {
-            padding: 2px 6px;
-            font-size: 10px;
+            padding: 3px 7px;
+            font-size: 11px;
             white-space: nowrap;
-            border-radius: 1px;
+            border-radius: 2px;
         }
         .btn-xs {
-            font-size: 10px;
-            padding: 3px 7px;
+            font-size: 11px;
+            padding: 4px 8px;
             cursor: pointer;
-            border-radius: 1px;
+            border-radius: 2px;
+            line-height: 1.1;
         }
         .btn-reset {
-            font-size: 10px;
-            padding: 3px 8px;
+            font-size: 11px;
+            padding: 4px 9px;
             cursor: pointer;
-            border-radius: 1px;
+            border-radius: 2px;
+            line-height: 1.1;
         }
 
         /* ── Нижняя навигация ── */
@@ -467,7 +484,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.13.0';
+const VERSION = '2.13.1';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
