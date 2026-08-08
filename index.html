@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.15.0</title>
+    <title>Space Dream v2.15.1</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -202,21 +202,17 @@
         .neon-blue   { --neon-color: #4da6ff; --neon-glow: rgba(77, 166, 255, 0.85); }
         .neon-green  { --neon-color: #45ff9a; --neon-glow: rgba(69, 255, 154, 0.85); }
 
-        @keyframes neonFlicker {
-            0%, 80%, 100% { opacity: 1; filter: brightness(1); }
-            82% { opacity: 0.1; filter: brightness(0.06); }
-            84% { opacity: 1; filter: brightness(2.2); }
-            86% { opacity: 0.08; filter: brightness(0.04); }
-            88% { opacity: 0.85; filter: brightness(1.5); }
-            90% { opacity: 1; filter: brightness(1); }
+        @keyframes neonBurnout {
+            0%, 100% { opacity: 1; filter: brightness(1); }
+            4%  { opacity: 0.08; filter: brightness(0.04); }
+            7%  { opacity: 1; filter: brightness(2.4); }
+            10% { opacity: 0.06; filter: brightness(0.03); }
+            13% { opacity: 0.9; filter: brightness(1.4); }
+            16% { opacity: 1; filter: brightness(1); }
         }
-        .top-panel .resource-neon {
-            animation: neonFlicker 12s ease-in-out infinite;
+        .top-panel .resource-neon.neon-flicker {
+            animation: neonBurnout 1.1s linear forwards;
         }
-        .resource-fuel    { animation-delay: 0s; }
-        .resource-credits { animation-delay: 3s; }
-        .resource-spice   { animation-delay: 6s; }
-        .resource-shards  { animation-delay: 9s; }
 
         /* Зелёная полоска — нижняя граница HUD-бара */
         .top-divider {
@@ -242,14 +238,6 @@
             background: transparent;
         }
         .mining-screen.active { display: block; }
-        /* Один звёздный слой на всё поле */
-        .mining-stars {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            z-index: 0;
-            background: radial-gradient(ellipse at 50% 42%, #0a1035 0%, #03020a 50%, #000 100%);
-        }
         .mining-viewport {
             position: absolute;
             top: var(--panel-top-h);
@@ -559,7 +547,6 @@
 
 <!-- Экран добычи — единое поле -->
 <div class="mining-screen" id="mining-screen">
-    <div class="mining-stars" id="mining-stars"></div>
     <div class="mining-hud" id="mining-hud">
         <div class="mining-hud-actions">
             <button class="btn-action" data-open="battlepass">🎫<br>БАТЛ-ПАСС</button>
@@ -654,7 +641,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.15.0';
+const VERSION = '2.15.1';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -1613,11 +1600,6 @@ function sealCanvasOpaque(ctx, cx, cy, r) {
     ctx.putImageData(img, 0, 0);
 }
 
-function setGlobalStarsVisible(show) {
-    const g = $('stars-global');
-    if (g) g.style.visibility = show ? 'visible' : 'hidden';
-}
-
 function stopPlanetSpin() {
     if (planetSpinRaf) cancelAnimationFrame(planetSpinRaf);
     planetSpinRaf = null;
@@ -1840,7 +1822,18 @@ function hideOverlay() {
 }
 
 function initTopNeonFlicker() {
-    /* моргание ресурсов — через CSS animation на .resource-neon */
+    if (window._neonFlickerTimer) clearInterval(window._neonFlickerTimer);
+    const flickerOne = () => {
+        const items = [...document.querySelectorAll('#top-panel .resource-neon')];
+        if (!items.length) return;
+        items.forEach(el => el.classList.remove('neon-flicker'));
+        const el = items[Math.floor(Math.random() * items.length)];
+        void el.offsetWidth;
+        el.classList.add('neon-flicker');
+        setTimeout(() => el.classList.remove('neon-flicker'), 1150);
+    };
+    setTimeout(flickerOne, 800);
+    window._neonFlickerTimer = setInterval(flickerOne, 2500 + Math.floor(Math.random() * 1500));
 }
 
 function showGameUI() {
@@ -1908,7 +1901,6 @@ function switchTab(tab) {
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
 
     if (tab === 'mining') {
-        setGlobalStarsVisible(false);
         $('mining-screen').classList.add('active');
         hideOverlay();
         syncPanelHeights();
@@ -1926,7 +1918,6 @@ function switchTab(tab) {
         });
     } else {
         stopPlanetSpin();
-        setGlobalStarsVisible(true);
         $('mining-screen').classList.remove('active');
         $('overlay').classList.add('active');
         if (tab === 'hangar') { showWindow('hangar'); renderHangar(); }
@@ -2052,12 +2043,6 @@ function moveShip(wx, wy) {
 }
 
 function layoutMining() {
-    const starsEl = $('mining-stars');
-    if (starsEl) {
-        delete starsEl.dataset.done;
-        starsEl.innerHTML = '';
-    }
-    fillStars(starsEl, 280);
     initMiningWorld();
     resetShipToOrbit();
     if (!mineObjects.length) generateMineObjects();
@@ -2595,7 +2580,7 @@ async function boot() {
     initTelegram();
     applyGameInsets();
     syncPanelHeights();
-    fillStars($('stars-global'), 300);
+    fillStars($('stars-global'), 380);
     initMiningTap();
     await Storage.load();
     bindEvents();
