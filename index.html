@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.14.1</title>
+    <title>Space Dream v2.14.2</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -70,8 +70,8 @@
         }
         .top-upper {
             display: flex;
-            align-items: center;
-            gap: 8px;
+            align-items: flex-start;
+            gap: 6px;
             min-height: 38px;
         }
 
@@ -81,7 +81,8 @@
             align-items: center;
             gap: 6px;
             flex-shrink: 0;
-            max-width: 32vw;
+            max-width: 28vw;
+            align-self: center;
         }
         .top-player .avatar {
             width: 34px;
@@ -106,26 +107,28 @@
             min-width: 0;
         }
         .player-vip {
-            font-size: 8px;
+            font-size: 10px;
             font-weight: 600;
-            letter-spacing: 0.06em;
+            letter-spacing: 0.07em;
             color: #ffd400;
             white-space: nowrap;
+            text-shadow: 0 0 6px rgba(255, 212, 0, 0.45);
         }
         .top-player .pname {
             font-size: 10px;
-            line-height: 1.15;
-            font-weight: 500;
-            letter-spacing: 0.04em;
+            line-height: 1.2;
+            font-weight: 300;
+            letter-spacing: 0.05em;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            color: #e8e8f0;
+            color: #dce2f0;
         }
         .top-player .plevel {
-            font-size: 8px;
-            color: #9aa;
-            font-weight: 300;
+            font-size: 10px;
+            color: #b8c4dc;
+            font-weight: 500;
+            letter-spacing: 0.06em;
         }
 
         /* Ресурсы — одна линия, спайс в центре и крупнее */
@@ -135,6 +138,8 @@
             grid-template-columns: 1fr auto auto auto auto 1fr;
             align-items: center;
             column-gap: 5px;
+            align-self: center;
+            min-width: 0;
         }
         .resource-fuel    { grid-column: 2; }
         .resource-credits { grid-column: 3; }
@@ -209,14 +214,15 @@
             box-shadow: 0 0 6px rgba(0, 170, 68, 0.35);
         }
 
-        /* Кнопки действий — под полоской, тёмно-красный неон */
+        /* Кнопки действий — справа сверху, столбиком */
         .top-actions {
             display: flex;
-            flex-direction: row;
-            justify-content: flex-end;
-            align-items: center;
-            gap: 5px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: stretch;
+            gap: 3px;
+            flex-shrink: 0;
+            margin-left: auto;
         }
         .btn-action {
             --action-neon: #a80028;
@@ -224,16 +230,15 @@
             -webkit-appearance: none;
             appearance: none;
             font-family: 'Rajdhani', 'Segoe UI', sans-serif;
-            font-size: 9px;
+            font-size: 8px;
             font-weight: 600;
-            letter-spacing: 0.07em;
+            letter-spacing: 0.06em;
             text-transform: uppercase;
             color: #ff8a96;
             cursor: pointer;
             padding: 4px 7px;
-            min-width: 0;
-            flex: 1 1 auto;
-            max-width: 34%;
+            min-width: 76px;
+            width: 100%;
             border: 2px solid var(--action-neon);
             border-radius: 3px;
             background: linear-gradient(180deg, #520018 0%, #2a000c 48%, #140006 100%);
@@ -502,13 +507,13 @@
             <div class="resource-neon neon-pink resource-spice">💎 <span id="ui-spice">0</span></div>
             <div class="resource-neon neon-green resource-shards">🧩 <span id="ui-shards">0</span></div>
         </div>
+        <div class="top-actions">
+            <button class="btn-action" data-open="battlepass">🎫 БАТЛ-ПАСС</button>
+            <button class="btn-action" data-open="boosts">⚡ УСИЛЕНИЯ</button>
+            <button class="btn-action" data-open="checkin">📅 ЧЕКИН</button>
+        </div>
     </div>
     <hr class="top-divider">
-    <div class="top-actions">
-        <button class="btn-action" data-open="battlepass">🎫 БАТЛ-ПАСС</button>
-        <button class="btn-action" data-open="boosts">⚡ УСИЛЕНИЯ</button>
-        <button class="btn-action" data-open="checkin">📅 ЧЕКИН</button>
-    </div>
 </div>
 
 <!-- Экран добычи -->
@@ -601,7 +606,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.14.1';
+const VERSION = '2.14.2';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
