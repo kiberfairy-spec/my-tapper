@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Space Dream v2.9.5</title>
+    <title>Space Dream v2.9.6</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -213,8 +213,23 @@
         #ship-list { flex-direction: column; gap: 12px; width: 100%; align-items: stretch; }
         .card.selected { border-color: #ffaa00; box-shadow: 0 0 12px rgba(255,170,0,.25); }
         .upgrade-row { display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--accent); padding: 4px; margin: 3px 0; font-size: 5px; }
+        .mine-loot {
+            position: absolute; z-index: 40;
+            transform: translate(-50%, -50%);
+            font-size: 8px; font-weight: 300; letter-spacing: 0.4px;
+            color: #ffe566;
+            text-shadow: 0 0 8px rgba(0,0,0,.95), 0 0 3px #000, 1px 1px 0 #000;
+            white-space: nowrap; pointer-events: none;
+            animation: mineLootFade 2.5s ease-out forwards;
+        }
+        @keyframes mineLootFade {
+            0% { opacity: 0; transform: translate(-50%, -40%) scale(0.9); }
+            12% { opacity: 1; transform: translate(-50%, -55%) scale(1); }
+            78% { opacity: 1; }
+            100% { opacity: 0; transform: translate(-50%, -75%) scale(1.02); }
+        }
         .loot-feed { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 200; pointer-events: none; display: flex; gap: 6px; flex-wrap: wrap; }
-        .loot { font-size: 5px; color: #ffcc00; background: rgba(0,0,0,.8); padding: 3px 6px; animation: fadeLoot 2.5s forwards; }
+        .loot { font-size: 6px; font-weight: 300; color: #ffcc00; background: rgba(0,0,0,.85); padding: 4px 8px; animation: fadeLoot 2.5s forwards; }
         @keyframes fadeLoot { 0% { opacity:0; transform:translateY(8px); } 15%,80% { opacity:1; transform:translateY(0); } 100% { opacity:0; transform:translateY(-8px); } }
 
         /* PvP */
@@ -343,7 +358,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.9.5';
+const VERSION = '2.9.6';
 const SAVE_KEY = 'space_dream_save';
 const DEV_FREE_FUEL = true; // временно: без ограничений топлива для тестов
 const SHIP_MOVE_SPEED = 85;
@@ -355,7 +370,7 @@ const WORLD_PAD = 300;
 let worldBounds = { width: 960, height: 1160, centerX: 480, centerY: 580 };
 let MAP_CENTER = { x: 480, y: 580 };
 const MINE_STOP_DIST = 46;
-const MINE_STOP_DIST_METEOR = MINE_STOP_DIST + 10;
+const MINE_STOP_DIST_METEOR = MINE_STOP_DIST + 20;
 const MINE_LASER_MS = 3000;
 const MINE_PER_WAVE = 9;
 const MINE_KINDS = {
@@ -875,6 +890,7 @@ let shipFlying = false;
 let camera = { x: 0, y: 0 };
 let mineObjects = [];
 let selectedBoost = null;
+let returningToPlanet = false;
 
 // ─── Хранилище ───────────────────────────────────────────────
 const Storage = {
@@ -1187,6 +1203,39 @@ function showLoot(text) {
     el.className = 'loot'; el.textContent = text;
     $('loot-feed').appendChild(el);
     setTimeout(() => el.remove(), 2500);
+}
+
+function showMineLoot(text, wx, wy) {
+    const world = $('mining-world');
+    if (!world) { showLoot(text); return; }
+    const el = document.createElement('div');
+    el.className = 'mine-loot';
+    el.textContent = text;
+    el.style.left = wx + 'px';
+    el.style.top = wy + 'px';
+    world.appendChild(el);
+    const laser = $('laser-layer');
+    if (laser) world.appendChild(laser);
+    setTimeout(() => el.remove(), 2500);
+}
+
+function flyToPlanetDock() {
+    if (returningToPlanet || shipFlying) return;
+    if (DEV_FREE_FUEL || state.resources.fuel >= FUEL_PER_FLIGHT) return;
+    returningToPlanet = true;
+    shipFlying = true;
+    const dock = getShipHome();
+    flyShipTo(dock.x, dock.y, () => {
+        returningToPlanet = false;
+        shipFlying = false;
+        showMineLoot('⛽ Нет топлива', MAP_CENTER.x, MAP_CENTER.y + 60);
+    });
+}
+
+function checkFuelAndReturn() {
+    if (!DEV_FREE_FUEL && state.resources.fuel < FUEL_PER_FLIGHT) {
+        flyToPlanetDock();
+    }
 }
 
 function switchTab(tab) {
@@ -1526,10 +1575,10 @@ function fireMineEffect(obj, onDone) {
 }
 
 function flyToMine(obj) {
-    if (shipFlying) return;
+    if (shipFlying || returningToPlanet) return;
     if (!mineObjects.includes(obj)) return;
     if (!DEV_FREE_FUEL && state.resources.fuel < FUEL_PER_FLIGHT) {
-        showLoot('Недостаточно топлива ⛽');
+        flyToPlanetDock();
         return;
     }
 
@@ -1540,16 +1589,17 @@ function flyToMine(obj) {
         updateHUD();
     }
 
+    const lootX = obj.x, lootY = obj.y;
     const target = approachPoint(obj.x, obj.y, getMineStopDist(obj.kind));
     flyShipTo(target.x, target.y, () => {
         fireMineEffect(obj, () => {
             const loot = rollLootForKind(obj.kind);
-            showLoot(loot);
+            showMineLoot(loot, lootX, lootY);
             state.exp += 12;
             if (state.exp >= state.level * 100) {
                 state.exp -= state.level * 100;
                 state.level++;
-                showLoot(`Уровень ${state.level}!`);
+                showMineLoot(`Уровень ${state.level}!`, lootX, lootY - 18);
             }
             obj.el.style.opacity = '0';
             mineObjects = mineObjects.filter(o => o !== obj);
@@ -1559,6 +1609,7 @@ function flyToMine(obj) {
                 if (mineObjects.length === 0) generateMineObjects();
                 Storage.save();
                 updateHUD();
+                checkFuelAndReturn();
             }, 300);
         });
     });
@@ -1749,8 +1800,9 @@ async function resetGame() {
     if (shipAnimFrame) cancelAnimationFrame(shipAnimFrame);
     shipAnimFrame = null;
     shipFlying = false;
+    returningToPlanet = false;
     mineObjects = [];
-    $('mining-world')?.querySelectorAll('.mine-object').forEach(el => el.remove());
+    $('mining-world')?.querySelectorAll('.mine-object, .mine-loot').forEach(el => el.remove());
     delete $('mining-world')?.dataset.planet;
 
     await Storage.saveAsync();
