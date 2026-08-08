@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Space Dream v2.11.1</title>
+    <title>Space Dream v2.11.2</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -131,6 +131,11 @@
             z-index: 1;
             border-radius: 50%;
             overflow: hidden;
+            background: #0a0214;
+        }
+        .planet-solid-bg {
+            position: absolute; inset: 0; border-radius: 50%; z-index: 0;
+            background: radial-gradient(circle at 34% 28%, #682898 0%, #3a1058 38%, #180828 72%, #060210 100%);
         }
         .planet-wrap canvas { position: relative; z-index: 1; }
         .planet-canvas {
@@ -141,7 +146,11 @@
                 drop-shadow(0 0 36px rgba(100, 180, 255, .35))
                 drop-shadow(0 8px 28px rgba(0, 0, 0, .55));
         }
-        .planet-flash-layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
+        .planet-flash-layer {
+            position: absolute; inset: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 3;
+            mix-blend-mode: screen;
+        }
         .player-ship {
             position: absolute; z-index: 10; pointer-events: none;
             transform: translate(-50%, -50%);
@@ -395,13 +404,14 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.11.1';
+const VERSION = '2.11.2';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
 const PLANET_DISPLAY_W = Math.round(360 * PLANET_SCALE);
-const PLANET_FLASH_MIN = 4;
-const PLANET_FLASH_MAX = 10;
+const PLANET_FLASH_MIN = 10;
+const PLANET_FLASH_MAX = 22;
+const PLANET_FLASH_MS = 900;
 const PLANET_FLASH_GOLDS = ['rgba(255, 215, 0, 0.95)', 'rgba(255, 196, 0, 0.92)', 'rgba(255, 230, 120, 0.95)'];
 let planetFlashTimer = null;
 const SAVE_KEY = 'space_dream_save';
@@ -1258,38 +1268,85 @@ function flyShipTo(x, y, onArrive) {
     ensureShipFlightLoop();
 }
 
+function getPlanetDpr() {
+    return Math.min(window.devicePixelRatio || 1, 2);
+}
+
+function solidifyPlanetAlpha(ctx, cx, cy, r) {
+    const w = ctx.canvas.width;
+    const h = ctx.canvas.height;
+    const img = ctx.getImageData(0, 0, w, h);
+    const d = img.data;
+    const r2 = r * r;
+    for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+            const dx = x - cx;
+            const dy = y - cy;
+            if (dx * dx + dy * dy > r2) continue;
+            const i = (y * w + x) * 4;
+            if (d[i + 3] >= 250) continue;
+            const a = d[i + 3] / 255;
+            d[i] = Math.round(d[i] * a + 58 * (1 - a));
+            d[i + 1] = Math.round(d[i + 1] * a + 12 * (1 - a));
+            d[i + 2] = Math.round(d[i + 2] * a + 88 * (1 - a));
+            d[i + 3] = 255;
+        }
+    }
+    ctx.putImageData(img, 0, 0);
+}
+
+function drawGoldenFlash(ctx, x, y, diameter) {
+    const r = diameter / 2;
+    const glow = ctx.createRadialGradient(x, y, 0, x, y, r * 2.2);
+    glow.addColorStop(0, 'rgba(255, 255, 230, 1)');
+    glow.addColorStop(0.25, 'rgba(255, 230, 60, 0.98)');
+    glow.addColorStop(0.55, 'rgba(255, 180, 0, 0.75)');
+    glow.addColorStop(1, 'rgba(255, 140, 0, 0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(x, y, r * 2.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#fffacd';
+    ctx.lineWidth = Math.max(2, diameter * 0.22);
+    ctx.beginPath();
+    ctx.arc(x, y, Math.max(2, r * 0.75), 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+    ctx.beginPath();
+    ctx.arc(x, y, Math.max(1.5, r * 0.28), 0, Math.PI * 2);
+    ctx.fill();
+}
+
 function startPlanetFlashes(wrap, displayW, displayH) {
     if (planetFlashTimer) clearInterval(planetFlashTimer);
+    const dpr = getPlanetDpr();
     const flashCvs = document.createElement('canvas');
-    flashCvs.width = displayW;
-    flashCvs.height = displayH;
+    flashCvs.width = Math.round(displayW * dpr);
+    flashCvs.height = Math.round(displayH * dpr);
     flashCvs.className = 'planet-flash-layer';
+    flashCvs.style.width = displayW + 'px';
+    flashCvs.style.height = displayH + 'px';
     wrap.appendChild(flashCvs);
     const ctx = flashCvs.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const cx = displayW / 2;
     const cy = displayH / 2;
-    const radius = Math.min(displayW, displayH) / 2 - 6;
+    const radius = Math.min(displayW, displayH) / 2 - 10;
 
     planetFlashTimer = setInterval(() => {
         ctx.clearRect(0, 0, displayW, displayH);
-        const count = 1 + Math.floor(Math.random() * 3);
+        const count = 2 + Math.floor(Math.random() * 3);
         for (let i = 0; i < count; i++) {
             const angle = Math.random() * Math.PI * 2;
-            const dist = Math.random() * radius;
+            const dist = Math.random() * radius * 0.92;
             const lx = cx + Math.cos(angle) * dist;
             const ly = cy + Math.sin(angle) * dist;
             const diameter = PLANET_FLASH_MIN + Math.floor(Math.random() * (PLANET_FLASH_MAX - PLANET_FLASH_MIN + 1));
-            const r = diameter / 2;
-            ctx.strokeStyle = PLANET_FLASH_GOLDS[Math.floor(Math.random() * PLANET_FLASH_GOLDS.length)];
-            ctx.lineWidth = Math.max(1.5, diameter * 0.35);
-            ctx.shadowColor = 'rgba(255, 215, 0, 0.95)';
-            ctx.shadowBlur = 4 + diameter * 1.2;
-            ctx.beginPath();
-            ctx.arc(lx, ly, r, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.shadowBlur = 0;
+            drawGoldenFlash(ctx, lx, ly, diameter);
         }
-        setTimeout(() => ctx.clearRect(0, 0, displayW, displayH), 400);
+        setTimeout(() => ctx.clearRect(0, 0, displayW, displayH), PLANET_FLASH_MS);
     }, 4000);
 }
 
@@ -1302,14 +1359,22 @@ function drawPlanet() {
     const build = () => {
         const displayW = PLANET_DISPLAY_W;
         const displayH = Math.round(displayW * (img.naturalHeight / img.naturalWidth));
+        const dpr = getPlanetDpr();
         wrap.style.width = displayW + 'px';
         wrap.style.height = displayH + 'px';
 
+        const solidBg = document.createElement('div');
+        solidBg.className = 'planet-solid-bg';
+        wrap.appendChild(solidBg);
+
         const cvs = document.createElement('canvas');
-        cvs.width = displayW;
-        cvs.height = displayH;
+        cvs.width = Math.round(displayW * dpr);
+        cvs.height = Math.round(displayH * dpr);
+        cvs.style.width = displayW + 'px';
+        cvs.style.height = displayH + 'px';
         cvs.className = 'planet-canvas';
         const ctx = cvs.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
 
@@ -1317,7 +1382,6 @@ function drawPlanet() {
         const cy = displayH / 2;
         const r = Math.min(displayW, displayH) / 2;
 
-        // Непрозрачное ядро под аниме-спрайтом — космос не просвечивает
         const core = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.32, r * 0.05, cx, cy, r);
         core.addColorStop(0, '#6a2890');
         core.addColorStop(0.4, '#3a1058');
@@ -1334,13 +1398,13 @@ function drawPlanet() {
         ctx.clip();
         ctx.drawImage(img, 0, 0, displayW, displayH);
 
-        // Лёгкий аниме-блик
         const shine = ctx.createRadialGradient(cx - r * 0.42, cy - r * 0.4, 0, cx - r * 0.1, cy - r * 0.1, r * 0.85);
-        shine.addColorStop(0, 'rgba(255, 240, 255, 0.28)');
-        shine.addColorStop(0.35, 'rgba(255, 180, 255, 0.08)');
+        shine.addColorStop(0, 'rgba(255, 240, 255, 0.18)');
+        shine.addColorStop(0.35, 'rgba(255, 180, 255, 0.05)');
         shine.addColorStop(1, 'rgba(255, 180, 255, 0)');
         ctx.fillStyle = shine;
         ctx.fillRect(0, 0, displayW, displayH);
+        solidifyPlanetAlpha(ctx, cx * dpr, cy * dpr, r * dpr);
         ctx.restore();
 
         wrap.appendChild(cvs);
