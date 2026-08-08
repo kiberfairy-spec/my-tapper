@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Space Dream v2.9.6</title>
+    <title>Space Dream v2.9.7</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -108,6 +108,7 @@
             transform: translate(-50%, -50%);
             width: 90%; animation: spin 60s linear infinite;
         }
+        .planet-wrap canvas { position: relative; z-index: 1; }
         .planet-canvas { width: 100%; image-rendering: pixelated; display: block; filter: drop-shadow(0 0 16px rgba(200,100,255,.5)); }
         .player-ship {
             position: absolute; z-index: 10; pointer-events: none;
@@ -358,7 +359,11 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.9.6';
+const VERSION = '2.9.7';
+const ORBIT_DIST = 100;
+const PLANET_W = 72, PLANET_H = 44, PLANET_PS = 6;
+const PLANET_CX = 36, PLANET_CY = 22, PLANET_R = 18;
+let planetFlashTimer = null;
 const SAVE_KEY = 'space_dream_save';
 const DEV_FREE_FUEL = true; // временно: без ограничений топлива для тестов
 const SHIP_MOVE_SPEED = 85;
@@ -1015,7 +1020,7 @@ function refreshWorldBounds() {
     const vw = Math.max(280, rect.width || vp.clientWidth || 360);
     const vh = Math.max(400, rect.height || vp.clientHeight || 560);
     // Идеальный квадрат: одинаковый запас WORLD_PAD во все стороны от viewport
-    const side = Math.max(vw, vh) + WORLD_PAD * 2;
+    const side = Math.round(Math.max(vw, vh) + WORLD_PAD * 2);
     worldBounds = {
         width: side,
         height: side,
@@ -1038,13 +1043,22 @@ function updateCamera() {
     const vp = $('mining-viewport');
     if (!vp) return;
     const { w: vw, h: vh } = getViewportSize();
-    let cx = shipPos.x - vw / 2;
-    let cy = shipPos.y - vh / 2;
+    // Камера на планете — симметричный обзор; сдвигается, если корабль у края экрана
+    let cx = MAP_CENTER.x - vw / 2;
+    let cy = MAP_CENTER.y - vh / 2;
+    const sx = shipPos.x - cx;
+    const sy = shipPos.y - cy;
+    const padX = vw * 0.3;
+    const padY = vh * 0.3;
+    if (sx < padX) cx = shipPos.x - padX;
+    else if (sx > vw - padX) cx = shipPos.x - (vw - padX);
+    if (sy < padY) cy = shipPos.y - padY;
+    else if (sy > vh - padY) cy = shipPos.y - (vh - padY);
     cx = Math.max(0, Math.min(worldBounds.width - vw, cx));
     cy = Math.max(0, Math.min(worldBounds.height - vh, cy));
     camera.x = cx;
     camera.y = cy;
-    $('mining-world').style.transform = `translate(${-cx}px, ${-cy}px)`;
+    $('mining-world').style.transform = `translate(${-Math.round(cx)}px, ${-Math.round(cy)}px)`;
 }
 
 function updateShipVisual() {
@@ -1124,26 +1138,50 @@ function flyShipTo(x, y, onArrive) {
     ensureShipFlightLoop();
 }
 
-function drawPlanet() {
-    const wrap = document.getElementById('planet-wrap');
-    wrap.innerHTML = '';
-    const W = 72, H = 44, ps = 6;
-    const cvs = document.createElement('canvas');
-    cvs.width = W * ps; cvs.height = H * ps;
-    cvs.className = 'planet-canvas';
-    const ctx = cvs.getContext('2d');
-    ctx.imageSmoothingEnabled = false;
+function drawPlanetPixels(ctx) {
     const colors = { 2:'#b094fa', 3:'#f25cf2', 4:'#ff9eff' };
-    const cx = 36, cy = 22, r = 18;
-    for (let y = 0; y < H; y++) {
-        for (let x = 0; x < W; x++) {
-            if ((x-cx)**2 + (y-cy)**2 <= r*r) {
-                ctx.fillStyle = colors[((y+x)%3===0)?3:2] || '#b094fa';
-                ctx.fillRect(x*ps, y*ps, ps, ps);
+    for (let y = 0; y < PLANET_H; y++) {
+        for (let x = 0; x < PLANET_W; x++) {
+            if ((x - PLANET_CX) ** 2 + (y - PLANET_CY) ** 2 <= PLANET_R * PLANET_R) {
+                ctx.fillStyle = colors[((y + x) % 3 === 0) ? 3 : 2] || '#b094fa';
+                ctx.fillRect(x * PLANET_PS, y * PLANET_PS, PLANET_PS, PLANET_PS);
             }
         }
     }
+}
+
+function startPlanetFlashes(cvs, ctx) {
+    if (planetFlashTimer) clearInterval(planetFlashTimer);
+    const base = ctx.getImageData(0, 0, cvs.width, cvs.height);
+    planetFlashTimer = setInterval(() => {
+        ctx.putImageData(base, 0, 0);
+        const angle = Math.random() * Math.PI * 2;
+        const dist = Math.random() * (PLANET_R - 3);
+        const lx = PLANET_CX + Math.cos(angle) * dist;
+        const ly = PLANET_CY + Math.sin(angle) * dist;
+        const diameter = 1 + Math.floor(Math.random() * 4);
+        const radius = diameter / 2;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.92)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc((lx + 0.5) * PLANET_PS, (ly + 0.5) * PLANET_PS, radius, 0, Math.PI * 2);
+        ctx.stroke();
+        setTimeout(() => ctx.putImageData(base, 0, 0), 400);
+    }, 4000);
+}
+
+function drawPlanet() {
+    const wrap = document.getElementById('planet-wrap');
+    wrap.innerHTML = '';
+    const cvs = document.createElement('canvas');
+    cvs.width = PLANET_W * PLANET_PS;
+    cvs.height = PLANET_H * PLANET_PS;
+    cvs.className = 'planet-canvas';
+    const ctx = cvs.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    drawPlanetPixels(ctx);
     wrap.appendChild(cvs);
+    startPlanetFlashes(cvs, ctx);
 }
 
 function renderPlayerShip() {
@@ -1332,8 +1370,21 @@ function initMiningWorld() {
     }
 }
 
+function getShipOrbit() {
+    return { x: MAP_CENTER.x, y: MAP_CENTER.y + ORBIT_DIST, rot: 0 };
+}
+
+function resetShipToOrbit() {
+    refreshWorldBounds();
+    const o = getShipOrbit();
+    shipPos = clampWorld(o.x, o.y);
+    shipRotation = o.rot;
+    shipTarget = null;
+    updateShipVisual();
+}
+
 function getShipHome() {
-    return { x: MAP_CENTER.x, y: MAP_CENTER.y + 120 };
+    return getShipOrbit();
 }
 
 function getMineStopDist(kind) {
@@ -1362,12 +1413,7 @@ function moveShip(wx, wy) {
 function layoutMining() {
     fillStars($('mining-stars'), 200);
     initMiningWorld();
-    if (!shipPos.x && !shipPos.y) {
-        const home = getShipHome();
-        setShipPos(home.x, home.y);
-    } else {
-        setShipPos(shipPos.x, shipPos.y);
-    }
+    resetShipToOrbit();
     if (!mineObjects.length) generateMineObjects();
 }
 
@@ -1388,8 +1434,7 @@ function onMiningResize() {
             world.appendChild(laser);
         }
     }
-    setShipPos(shipPos.x, shipPos.y);
-    updateCamera();
+    resetShipToOrbit();
 }
 
 function shuffleArr(arr) {
@@ -1802,6 +1847,7 @@ async function resetGame() {
     shipFlying = false;
     returningToPlanet = false;
     mineObjects = [];
+    if (planetFlashTimer) { clearInterval(planetFlashTimer); planetFlashTimer = null; }
     $('mining-world')?.querySelectorAll('.mine-object, .mine-loot').forEach(el => el.remove());
     delete $('mining-world')?.dataset.planet;
 
