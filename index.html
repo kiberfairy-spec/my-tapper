@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.14.4</title>
+    <title>Space Dream v2.14.5</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -62,16 +62,10 @@
             z-index: 100;
             background: transparent;
             padding: 0;
-            overflow: hidden;
+            overflow: visible;
+            pointer-events: none;
             font-family: 'Rajdhani', 'Segoe UI', sans-serif;
             font-weight: 300;
-        }
-        .top-panel-stars {
-            position: absolute;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
-            background: radial-gradient(ellipse at 65% 75%, #0a1035 0%, #03020a 45%, #000 78%);
         }
         .top-panel-inner {
             position: relative;
@@ -79,6 +73,7 @@
             display: flex;
             flex-direction: column;
             padding: 5px 6px 5px;
+            pointer-events: none;
         }
         .top-upper {
             display: flex;
@@ -88,6 +83,7 @@
             background: rgba(0, 0, 0, 0.92);
             margin: -5px -6px 0;
             padding: 5px 6px 4px;
+            pointer-events: auto;
         }
 
         /* Блок игрока — слева: аватар + VIP / ник / lvl */
@@ -229,21 +225,25 @@
             border-top: 1px solid var(--accent);
             margin: 4px 0 4px;
             box-shadow: 0 0 6px rgba(0, 170, 68, 0.35);
+            background: transparent;
+            pointer-events: none;
         }
 
-        /* Кнопки доната — под полоской, справа столбиком, звёзды видны вокруг */
+        /* Кнопки доната — под полоской, просвечивает звёздное небо игры */
         .top-lower {
             display: flex;
             justify-content: flex-end;
             align-items: flex-start;
             background: transparent;
             padding-bottom: 3px;
+            pointer-events: none;
         }
         .top-actions {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
             gap: 3px;
+            pointer-events: auto;
         }
         .btn-action {
             --action-neon: #b80030;
@@ -317,12 +317,12 @@
         /* ── Экран добычи ── */
         .mining-screen {
             position: fixed;
-            top: calc(var(--game-inset-top) + var(--panel-top-h));
+            top: var(--game-inset-top);
             bottom: calc(var(--game-inset-bottom) + var(--panel-bottom-h));
             left: var(--game-inset-left);
             right: var(--game-inset-right);
             z-index: 1; display: none; overflow: hidden;
-            background: radial-gradient(ellipse at 50% 40%, #0a1035 0%, #020208 55%, #000 100%);
+            background: transparent;
         }
         .mining-screen.active { display: block; }
         .mining-stars {
@@ -331,7 +331,11 @@
             background: radial-gradient(ellipse at 50% 40%, #0a1035 0%, #020208 55%, #000 100%);
         }
         .mining-viewport {
-            position: relative; width: 100%; height: 100%;
+            position: absolute;
+            top: var(--panel-top-h);
+            left: 0;
+            right: 0;
+            bottom: 0;
             z-index: 1;
             overflow: hidden; touch-action: none;
             cursor: crosshair;
@@ -529,7 +533,6 @@
 
 <!-- Верхняя панель -->
 <div class="top-panel hidden" id="top-panel">
-    <div class="top-panel-stars" id="top-panel-stars"></div>
     <div class="top-panel-inner">
     <div class="top-upper">
         <div class="top-player">
@@ -649,7 +652,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.14.4';
+const VERSION = '2.14.5';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -1838,11 +1841,6 @@ function initTopNeonFlicker() {
     /* моргание ресурсов — через CSS animation на .resource-neon */
 }
 
-function ensureTopPanelStars() {
-    const el = $('top-panel-stars');
-    if (el && !el.dataset.done) fillStars(el, 55);
-}
-
 function ensureMiningWorldStars() {
     const bg = $('mining-world-bg');
     if (!bg) return;
@@ -1858,7 +1856,6 @@ function showGameUI() {
     $('bottom-nav').classList.remove('hidden');
     syncPanelHeights();
     applyGameInsets();
-    ensureTopPanelStars();
     initTopNeonFlicker();
 }
 
