@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <title>Space Dream</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         * {
@@ -17,10 +19,13 @@
             font-family: 'Press Start 2P', monospace;
             user-select: none;
             -webkit-user-select: none;
+            -webkit-touch-callout: none;
             overflow: hidden;
             height: 100dvh;
             width: 100dvw;
             position: fixed;
+            padding-top: var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px));
+            padding-bottom: var(--tg-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
         }
         .stars-layer {
             position: fixed;
@@ -99,6 +104,8 @@
             inset: 0;
             z-index: 5;
             cursor: crosshair;
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
         }
         .bg-object {
             position: absolute;
@@ -1119,10 +1126,49 @@ function initMapTapControls() {
     if (!layer || layer.dataset.tapReady === '1') return;
     layer.dataset.tapReady = '1';
 
+    let lastTouchAt = 0;
+
+    layer.addEventListener('touchstart', (e) => {
+        // Нужно для стабильного touchend в Telegram WebView
+        if (e.cancelable) e.preventDefault();
+    }, { passive: false });
+
+    layer.addEventListener('touchend', (e) => {
+        const touch = e.changedTouches[0];
+        if (!touch) return;
+        if (e.cancelable) e.preventDefault();
+        lastTouchAt = Date.now();
+        handleMapTap(touch.clientX, touch.clientY);
+    }, { passive: false });
+
     layer.addEventListener('pointerup', (e) => {
+        if (e.pointerType === 'touch') return;
         if (e.pointerType === 'mouse' && e.button !== 0) return;
         handleMapTap(e.clientX, e.clientY);
     });
+
+    layer.addEventListener('click', (e) => {
+        if (Date.now() - lastTouchAt < 400) return;
+        handleMapTap(e.clientX, e.clientY);
+    });
+}
+
+function initTelegramApp() {
+    const tg = window.Telegram?.WebApp;
+    if (!tg) return false;
+
+    tg.ready();
+    tg.expand();
+    if (typeof tg.disableVerticalSwipes === 'function') tg.disableVerticalSwipes();
+    document.body.classList.add('telegram-app');
+    if (tg.setHeaderColor) tg.setHeaderColor('#000000');
+    if (tg.setBackgroundColor) tg.setBackgroundColor('#000000');
+
+    tg.onEvent('viewportChanged', () => {
+        if (mapLayoutReady) initMapLayout();
+    });
+
+    return true;
 }
 
 function showMapView() {
@@ -2042,6 +2088,7 @@ function devReset() {
 
 function init() {
     // createStars() уже вызван в начале скрипта
+    initTelegramApp();
     drawPlanet();
     initMapTapControls();
     if (state.faction && state.playerName && state.shipIndex !== null) {
