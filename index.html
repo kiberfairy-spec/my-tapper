@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Space Dream v1.2</title>
+    <title>Space Dream v1.3</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -915,26 +915,48 @@ const defaultState = {
     bpClaimedToday: false,
     boosts: [],
     exp: 0,
-    level: 1
+    level: 1,
+    profileComplete: false
 };
 
-function loadState() {
-    const s = JSON.parse(JSON.stringify(defaultState)); // глубокое копирование
+function mergeState(saved) {
+    const s = JSON.parse(JSON.stringify(defaultState));
+    if (!saved || typeof saved !== 'object') return s;
+    Object.assign(s, saved);
+    if (saved.resources) Object.assign(s.resources, saved.resources);
+    if (saved.upgrades) Object.assign(s.upgrades, saved.upgrades);
+    if (saved.artifact) Object.assign(s.artifact, saved.artifact);
+    if (Array.isArray(saved.leaderboard)) s.leaderboard = saved.leaderboard;
+    if (Array.isArray(saved.boosts)) s.boosts = saved.boosts;
+    if (saved.shipIndex !== null && saved.shipIndex !== undefined && saved.shipIndex !== '') {
+        const idx = parseInt(saved.shipIndex, 10);
+        s.shipIndex = isNaN(idx) ? null : idx;
+    }
+    return s;
+}
+
+function loadStateFromLocal() {
     try {
-        const saved = localStorage.getItem('sd_state');
-        if (saved) {
-            const parsed = JSON.parse(saved);
-            Object.assign(s, parsed);
-        }
-        // Дополнительная миграция для старых ключей, если нужно
+        const raw = localStorage.getItem('sd_state');
+        if (raw) return mergeState(JSON.parse(raw));
+    } catch (e) {
+        console.warn('Load sd_state error:', e);
+    }
+
+    const s = mergeState(null);
+    try {
         s.playerName = localStorage.getItem('sd_player_name') || s.playerName;
         s.faction = localStorage.getItem('sd_frac') || s.faction;
-        s.factionColor = localStorage.getItem('sd_color') || '#00aa44';
-        s.factionBonus = localStorage.getItem('sd_bonus') || null;
-        const shipIdx = parseInt(localStorage.getItem('sd_ship_index'));
-        s.shipIndex = isNaN(shipIdx) ? null : shipIdx;
+        s.factionColor = localStorage.getItem('sd_color') || s.factionColor;
+        s.factionBonus = localStorage.getItem('sd_bonus') || s.factionBonus;
+        const shipRaw = localStorage.getItem('sd_ship_index');
+        if (shipRaw !== null && shipRaw !== '') {
+            const shipIdx = parseInt(shipRaw, 10);
+            s.shipIndex = isNaN(shipIdx) ? null : shipIdx;
+        }
+        s.profileComplete = localStorage.getItem('sd_profile_complete') === 'true';
         s.resources.credits = parseInt(localStorage.getItem('sd_credits')) || s.resources.credits;
-        s.resources.fuel = parseInt(localStorage.getItem('sd_fuel')) || s.resources.fuel;
+        s.resources.fuel = parseInt(localStorage.getItem('sd_fuel')) ?? s.resources.fuel;
         s.resources.shieldParts = parseInt(localStorage.getItem('sd_shieldParts')) || s.resources.shieldParts;
         s.resources.weaponParts = parseInt(localStorage.getItem('sd_weaponParts')) || s.resources.weaponParts;
         s.resources.speedParts = parseInt(localStorage.getItem('sd_speedParts')) || s.resources.speedParts;
@@ -950,28 +972,68 @@ function loadState() {
         s.artifact.level = parseInt(localStorage.getItem('sd_artifact_level')) || s.artifact.level;
         s.vip = parseInt(localStorage.getItem('sd_vip')) || s.vip;
         s.pvpScore = parseInt(localStorage.getItem('sd_pvp_score')) || s.pvpScore;
-        s.leaderboard = JSON.parse(localStorage.getItem('sd_leaderboard')) || s.leaderboard;
-        s.freeRefuelUsed = localStorage.getItem('sd_free_refuel') === 'true' || s.freeRefuelUsed;
+        s.leaderboard = JSON.parse(localStorage.getItem('sd_leaderboard') || '[]');
+        s.freeRefuelUsed = localStorage.getItem('sd_free_refuel') === 'true';
         s.checkinDay = parseInt(localStorage.getItem('sd_checkin_day')) || s.checkinDay;
         s.checkinLastClaim = localStorage.getItem('sd_checkin_last') || s.checkinLastClaim;
-        s.checkinClaimedToday = localStorage.getItem('sd_checkin_today') === 'true' || s.checkinClaimedToday;
-        s.bpPaid = localStorage.getItem('sd_bp_paid') === 'true' || s.bpPaid;
+        s.checkinClaimedToday = localStorage.getItem('sd_checkin_today') === 'true';
+        s.bpPaid = localStorage.getItem('sd_bp_paid') === 'true';
         s.bpDay = parseInt(localStorage.getItem('sd_bp_day')) || s.bpDay;
         s.bpLastClaim = localStorage.getItem('sd_bp_last') || s.bpLastClaim;
-        s.bpClaimedToday = localStorage.getItem('sd_bp_today') === 'true' || s.bpClaimedToday;
-        s.boosts = JSON.parse(localStorage.getItem('sd_boosts')) || s.boosts;
+        s.bpClaimedToday = localStorage.getItem('sd_bp_today') === 'true';
+        s.boosts = JSON.parse(localStorage.getItem('sd_boosts') || '[]');
         s.exp = parseInt(localStorage.getItem('sd_exp')) || s.exp;
         s.level = parseInt(localStorage.getItem('sd_level')) || s.level;
-    } catch(e) { console.warn('Load state error:', e); }
+        if (!s.profileComplete && s.playerName && s.faction && s.shipIndex !== null) {
+            s.profileComplete = true;
+        }
+    } catch (e) {
+        console.warn('Load legacy state error:', e);
+    }
     return s;
 }
 
-let state = loadState();
+function loadStateFromCloud() {
+    return new Promise((resolve) => {
+        const cloud = window.Telegram?.WebApp?.CloudStorage;
+        if (!cloud) {
+            resolve(false);
+            return;
+        }
+        cloud.getItem('sd_state', (err, value) => {
+            if (err || !value) {
+                resolve(false);
+                return;
+            }
+            try {
+                state = mergeState(JSON.parse(value));
+                saveState();
+                resolve(true);
+            } catch (e) {
+                console.warn('Cloud state parse error:', e);
+                resolve(false);
+            }
+        });
+    });
+}
+
+let state = loadStateFromLocal();
+
+function isProfileComplete() {
+    return Boolean(
+        state.profileComplete &&
+        state.playerName &&
+        state.faction &&
+        state.shipIndex !== null &&
+        state.shipIndex !== undefined
+    );
+}
 
 function saveState() {
     const s = state;
-    localStorage.setItem('sd_state', JSON.stringify(s));
-    // Дополнительные ключи для совместимости
+    const payload = JSON.stringify(s);
+    localStorage.setItem('sd_state', payload);
+    localStorage.setItem('sd_profile_complete', s.profileComplete ? 'true' : 'false');
     localStorage.setItem('sd_player_name', s.playerName);
     localStorage.setItem('sd_frac', s.faction);
     localStorage.setItem('sd_color', s.factionColor);
@@ -1006,6 +1068,11 @@ function saveState() {
     localStorage.setItem('sd_boosts', JSON.stringify(s.boosts));
     localStorage.setItem('sd_exp', s.exp);
     localStorage.setItem('sd_level', s.level);
+
+    const cloud = window.Telegram?.WebApp?.CloudStorage;
+    if (cloud) {
+        cloud.setItem('sd_state', payload, () => {});
+    }
 }
 
 // ----------------------------------------------------------------------
@@ -2110,6 +2177,7 @@ function selectFaction(name, color, bonus) {
         card.appendChild(drawShipSprite(matrix, i===0?0.8:0.5));
         card.onclick = () => {
             state.shipIndex = i;
+            saveState();
             container.querySelectorAll('div').forEach(d => d.style.borderColor = '#00aa44');
             card.style.borderColor = '#ffaa00';
             document.getElementById('confirm-ship-btn').disabled = false;
@@ -2126,6 +2194,7 @@ function confirmShip() {
         return;
     }
     state.shipName = '';
+    state.profileComplete = true;
     saveState();
     showUI();
     showMapView();
@@ -2179,31 +2248,78 @@ function goBack() {
 
 function devReset() {
     if (confirm('СБРОСИТЬ ВЕСЬ ПРОГРЕСС?')) {
-        localStorage.clear();
-        location.reload();
+        const cloud = window.Telegram?.WebApp?.CloudStorage;
+        const finishReset = () => {
+            localStorage.clear();
+            location.reload();
+        };
+        if (cloud) {
+            cloud.removeItem('sd_state', finishReset);
+        } else {
+            finishReset();
+        }
     }
 }
 
-function init() {
-    // createStars() уже вызван в начале скрипта
-    initTelegramApp();
-    drawPlanet();
-    initMapTapControls();
-    if (state.faction && state.playerName && state.shipIndex !== null) {
+function resumeGame() {
+    if (isProfileComplete()) {
         showUI();
         showMapView();
         generateObjects();
         updateHangar();
         updateLeaderboard();
         updateTopPanel();
-    } else if (state.playerName) {
-        showWindow('faction');
-    } else {
-        showWindow('start');
+        startFuelRegeneration();
+        return;
     }
+    if (state.playerName && state.faction && state.shipIndex !== null) {
+        state.profileComplete = true;
+        saveState();
+        showUI();
+        showMapView();
+        generateObjects();
+        updateHangar();
+        updateLeaderboard();
+        updateTopPanel();
+        startFuelRegeneration();
+        return;
+    }
+    if (state.playerName && state.faction) {
+        selectFaction(state.faction, state.factionColor, state.factionBonus);
+        if (state.shipIndex !== null) {
+            document.getElementById('confirm-ship-btn').disabled = false;
+        }
+        return;
+    }
+    if (state.playerName) {
+        showWindow('faction');
+        return;
+    }
+    showWindow('start');
+}
+
+async function bootstrap() {
+    initTelegramApp();
+    drawPlanet();
+    initMapTapControls();
+
+    const cloudLoaded = await loadStateFromCloud();
+    if (!cloudLoaded) {
+        state = loadStateFromLocal();
+    }
+
+    resumeGame();
+}
+
+function init() {
+    bootstrap();
 }
 
 document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') saveState();
+});
+window.addEventListener('pagehide', saveState);
 window.addEventListener('resize', () => {
     if (document.getElementById('background-map').classList.contains('active')) {
         parkShipOnPlanet();
