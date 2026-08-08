@@ -73,6 +73,8 @@
             height: 100%;
             overflow: hidden;
             background: transparent;
+            pointer-events: all;
+            touch-action: manipulation;
         }
         .planet-container {
             position: absolute;
@@ -1009,21 +1011,92 @@ function getMapCenter() {
     return { x: bg.offsetWidth/2, y: bg.offsetHeight/2 };
 }
 
-function parkShipOnPlanet() {
+function getShipHomePosition() {
+    const center = getMapCenter();
+    return { x: center.x, y: center.y + 55 };
+}
+
+function ensurePlayerShip() {
     const docked = document.getElementById('player-docked');
-    if (!docked) return;
-    const planet = document.getElementById('planet-container');
-    const pr = planet.getBoundingClientRect();
-    const mr = document.getElementById('galaxy-bg').getBoundingClientRect();
-    const cx = pr.left - mr.left + pr.width/2;
-    const cy = pr.top - mr.top + pr.height/2;
-    const ship = window.createPlayerShip(0.35, 0);
-    docked.innerHTML = '';
-    docked.appendChild(ship);
-    docked.style.left = cx + 'px';
-    docked.style.top = (cy + 18) + 'px';
-    docked.style.transform = 'translate(-50%, -50%)';
+    if (!docked) return null;
+    if (!docked.firstChild) {
+        docked.innerHTML = '';
+        docked.appendChild(window.createPlayerShip(0.35, 0));
+    }
     docked.style.display = 'block';
+    return docked;
+}
+
+function setShipPosition(x, y, rotationDeg = null) {
+    shipPosition.x = x;
+    shipPosition.y = y;
+    const docked = ensurePlayerShip();
+    if (!docked) return;
+    docked.style.left = x + 'px';
+    docked.style.top = y + 'px';
+    const rotate = rotationDeg !== null ? ` rotate(${rotationDeg}deg)` : '';
+    docked.style.transform = `translate(-50%, -50%)${rotate}`;
+}
+
+function parkShipOnPlanet() {
+    const home = getShipHomePosition();
+    setShipPosition(home.x, home.y);
+}
+
+function moveShipTo(targetX, targetY) {
+    if (isShipFlying || isShipMoving) return;
+
+    const bg = document.getElementById('galaxy-bg');
+    const margin = 24;
+    const x = Math.max(margin, Math.min(bg.offsetWidth - margin, targetX));
+    const y = Math.max(margin, Math.min(bg.offsetHeight - margin, targetY));
+
+    const dx = x - shipPosition.x;
+    const dy = y - shipPosition.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist < 8) return;
+
+    const angleDeg = Math.atan2(dy, dx) * 180 / Math.PI;
+    const duration = Math.max(300, (dist / SHIP_MOVE_SPEED) * 1000);
+
+    isShipMoving = true;
+    const docked = ensurePlayerShip();
+    docked.style.transition = `left ${duration}ms linear, top ${duration}ms linear, transform ${duration}ms linear`;
+    setShipPosition(x, y, angleDeg);
+
+    if (shipMoveTimer) clearTimeout(shipMoveTimer);
+    shipMoveTimer = setTimeout(() => {
+        isShipMoving = false;
+        if (docked) docked.style.transition = '';
+    }, duration);
+}
+
+function handleMapTap(clientX, clientY) {
+    if (!state.faction || isShipFlying) return;
+    const bg = document.getElementById('galaxy-bg');
+    const rect = bg.getBoundingClientRect();
+    moveShipTo(clientX - rect.left, clientY - rect.top);
+}
+
+function initMapTapControls() {
+    const bg = document.getElementById('galaxy-bg');
+    if (!bg || bg.dataset.tapReady === '1') return;
+    bg.dataset.tapReady = '1';
+
+    let lastTouchTime = 0;
+    bg.addEventListener('touchend', (e) => {
+        if (e.target.closest('.bg-object')) return;
+        const touch = e.changedTouches[0];
+        if (!touch) return;
+        lastTouchTime = Date.now();
+        handleMapTap(touch.clientX, touch.clientY);
+    }, { passive: true });
+
+    bg.addEventListener('click', (e) => {
+        if (Date.now() - lastTouchTime < 400) return;
+        if (e.target.closest('.bg-object')) return;
+        handleMapTap(e.clientX, e.clientY);
+    });
 }
 
 // ----------------------------------------------------------------------
@@ -1032,6 +1105,10 @@ function parkShipOnPlanet() {
 
 let galaxyObjects = [];
 let isShipFlying = false;
+let isShipMoving = false;
+let shipMoveTimer = null;
+let shipPosition = { x: 0, y: 0 };
+const SHIP_MOVE_SPEED = 90;
 const FUEL_COST_PER_FLIGHT = 10;
 let fuelInterval = null; // для перезапуска интервала при изменении буста
 
@@ -1094,7 +1171,7 @@ function generateObjects() {
         else div.innerHTML = '🛸';
         div.onclick = (e) => {
             e.stopPropagation();
-            if (state.resources.fuel >= FUEL_COST_PER_FLIGHT && !isShipFlying && state.faction) {
+            if (state.resources.fuel >= FUEL_COST_PER_FLIGHT && !isShipFlying && !isShipMoving && state.faction) {
                 flyToObject(obj, div);
             }
         };
@@ -1177,10 +1254,9 @@ function flyToObject(obj, element) {
     saveState();
     updateTopPanel();
 
-    const docked = document.getElementById('player-docked');
-    const startX = parseFloat(docked.style.left) || getMapCenter().x;
-    const startY = parseFloat(docked.style.top) || getMapCenter().y;
-    docked.style.display = 'none';
+    const startX = shipPosition.x;
+    const startY = shipPosition.y;
+    document.getElementById('player-docked').style.display = 'none';
     const bg = document.getElementById('galaxy-bg');
     const shipEl = window.createPlayerShip(0.3, 0);
     shipEl.style.position = 'absolute';
@@ -1214,7 +1290,7 @@ function flyToObject(obj, element) {
             shipEl.remove();
             galaxyObjects = galaxyObjects.filter(o => o !== obj);
             isShipFlying = false;
-            parkShipOnPlanet();
+            setShipPosition(startX, startY);
             if (document.querySelectorAll('.bg-object').length === 0) generateObjects();
         }, 5000);
     }, 5000);
@@ -1859,6 +1935,7 @@ function confirmShip() {
     document.getElementById('planet-container').style.left = center.x + 'px';
     document.getElementById('planet-container').style.top = center.y + 'px';
     parkShipOnPlanet();
+    initMapTapControls();
     generateObjects();
     updateHangar();
     updateLeaderboard();
@@ -1871,7 +1948,8 @@ function switchTab(tab) {
         // Показываем карту
         document.getElementById('content-overlay').style.display = 'none';
         document.querySelectorAll('.bg-object').forEach(o => o.style.display = 'block');
-        parkShipOnPlanet();
+        ensurePlayerShip();
+        setShipPosition(shipPosition.x, shipPosition.y);
     } else {
         document.getElementById('content-overlay').style.display = 'flex';
         document.querySelectorAll('.bg-object').forEach(o => o.style.display = 'none');
@@ -1924,6 +2002,7 @@ function init() {
         document.getElementById('planet-container').style.left = center.x + 'px';
         document.getElementById('planet-container').style.top = center.y + 'px';
         parkShipOnPlanet();
+        initMapTapControls();
         generateObjects();
         updateHangar();
         updateLeaderboard();
