@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Space Dream v2.2</title>
+    <title>Space Dream v2.3</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -130,9 +130,18 @@
         .btn-sm { width: auto; padding: 3px 6px; font-size: 4px; }
         .hidden { display: none !important; }
         .row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
-        .card { border: 2px solid var(--accent); padding: 6px; text-align: center; cursor: pointer; font-size: 5px; min-width: 90px; min-height: 110px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
-        .ship-name { font-size: 4px; color: var(--gold); margin-bottom: 6px; }
-        .card.selected { border-color: #ffaa00; }
+        .card { border: 2px solid var(--accent); padding: 8px; text-align: center; cursor: pointer; font-size: 5px; width: 100%; display: flex; flex-direction: column; align-items: center; }
+        .ship-name { font-size: 6px; color: var(--gold); margin-bottom: 4px; }
+        .ship-desc { font-size: 4px; color: #888; margin-bottom: 8px; line-height: 1.6; }
+        .ship-preview {
+            width: 100%; min-height: 200px; display: flex; align-items: center; justify-content: center;
+            background: radial-gradient(ellipse at 50% 50%, rgba(20,24,48,.9) 0%, transparent 72%);
+            border: 1px solid rgba(0,170,68,.25); border-radius: 4px; padding: 10px 4px;
+        }
+        .ship-preview canvas { image-rendering: pixelated; image-rendering: crisp-edges; max-width: 100%; height: auto; }
+        #win-ship { max-width: 360px; max-height: 78vh; }
+        #ship-list { flex-direction: column; gap: 12px; width: 100%; align-items: stretch; }
+        .card.selected { border-color: #ffaa00; box-shadow: 0 0 12px rgba(255,170,0,.25); }
         .upgrade-row { display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--accent); padding: 4px; margin: 3px 0; font-size: 5px; }
         .loot-feed { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 200; pointer-events: none; display: flex; gap: 6px; flex-wrap: wrap; }
         .loot { font-size: 5px; color: #ffcc00; background: rgba(0,0,0,.8); padding: 3px 6px; animation: fadeLoot 2.5s forwards; }
@@ -260,7 +269,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.0';
+const VERSION = '2.3';
 const SAVE_KEY = 'space_dream_save';
 const SHIP_SPEED = 100;
 const FUEL_PER_FLIGHT = 10;
@@ -271,129 +280,130 @@ const FACTIONS = [
     { id: 'sniper', name: 'Торговый альянс', color: '#aa9933', shield: 20, damage: 40, speed: 15 },
 ];
 
-// Палитры кораблей по фракциям
-const FACTION_PALETTES = {
-    tank:   { M:'#8a9bb0', S:'#c5d5e8', D:'#2d3a4a', L:'#40d0ff', W:'#f0f8ff', H:'#607080', '_':null },
-    dps:    { R:'#a05030', P:'#6a6a6a', S:'#9a9080', D:'#3a2518', W:'#e09040', K:'#5a6048', '_':null },
-    sniper: { B:'#30a060', P:'#9050c0', M:'#c080e0', C:'#50ffb0', D:'#182838', W:'#d0fff0', '_':null },
+// 16-битные палитры (индексы 1–8: тень → блик + акцент + двигатель)
+const SHIP_PAL = {
+    tank:   ['','#121820','#283040','#485868','#6880a0','#a0b4c8','#50d8ff','#ff6644','#f0f8ff'],
+    dps:    ['','#180e08','#382818','#584028','#806040','#a89068','#ffaa44','#cc4422','#d8c8a0'],
+    sniper: ['','#081018','#142830','#204838','#308858','#60c888','#b060e8','#44ffbb','#e8fff4'],
 };
 
-// 9 кораблей: по 3 на фракцию (косметика)
+const SHIP_W = 40, SHIP_H = 52;
+
+function b(ctx, px, p, x, y, w, h, c) {
+    if (!c || !p[c]) return;
+    ctx.fillStyle = p[c];
+    ctx.fillRect(x * px, y * px, w * px, h * px);
+}
+function mx(ctx, px, p, cx, dx, y, w, h, c) {
+    b(ctx, px, p, cx - dx - w, y, w, h, c);
+    b(ctx, px, p, cx + dx, y, w, h, c);
+}
+
+// ── Конфедерация: металл, оптика, строгие формы ──
+function drawConfStrazh(ctx, px, p) {
+    const c = 20;
+    b(ctx,px,p,c-1,1,2,2,8); b(ctx,px,p,c-2,3,4,3,5); b(ctx,px,p,c-3,6,6,4,4);
+    b(ctx,px,p,c-2,6,4,3,6); mx(ctx,px,p,c,11,10,12,3,3); mx(ctx,px,p,c,12,13,10,2,2);
+    b(ctx,px,p,c-3,22,6,8,3); b(ctx,px,p,c-2,28,4,2,2);
+    mx(ctx,px,p,c,4,30,3,5,7); mx(ctx,px,p,c,4,35,2,3,6);
+    b(ctx,px,p,c-1,38,2,4,6);
+}
+function drawConfKlinok(ctx, px, p) {
+    const c = 20;
+    b(ctx,px,p,c,0,1,4,8); b(ctx,px,p,c-1,4,3,4,5); b(ctx,px,p,c-2,8,4,14,4);
+    b(ctx,px,p,c-1,10,3,5,6); mx(ctx,px,p,c,9,22,8,2,3); mx(ctx,px,p,c,8,24,6,1,2);
+    b(ctx,px,p,c-2,30,4,6,3); mx(ctx,px,p,c,3,36,2,4,7); mx(ctx,px,p,c,3,40,1,3,6);
+    b(ctx,px,p,c-1,43,2,3,6);
+}
+function drawConfBastion(ctx, px, p) {
+    const c = 20;
+    b(ctx,px,p,c-4,4,8,4,5); b(ctx,px,p,c-6,8,12,10,4); b(ctx,px,p,c-2,8,4,4,6);
+    mx(ctx,px,p,c,14,12,16,4,3); mx(ctx,px,p,c,16,16,12,3,2);
+    b(ctx,px,p,c-7,22,14,10,3); b(ctx,px,p,c-5,30,10,4,2);
+    mx(ctx,px,p,c,5,34,3,6,7); mx(ctx,px,p,c,5,40,2,4,6); b(ctx,px,p,c-3,44,6,3,6);
+}
+
+// ── Повстанцы: обломки, ржавчина, асимметрия ──
+function drawRebelShram(ctx, px, p) {
+    const c = 20;
+    b(ctx,px,p,c-2,4,5,4,4); b(ctx,px,p,c+1,6,4,3,7); b(ctx,px,p,c-4,10,7,8,3);
+    b(ctx,px,p,c-8,12,5,4,7); b(ctx,px,p,c+3,14,8,3,2); b(ctx,px,p,c-3,18,6,10,3);
+    b(ctx,px,p,c-10,20,4,6,4); b(ctx,px,p,c+4,22,3,8,2); b(ctx,px,p,c-2,26,5,6,3);
+    b(ctx,px,p,c-1,32,3,4,7); b(ctx,px,p,c+5,30,2,5,2); b(ctx,px,p,c-4,36,3,4,6);
+    b(ctx,px,p,c+2,38,2,3,7);
+}
+function drawRebelSborka(ctx, px, p) {
+    const c = 20;
+    b(ctx,px,p,c-5,6,10,5,4); b(ctx,px,p,c-7,8,3,3,7); b(ctx,px,p,c+2,7,5,4,3);
+    b(ctx,px,p,c-6,12,12,8,3); b(ctx,px,p,c-8,14,4,4,7); b(ctx,px,p,c+4,15,5,3,2);
+    mx(ctx,px,p,c,6,22,7,2,4); b(ctx,px,p,c-4,24,8,8,3); b(ctx,px,p,c-9,26,3,5,7);
+    b(ctx,px,p,c+5,28,4,4,2); b(ctx,px,p,c-2,32,4,6,3); b(ctx,px,p,c-3,38,3,4,6);
+    b(ctx,px,p,c+1,36,4,3,7);
+}
+function drawRebelUlom(ctx, px, p) {
+    const c = 20;
+    b(ctx,px,p,c-1,2,2,6,2); b(ctx,px,p,c-2,8,4,12,2); mx(ctx,px,p,c,8,10,6,2,2);
+    b(ctx,px,p,c-1,18,2,10,2); b(ctx,px,p,c-6,14,2,8,3); b(ctx,px,p,c+4,16,2,6,3);
+    mx(ctx,px,p,c,10,24,4,2,4); b(ctx,px,p,c-2,28,4,4,3); b(ctx,px,p,c-8,30,2,5,4);
+    b(ctx,px,p,c+6,32,2,4,4); b(ctx,px,p,c-1,34,2,8,2); b(ctx,px,p,c-2,40,2,3,6);
+    b(ctx,px,p,c+1,38,2,3,7);
+}
+
+// ── Торговый альянс: биомеханика, органика ──
+function drawAlienSpiral(ctx, px, p) {
+    const c = 20;
+    b(ctx,px,p,c-2,6,4,4,5); b(ctx,px,p,c-5,10,4,3,4); b(ctx,px,p,c+1,9,5,4,6);
+    b(ctx,px,p,c-8,14,6,4,3); b(ctx,px,p,c+2,14,8,5,5); b(ctx,px,p,c-4,18,8,6,4);
+    b(ctx,px,p,c-10,22,5,3,6); b(ctx,px,p,c+3,22,9,4,3); b(ctx,px,p,c-6,26,10,8,5);
+    b(ctx,px,p,c-3,30,6,4,6); b(ctx,px,p,c-8,32,4,6,3); b(ctx,px,p,c+4,34,6,5,4);
+    b(ctx,px,p,c-2,38,4,4,7); b(ctx,px,p,c-1,42,2,3,6);
+}
+function drawAlienZhnec(ctx, px, p) {
+    const c = 20;
+    mx(ctx,px,p,c,3,4,2,8,3); b(ctx,px,p,c-4,12,8,8,4); b(ctx,px,p,c-2,14,4,4,6);
+    b(ctx,px,p,c-5,20,10,6,5); b(ctx,px,p,c-3,24,6,4,6); mx(ctx,px,p,c,8,28,3,8,3);
+    b(ctx,px,p,c-2,34,4,6,4); b(ctx,px,p,c-1,38,2,4,7); mx(ctx,px,p,c,6,40,2,4,6);
+    b(ctx,px,p,c-1,44,2,3,6);
+}
+function drawAlienSet(ctx, px, p) {
+    const c = 20;
+    b(ctx,px,p,c-2,14,4,6,5); b(ctx,px,p,c-1,18,2,4,6);
+    b(ctx,px,p,c-1,2,2,10,3); b(ctx,px,p,c-1,38,2,10,3);
+    b(ctx,px,p,2,18,10,2,4); b(ctx,px,p,28,18,10,2,4);
+    b(ctx,px,p,6,8,6,2,3); b(ctx,px,p,28,8,6,2,3);
+    b(ctx,px,p,6,32,6,2,3); b(ctx,px,p,28,32,6,2,3);
+    b(ctx,px,p,c-3,20,6,4,4); b(ctx,px,p,c-2,22,4,2,7);
+}
+
 const SHIP_CATALOG = {
     tank: [
-        {
-            name: 'Страж',
-            desc: 'Строгий перехватчик',
-            matrix: [
-                "__________SSS__________","_________SSMSS_________","________SSMDMSS________",
-                "_______SSMMMMSS_______","______SSMMLMMSS______","_____SSMMMMMMSS_____",
-                "____SSMMLLLMMSS____","___SSMMMMMMMMSS___","__SSMMLLLLLMMSS__",
-                "_SSMMMMMMMMMMSS_","SSMMMMMMMMMMMMSS","_SSMMMMMMMMMMSS_",
-                "__SSMMMMMMSS__","___SSMLLMMSS___","____SSMMMMSS____",
-                "_____SSMMSS_____","______SSSS______","_______LL_______"
-            ]
-        },
-        {
-            name: 'Клинок',
-            desc: 'Длинный разведчик',
-            matrix: [
-                "___________L___________","__________LML__________","_________LMMML_________",
-                "________LMDMML_______","_______LMMMMML_______","______LMMMMMMML______",
-                "_____LMMMMMMMML_____","____LMMMLLLMMML____","___LMMMMMMMMMMML___",
-                "__LMMMMMMMMMMMMML__","_LMMMMMMMMMMMMMMML_","LMMMMMMMMMMMMMMMMML",
-                "_LMMMMMMMMMMMMMMML_","__LMMMMMMMMMMMMML__","___LMMMMMMMMMMML___",
-                "____LMMMMMMMMML____","_____LMMMMMMML_____","______LLLLLL______"
-            ]
-        },
-        {
-            name: 'Бастион',
-            desc: 'Тяжёлый крейсер',
-            matrix: [
-                "____SSSSSSSSSSSS____","___SSMMMMMMMMSS___","__SSMMMMMMMMMMSS__",
-                "_SSMMMMMMMMMMMMSS_","SSMMMMMMMMMMMMMMSS","SSMMLMMMMMMLMMSS",
-                "SSMMMMMMMMMMMMMMSS","SSMMMMMMMMMMMMMMSS","SSMMLLLLLLLMMSS",
-                "SSMMMMMMMMMMMMMMSS","SSMMMMMMMMMMMMMMSS","_SSMMMMMMMMMMSS_",
-                "__SSMMMMMMMMSS__","___SSMMMMMMSS___","____SSMMMMSS____",
-                "_____SSMMSS_____","______SSSS______"
-            ]
-        }
+        { name: 'Страж',  desc: 'Перехватчик · металл · оптика', draw: drawConfStrazh },
+        { name: 'Клинок', desc: 'Разведчик · строгость · скорость', draw: drawConfKlinok },
+        { name: 'Бастион', desc: 'Крейсер · броня · мощь', draw: drawConfBastion },
     ],
     dps: [
-        {
-            name: 'Шрам',
-            desc: 'Кривой корпус из обломков',
-            matrix: [
-                "_________PPP_________","________PPRPP________","_______PPSRPPP_______",
-                "______PPPDRPPP______","_____PPPSRRPPP_____","____PPP_RPPPPP____",
-                "___PPPSPPPPPP___","__PPPPSPPPPPP__","_PPPPPPPPPPPP_",
-                "PPPPPPPPPPPPPP","PPPPWPPPPPPPPP","PPPPPPPPWPPPPP",
-                "_PPPPPPPPPPP_","__PPPPPPPP__","___PPPPPP___",
-                "____PPPP____","_____PP_____","______P______"
-            ]
-        },
-        {
-            name: 'Сборка',
-            desc: 'Сваренные пластины',
-            matrix: [
-                "_______PPPPP_______","______PPSPPP______","_____PPRWPPP_____",
-                "____PPPSRPPPP____","___PPP_RPPPPP___","__PPPPSPPPPPP__",
-                "_PPPPWPPPPPPP_","PPPPPPPPPPPPPP","PPPPPPWPPPPPPP",
-                "PPPPPPPPWPPPPP","_PPPPPPPPPPP_","__PPPPWPPP__",
-                "___PPPPPP___","____PPWPP____","_____PPP_____",
-                "_____KPK_____","______P______"
-            ]
-        },
-        {
-            name: 'Улом',
-            desc: 'Каркас и мусор',
-            matrix: [
-                "________P________","_______PRP_______","______PSPP______",
-                "_____PDRPP_____","____PSRRPP____","___P__RPPP___",
-                "__PPSPPPPP__","_PPPPPPPPP_","PPPPWPPPPPP",
-                "PPPPPPWPPPP","PPPPPPPPPPP","_PPPPPPPPP_",
-                "__PPPPPP__","___PPWPP___","____PPP____",
-                "____PKP____","_____P_____","____K_K____"
-            ]
-        }
+        { name: 'Шрам',   desc: 'Кривой корпус · обломки', draw: drawRebelShram },
+        { name: 'Сборка', desc: 'Сварные пластины · ржавчина', draw: drawRebelSborka },
+        { name: 'Улом',   desc: 'Открытый каркас · латки', draw: drawRebelUlom },
     ],
     sniper: [
-        {
-            name: 'Спираль',
-            desc: 'Закрученная форма',
-            matrix: [
-                "__________CCC__________","_________CBMC_________","________CBMMC________",
-                "_______CBMMMC_______","______CBMPMBC______","_____CBMMMMMC_____",
-                "____CBMCCCMBC____","___CBMMMMMMBC___","__CBMCPPPPMBC__",
-                "_CBMMMMMMMMMBC_","CBMMMMMMMMMMMBC","_CBMMMMMMMMMBC_",
-                "__CBMMMMMMBC__","___CBMCMCBC___","____CBMMBC____",
-                "_____CBMBC_____","______CBC______","_______CC_______"
-            ]
-        },
-        {
-            name: 'Жнец',
-            desc: 'Биомеханический сборщик',
-            matrix: [
-                "_________BBB_________","________BMPB________","_______BMMMB_______",
-                "______BMPPMB______","_____BMMMMMMB_____","____BMPWWPMB____",
-                "___BMMMMMMMMB___","__BMPBBBBBPMB__","_BMMMMMMMMMMMB_",
-                "BMPBMMMMMMBPMB","BMMMMMMMMMMMMMB","BMPBMMMMMMBPMB",
-                "_BMMMMMMMMMMMB_","__BMPBBBBPMB__","___BMMMMMMB___",
-                "____BMPPMB____","_____BMMMB_____","______BBB______"
-            ]
-        },
-        {
-            name: 'Сеть',
-            desc: 'Щупальца и мембраны',
-            matrix: [
-                "_____B_____B_____","____BM___MB____","___BMM_B_MMB___",
-                "__BMPM_B_MPMB__","_BMMMPMPMMMB_","BMPMMBMBMMPMB",
-                "BMMMMMMMMMMMB","BMPWMBMBWMPMB","BMMMMMMMMMMMB",
-                "_BMMMPMPMMMB_","__BMPM_B_MPMB__","___BMM_B_MMB___",
-                "____BM___MB____","_____B_____B_____","_____M_____M_____"
-            ]
-        }
-    ]
+        { name: 'Спираль', desc: 'Закрученная биоформа', draw: drawAlienSpiral },
+        { name: 'Жнец',    desc: 'Сборщик · щупальца', draw: drawAlienZhnec },
+        { name: 'Сеть',    desc: 'Лучи · мембраны', draw: drawAlienSet },
+    ],
 };
+
+function renderShipCanvas(drawFn, factionId, pixelSize = 4) {
+    const p = SHIP_PAL[factionId] || SHIP_PAL.tank;
+    const cvs = document.createElement('canvas');
+    cvs.width = SHIP_W * pixelSize;
+    cvs.height = SHIP_H * pixelSize;
+    const ctx = cvs.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    drawFn(ctx, pixelSize, p);
+    cvs.style.imageRendering = 'pixelated';
+    return cvs;
+}
 
 const ARTIFACTS = [
     { id:'blade',  name:'Клинок Фантома',       effect:'damage', per:5 },
@@ -497,7 +507,7 @@ function initTelegram() {
 
 // ─── Графика ─────────────────────────────────────────────────
 function getFactionPalette(factionId = state.factionId) {
-    return FACTION_PALETTES[factionId] || FACTION_PALETTES.tank;
+    return SHIP_PAL[factionId] || SHIP_PAL.tank;
 }
 
 function getShipList(factionId = state.factionId) {
@@ -509,34 +519,9 @@ function getCurrentShip() {
     return list[state.shipIndex ?? 0] || list[0];
 }
 
-function drawMatrix(matrix, scale = 1, palette = null) {
-    if (!matrix?.length) {
-        const s = document.createElement('span');
-        s.textContent = '🚀'; s.style.fontSize = '24px';
-        return s;
-    }
-    const pal = palette || FACTION_PALETTES.tank;
-    const rows = matrix.length, cols = matrix[0].length;
-    const ts = Math.max(2, Math.round(4 * scale));
-    const cvs = document.createElement('canvas');
-    cvs.width = cols * ts; cvs.height = rows * ts;
-    const ctx = cvs.getContext('2d');
-    ctx.imageSmoothingEnabled = false;
-    for (let y = 0; y < rows; y++) {
-        for (let x = 0; x < cols; x++) {
-            const ch = matrix[y][x];
-            if (ch === '_' || !pal[ch]) continue;
-            ctx.fillStyle = pal[ch];
-            ctx.fillRect(x * ts, y * ts, ts, ts);
-        }
-    }
-    cvs.style.imageRendering = 'pixelated';
-    return cvs;
-}
-
-function drawCurrentShip(scale = 0.55) {
+function drawCurrentShip(pixelSize = 3) {
     const ship = getCurrentShip();
-    return drawMatrix(ship.matrix, scale, getFactionPalette());
+    return renderShipCanvas(ship.draw, state.factionId, pixelSize);
 }
 
 function drawPlanet() {
@@ -564,7 +549,7 @@ function drawPlanet() {
 function renderPlayerShip(rotation = -20) {
     const el = document.getElementById('player-ship');
     el.innerHTML = '';
-    el.appendChild(drawCurrentShip(0.55));
+    el.appendChild(drawCurrentShip(3));
     el.style.transform = `translate(-50%,-50%) rotate(${rotation}deg)`;
 }
 
@@ -787,7 +772,7 @@ function upgradeCost(key) {
 function renderHangar() {
     const r = state.resources;
     $('hangar-ship').innerHTML = '';
-    $('hangar-ship').appendChild(drawCurrentShip(0.9));
+    $('hangar-ship').appendChild(drawCurrentShip(5));
     $('hangar-res').textContent = `🪙${Math.floor(r.credits)} ⛽${Math.floor(r.fuel)}/${state.maxFuel} 🛡️${r.shieldParts} ⚔️${r.weaponParts} 💎${r.spice} 🧩${r.shards}`;
 
     $('upgrade-list').innerHTML = UPGRADES.map(u => {
@@ -819,7 +804,7 @@ function renderHangar() {
 // ─── PvP (упрощённый) ───────────────────────────────────────
 function renderPvP() {
     $('pvp-my-ship').innerHTML = ''; $('pvp-en-ship').innerHTML = '';
-    $('pvp-my-ship').appendChild(drawCurrentShip(0.5));
+    $('pvp-my-ship').appendChild(drawCurrentShip(3));
     const en = document.createElement('span'); en.textContent = '👾'; en.style.fontSize='22px';
     $('pvp-en-ship').appendChild(en);
     $('pvp-my-bars').innerHTML = '<div class="bar"><div class="bar-fill bar-shield" style="width:100%"></div></div><div class="bar"><div class="bar-fill bar-hp" style="width:100%"></div></div>';
@@ -859,19 +844,21 @@ function renderFactions() {
 
 function renderShips() {
     const ships = getShipList();
-    const palette = getFactionPalette();
     const faction = FACTIONS.find(f => f.id === state.factionId);
 
     $('ship-list').innerHTML = ships.map((ship, i) =>
         `<div class="card ${state.shipIndex === i ? 'selected' : ''}" data-ship="${i}">
             <div class="ship-name">${ship.name}</div>
-            <div style="font-size:3px;color:#888;margin-bottom:4px">${ship.desc}</div>
+            <div class="ship-desc">${ship.desc}</div>
+            <div class="ship-preview" data-preview="${i}"></div>
         </div>`
     ).join('');
 
     $('ship-list').querySelectorAll('[data-ship]').forEach(card => {
         const i = +card.dataset.ship;
-        card.appendChild(drawMatrix(ships[i].matrix, 0.52, palette));
+        card.querySelector('[data-preview]').appendChild(
+            renderShipCanvas(ships[i].draw, state.factionId, 6)
+        );
         if (faction) card.style.borderColor = state.shipIndex === i ? '#ffaa00' : faction.color;
         card.onclick = () => {
             state.shipIndex = i;
