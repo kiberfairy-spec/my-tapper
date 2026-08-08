@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Space Dream v2.5</title>
+    <title>Space Dream v2.7</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -103,7 +103,24 @@
         .player-ship {
             position: absolute; z-index: 10; pointer-events: none;
             transform: translate(-50%, -50%);
+            transition: none;
         }
+        .player-ship img {
+            display: block;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            height: 56px;
+            width: auto;
+            pointer-events: none;
+        }
+        .ship-sprite-img {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            max-width: 100%;
+            height: auto;
+            pointer-events: none;
+        }
+        .ship-preview .ship-sprite-img { max-height: 200px; width: auto; }
         .mine-object {
             position: absolute; z-index: 8; transform: translate(-50%, -50%);
             font-size: 26px; cursor: pointer; transition: opacity .3s;
@@ -269,10 +286,16 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.5';
+const VERSION = '2.7';
 const SAVE_KEY = 'space_dream_save';
-const SHIP_SPEED = 100;
+const SHIP_MOVE_SPEED = 42; // px/s — плавный полёт на добыче
 const FUEL_PER_FLIGHT = 10;
+
+// PNG-спрайты из папки ships/
+const SHIP_IMG = {
+    mining: 'ships/ship-mining.png',
+    select: 'ships/ship-select.png',
+};
 
 const FACTIONS = [
     { id: 'tank',   name: 'Конфедерация',   color: '#4488aa', shield: 40, damage: 20, speed: 15 },
@@ -288,6 +311,17 @@ const SHIP_PAL = {
 };
 const SHIP_W = 40, SHIP_H = 56;
 const SHIP_EXTRA = { o:'#e87828', r:'#cc3038', g:'#40e8ff', y:'#d8b030', p:'#a048e0' };
+
+function drawPixelMatrix(ctx, px, matrix, palette) {
+    const mh = matrix.length, mw = matrix[0].length;
+    const ox = Math.floor((SHIP_W - mw) / 2), oy = Math.floor((SHIP_H - mh) / 2);
+    for (let y = 0; y < mh; y++) for (let x = 0; x < mw; x++) {
+        const c = matrix[y][x];
+        if (!c || !palette[c]) continue;
+        ctx.fillStyle = palette[c];
+        ctx.fillRect((ox + x) * px, (oy + y) * px, px, px);
+    }
+}
 
 function drawMap(ctx, px, p, map) {
     const mh = map.length, mw = Math.max(...map.map(r => r.length));
@@ -328,37 +362,41 @@ function applyOutline(ctx, px) {
 }
 
 // ── КОНФЕДЕРАЦИЯ — Gremak / Yoral ─────────────────────────────
-const MAP_CONF_STRAZH = [
-    '..................18..................',
-    '.................1881.................',
-    '................188881................',
-    '...............48484484...............',
-    '..............4848448484..............',
-    '.............844844844848.............',
-    '............8448448448448.............',
-    '...........84484484484448.............',
-    '..........o8448448448448o.............',
-    '.........5448448448448445.............',
-    '........544484484844844845............',
-    '.......5444844848448448445............',
-    '.......5444846668448448445............',
-    '.......5444846668448448445............',
-    '.......5444844848448448445............',
-    '........5448448448448445..............',
-    '.........5448448448445................',
-    '..........544822822845................',
-    '...........548822822845...............',
-    '............4822822284................',
-    '............4822772284................',
-    '............4822772284................',
-    '.............422772284................',
-    '.............422772284................',
-    '..............22772284................',
-    '..............2g777g84................',
-    '...............7777784................',
-    '................777784................',
-    '.................7784.................',
-    '..................84..................',
+// «Страж» — пиксельная матрица из ShipMatrix.java (30×32, контур уже внутри)
+const PAL_STRAZH = ['','#101820','#283038','#485058','#8898a8','#e8f0f8','#e87828','#40d8ff','#2860a8'];
+const MATRIX_STRAZH = [
+    [0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0],
+    [0,0,1,5,5,2,2,5,5,1,0,0,0,0,0,0,0,0,0,1,5,5,2,2,5,5,1,0,0,0],
+    [0,1,5,5,5,2,2,5,5,5,1,0,0,0,0,0,0,0,1,5,5,5,2,2,5,5,5,1,0,0],
+    [0,1,5,5,5,5,5,5,5,5,1,0,0,0,0,0,0,0,1,5,5,5,5,5,5,5,5,1,0,0],
+    [0,1,5,5,8,8,5,5,5,5,1,0,0,0,0,0,0,0,1,5,5,5,5,5,5,5,5,1,0,0],
+    [0,1,5,8,8,8,8,5,5,5,1,0,0,1,1,1,1,0,1,5,5,5,5,5,5,5,5,1,0,0],
+    [0,1,5,5,8,8,5,5,5,6,1,0,1,3,7,7,3,1,1,6,5,5,5,5,5,5,5,1,0,0],
+    [0,1,5,5,5,5,5,5,6,6,1,1,2,3,7,7,3,2,1,6,6,5,5,5,5,5,5,1,0,0],
+    [0,1,5,5,5,5,5,6,6,6,1,2,2,3,3,3,3,2,2,1,6,6,6,5,5,5,5,1,0,0],
+    [0,1,5,5,5,5,6,6,6,5,1,2,2,3,4,4,3,2,2,1,5,6,6,6,5,5,5,1,0,0],
+    [0,1,5,5,5,6,6,6,5,5,1,1,3,4,4,4,4,3,1,1,5,5,6,6,6,5,5,1,0,0],
+    [0,1,5,5,6,6,6,5,5,5,5,1,3,4,6,6,4,3,1,5,5,5,5,6,6,6,5,1,0,0],
+    [0,1,5,6,6,6,5,5,5,5,5,1,3,4,6,6,4,3,1,5,5,5,5,5,6,6,6,1,0,0],
+    [0,1,5,6,6,5,5,5,5,5,5,1,3,3,4,4,3,3,1,5,5,5,5,5,5,6,6,1,0,0],
+    [0,1,5,5,5,5,5,5,5,5,5,1,2,3,3,3,3,2,1,5,5,5,5,5,5,5,5,1,0,0],
+    [0,1,5,5,5,5,5,5,5,5,5,1,2,2,3,3,2,2,1,5,5,5,5,5,5,5,5,1,0,0],
+    [0,1,4,5,5,5,5,5,5,5,4,1,1,2,2,2,2,1,1,4,5,5,5,5,5,5,4,1,0,0],
+    [1,4,4,5,5,5,5,5,5,4,4,4,1,2,2,2,2,1,4,4,4,5,5,5,5,5,4,4,1,0],
+    [1,4,4,4,5,5,5,5,4,4,4,3,1,2,3,3,2,1,3,4,4,4,5,5,5,4,4,4,1,0],
+    [0,1,4,4,4,5,5,4,4,4,3,3,3,2,3,3,2,3,3,3,4,4,4,5,4,4,4,1,0,0],
+    [0,0,1,4,4,4,4,4,4,3,3,3,2,2,2,2,2,2,3,3,3,4,4,4,4,4,1,0,0,0],
+    [0,0,0,1,4,4,4,4,3,3,3,2,2,2,2,2,2,2,2,3,3,3,4,4,4,1,0,0,0,0],
+    [0,0,0,0,1,3,3,3,3,3,2,2,2,3,3,3,3,2,2,2,3,3,3,3,1,0,0,0,0,0],
+    [0,0,0,0,0,1,2,2,2,2,2,2,3,3,3,3,3,3,2,2,2,2,2,1,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,2,2,2,2,1,0,1,3,3,1,0,1,2,2,2,2,1,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,2,2,2,2,1,0,0,1,1,0,0,1,2,2,2,2,1,0,0,0,0,0,0],
+    [0,0,0,0,0,1,2,2,2,2,2,2,1,0,0,0,0,1,2,2,2,2,2,2,1,0,0,0,0,0],
+    [0,0,0,0,0,1,2,2,7,7,2,2,1,0,0,0,0,1,2,2,7,7,2,2,1,0,0,0,0,0],
+    [0,0,0,0,0,1,2,2,7,7,2,2,1,0,0,0,0,1,2,2,7,7,2,2,1,0,0,0,0,0],
+    [0,0,0,0,0,0,1,2,2,2,2,1,0,0,0,0,0,0,1,2,2,2,2,1,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,2,2,1,0,0,0,0,0,0,0,0,1,2,2,1,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0],
 ];
 const MAP_CONF_KLINOK = [
     '..................g...................',
@@ -437,7 +475,8 @@ const MAP_CONF_BASTION = [
     '....................27...............',
     '....................g7...............',
 ];
-function drawConfStrazh(ctx, px, p) { drawMap(ctx, px, p, MAP_CONF_STRAZH); }
+function drawConfStrazh(ctx, px, p) { drawPixelMatrix(ctx, px, MATRIX_STRAZH, PAL_STRAZH); }
+drawConfStrazh.builtInOutline = true;
 function drawConfKlinok(ctx, px, p) { drawMap(ctx, px, p, MAP_CONF_KLINOK); }
 function drawConfBastion(ctx, px, p) {
     drawMap(ctx, px, p, MAP_CONF_BASTION);
@@ -673,21 +712,39 @@ function drawAlienSet(ctx, px, p) { drawMap(ctx, px, p, MAP_ALIEN_SET); }
 
 const SHIP_CATALOG = {
     tank: [
+        { name: 'Готовый', desc: 'Ваш пиксель-арт · референс', image: SHIP_IMG.select },
         { name: 'Страж',  desc: 'Gremak · dart-перехватчик', draw: drawConfStrazh },
         { name: 'Клинок', desc: 'Yoral · U-образный истребитель', draw: drawConfKlinok },
         { name: 'Бастион', desc: 'Gremak · широкий крейсер', draw: drawConfBastion },
     ],
     dps: [
+        { name: 'Готовый', desc: 'Ваш пиксель-арт · референс', image: SHIP_IMG.select },
         { name: 'Шрам',   desc: 'Scrap · асимметричный корпус', draw: drawRebelShram },
         { name: 'Сборка', desc: 'Yoral · грузовой фрейтер', draw: drawRebelSborka },
         { name: 'Улом',   desc: 'Industrial · тяжёлый блок', draw: drawRebelUlom },
     ],
     sniper: [
+        { name: 'Готовый', desc: 'Ваш пиксель-арт · референс', image: SHIP_IMG.select },
         { name: 'Спираль', desc: 'Phidi · кольцо-полумесяц', draw: drawAlienSpiral },
         { name: 'Жнец',    desc: 'Phidi · клешни-сборщик', draw: drawAlienZhnec },
         { name: 'Сеть',    desc: 'Phidi · жало-разведчик', draw: drawAlienSet },
     ],
 };
+
+function renderShipGraphic(ship, factionId, pixelSize = 4) {
+    if (ship.image) {
+        const img = document.createElement('img');
+        img.src = ship.image;
+        img.className = 'ship-sprite-img';
+        img.alt = ship.name;
+        img.draggable = false;
+        if (pixelSize >= 6) img.style.maxHeight = '200px';
+        else if (pixelSize >= 4) img.style.height = '96px';
+        else img.style.height = '64px';
+        return img;
+    }
+    return renderShipCanvas(ship.draw, factionId, pixelSize);
+}
 
 function renderShipCanvas(drawFn, factionId, pixelSize = 4) {
     const p = SHIP_PAL[factionId] || SHIP_PAL.tank;
@@ -697,7 +754,7 @@ function renderShipCanvas(drawFn, factionId, pixelSize = 4) {
     const ctx = cvs.getContext('2d');
     ctx.imageSmoothingEnabled = false;
     drawFn(ctx, pixelSize, p);
-    applyOutline(ctx, pixelSize);
+    if (!drawFn.builtInOutline) applyOutline(ctx, pixelSize);
     cvs.style.imageRendering = 'pixelated';
     return cvs;
 }
@@ -738,7 +795,9 @@ const defaultState = () => ({
 let state = defaultState();
 let currentTab = 'mining';
 let shipPos = { x: 0, y: 0 };
-let shipMoving = false;
+let shipRotation = 0;
+let shipTarget = null;
+let shipAnimFrame = null;
 let shipFlying = false;
 let mineObjects = [];
 let selectedBoost = null;
@@ -818,7 +877,68 @@ function getCurrentShip() {
 
 function drawCurrentShip(pixelSize = 3) {
     const ship = getCurrentShip();
-    return renderShipCanvas(ship.draw, state.factionId, pixelSize);
+    return renderShipGraphic(ship, state.factionId, pixelSize);
+}
+
+function lerpAngle(from, to, t) {
+    let d = ((to - from + 180) % 360) - 180;
+    return from + d * t;
+}
+
+function updateShipVisual() {
+    const el = $('player-ship');
+    el.style.left = shipPos.x + 'px';
+    el.style.top = shipPos.y + 'px';
+    el.style.transform = `translate(-50%, -50%) rotate(${shipRotation}deg)`;
+}
+
+function ensureShipFlightLoop() {
+    if (shipAnimFrame) return;
+    let last = performance.now();
+
+    const tick = now => {
+        if (!shipTarget) {
+            shipAnimFrame = null;
+            return;
+        }
+
+        const dt = Math.min(0.05, (now - last) / 1000);
+        last = now;
+
+        const dx = shipTarget.x - shipPos.x;
+        const dy = shipTarget.y - shipPos.y;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist < 3) {
+            shipPos.x = shipTarget.x;
+            shipPos.y = shipTarget.y;
+            const onArrive = shipTarget.onArrive;
+            shipTarget = null;
+            updateShipVisual();
+            if (onArrive) onArrive();
+            shipAnimFrame = shipTarget ? requestAnimationFrame(tick) : null;
+            return;
+        }
+
+        // Нос корабля смотрит вверх на спрайте → +90° к углу движения
+        const targetRot = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+        shipRotation = lerpAngle(shipRotation, targetRot, 0.12);
+
+        const step = SHIP_MOVE_SPEED * dt;
+        const move = Math.min(step, dist);
+        shipPos.x += (dx / dist) * move;
+        shipPos.y += (dy / dist) * move;
+        updateShipVisual();
+
+        shipAnimFrame = requestAnimationFrame(tick);
+    };
+
+    shipAnimFrame = requestAnimationFrame(tick);
+}
+
+function flyShipTo(x, y, onArrive) {
+    shipTarget = { x, y, onArrive };
+    ensureShipFlightLoop();
 }
 
 function drawPlanet() {
@@ -843,11 +963,15 @@ function drawPlanet() {
     wrap.appendChild(cvs);
 }
 
-function renderPlayerShip(rotation = -20) {
-    const el = document.getElementById('player-ship');
+function renderPlayerShip() {
+    const el = $('player-ship');
     el.innerHTML = '';
-    el.appendChild(drawCurrentShip(3));
-    el.style.transform = `translate(-50%,-50%) rotate(${rotation}deg)`;
+    const img = document.createElement('img');
+    img.src = SHIP_IMG.mining;
+    img.alt = 'Корабль';
+    img.draggable = false;
+    el.appendChild(img);
+    updateShipVisual();
 }
 
 function fillStars(container, count) {
@@ -932,31 +1056,19 @@ function getShipHome() {
     return { x: c.x + 90, y: c.y + 20 };
 }
 
-function setShipPos(x, y, rot = -20) {
+function setShipPos(x, y, rot = shipRotation) {
     shipPos = { x, y };
-    const el = $('player-ship');
-    el.style.left = x + 'px';
-    el.style.top = y + 'px';
-    el.style.transform = `translate(-50%,-50%) rotate(${rot}deg)`;
+    shipRotation = rot;
+    updateShipVisual();
 }
 
 function moveShip(tx, ty) {
-    if (shipMoving || shipFlying) return;
+    if (shipFlying) return;
     const field = $('mining-field');
-    const margin = 20;
+    const margin = 24;
     tx = Math.max(margin, Math.min(field.offsetWidth - margin, tx));
     ty = Math.max(margin, Math.min(field.offsetHeight - margin, ty));
-    const dx = tx - shipPos.x, dy = ty - shipPos.y;
-    const dist = Math.hypot(dx, dy);
-    if (dist < 10) return;
-
-    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-    const ms = Math.max(300, dist / SHIP_SPEED * 1000);
-    shipMoving = true;
-    const el = $('player-ship');
-    el.style.transition = `left ${ms}ms linear, top ${ms}ms linear, transform ${ms}ms linear`;
-    setShipPos(tx, ty, angle);
-    setTimeout(() => { shipMoving = false; el.style.transition = ''; }, ms);
+    flyShipTo(tx, ty);
 }
 
 function layoutMining() {
@@ -998,39 +1110,29 @@ function rollLoot() {
 }
 
 function flyToMine(obj) {
-    if (shipFlying || shipMoving || state.resources.fuel < FUEL_PER_FLIGHT) return;
+    if (shipFlying || state.resources.fuel < FUEL_PER_FLIGHT) return;
     shipFlying = true;
     state.resources.fuel -= FUEL_PER_FLIGHT;
     Storage.save(); updateHUD();
 
-    const start = { ...shipPos };
-    const el = $('player-ship');
-    const dx = obj.x - start.x, dy = obj.y - start.y;
-    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-    const ms = Math.hypot(dx, dy) / SHIP_SPEED * 1000 + 400;
-
-    el.style.transition = `left ${ms}ms linear, top ${ms}ms linear, transform ${ms}ms linear`;
-    setShipPos(obj.x, obj.y, angle);
-
-    setTimeout(() => {
+    flyShipTo(obj.x, obj.y, () => {
         const loot = rollLoot();
         if (loot) showLoot(loot);
         state.exp += 10;
-        if (state.exp >= state.level * 100) { state.exp -= state.level * 100; state.level++; showLoot(`Уровень ${state.level}!`); }
+        if (state.exp >= state.level * 100) {
+            state.exp -= state.level * 100;
+            state.level++;
+            showLoot(`Уровень ${state.level}!`);
+        }
         obj.el.style.opacity = '0';
-        setTimeout(() => obj.el.remove(), 300);
         mineObjects = mineObjects.filter(o => o !== obj);
-
-        el.style.transition = `left ${ms}ms linear, top ${ms}ms linear`;
-        setShipPos(start.x, start.y, -20);
-
         setTimeout(() => {
+            obj.el.remove();
             shipFlying = false;
-            el.style.transition = '';
             if (!mineObjects.length) generateMineObjects();
             Storage.save(); updateHUD();
-        }, ms);
-    }, ms);
+        }, 300);
+    });
 }
 
 function initMiningTap() {
@@ -1154,7 +1256,7 @@ function renderShips() {
     $('ship-list').querySelectorAll('[data-ship]').forEach(card => {
         const i = +card.dataset.ship;
         card.querySelector('[data-preview]').appendChild(
-            renderShipCanvas(ships[i].draw, state.factionId, 6)
+            renderShipGraphic(ships[i], state.factionId, 6)
         );
         if (faction) card.style.borderColor = state.shipIndex === i ? '#ffaa00' : faction.color;
         card.onclick = () => {
@@ -1205,7 +1307,10 @@ async function resetGame() {
     state.profileComplete = false;
 
     shipPos = { x: 0, y: 0 };
-    shipMoving = false;
+    shipRotation = 0;
+    shipTarget = null;
+    if (shipAnimFrame) cancelAnimationFrame(shipAnimFrame);
+    shipAnimFrame = null;
     shipFlying = false;
     mineObjects = [];
     $('mining-field')?.querySelectorAll('.mine-object').forEach(el => el.remove());
