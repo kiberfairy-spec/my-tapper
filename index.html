@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.16.0</title>
+    <title>Space Dream v2.16.1</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -651,7 +651,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.16.0';
+const VERSION = '2.16.1';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -692,8 +692,8 @@ const SHIP_IMG = {
     mining: 'ships/ship-mining.png',
     select: 'ships/ship-select.png',
     planet: 'ships/planet-anime.png',
-    confed2Select: 'ships/Готовый_1_2_3.PNG',
-    confed2Mining: 'ships/Готовый_1_2_3(бол).PNG',
+    confed2Large: 'ships/Готовый_1_2_3(бол).PNG',
+    confed2Small: 'ships/Готовый_1_2_3.PNG',
 };
 
 const FACTIONS = [
@@ -1112,7 +1112,7 @@ function drawAlienSet(ctx, px, p) { drawMap(ctx, px, p, MAP_ALIEN_SET); }
 const SHIP_CATALOG = {
     tank: [
         { name: 'Готовый', desc: 'Конфедерация · патрульный истребитель', image: SHIP_IMG.select, miningImage: SHIP_IMG.mining },
-        { name: 'Готовый II', desc: 'Конфедерация · ударный корвет', image: SHIP_IMG.confed2Select, miningImage: SHIP_IMG.confed2Mining },
+        { name: 'Готовый II', desc: 'Конфедерация · ударный корвет', image: SHIP_IMG.confed2Large, miningImage: SHIP_IMG.confed2Small },
     ],
     dps: [
         { name: 'Шрам', desc: 'Scrap · асимметричный корпус', draw: drawRebelShram },
@@ -1131,9 +1131,11 @@ function renderShipGraphic(ship, factionId, pixelSize = 4) {
         img.className = 'ship-sprite-img';
         img.alt = ship.name;
         img.draggable = false;
+        // Большая картинка — выбор корабля и ангар
         if (pixelSize >= 6) img.style.maxHeight = '200px';
-        else if (pixelSize >= 4) img.style.height = '96px';
-        else img.style.height = '64px';
+        else if (pixelSize >= 4) img.style.maxHeight = '160px';
+        else img.style.height = '96px';
+        img.style.width = 'auto';
         return img;
     }
     return renderShipCanvas(ship.draw, factionId, pixelSize);
