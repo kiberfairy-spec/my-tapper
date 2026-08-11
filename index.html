@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.15.1</title>
+    <title>Space Dream v2.16.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -381,6 +381,16 @@
             width: auto;
             pointer-events: none;
         }
+        .player-ship canvas {
+            position: relative;
+            z-index: 1;
+            display: block;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            height: 56px;
+            width: auto;
+            pointer-events: none;
+        }
         .ship-flame {
             position: absolute;
             left: 50%;
@@ -641,7 +651,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.15.1';
+const VERSION = '2.16.0';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -682,6 +692,8 @@ const SHIP_IMG = {
     mining: 'ships/ship-mining.png',
     select: 'ships/ship-select.png',
     planet: 'ships/planet-anime.png',
+    confed2Select: 'ships/Готовый_1_2_3.PNG',
+    confed2Mining: 'ships/Готовый_1_2_3(бол).PNG',
 };
 
 const FACTIONS = [
@@ -1099,22 +1111,16 @@ function drawAlienSet(ctx, px, p) { drawMap(ctx, px, p, MAP_ALIEN_SET); }
 
 const SHIP_CATALOG = {
     tank: [
-        { name: 'Готовый', desc: 'Ваш пиксель-арт · референс', image: SHIP_IMG.select },
-        { name: 'Страж',  desc: 'Gremak · dart-перехватчик', draw: drawConfStrazh },
-        { name: 'Клинок', desc: 'Yoral · U-образный истребитель', draw: drawConfKlinok },
-        { name: 'Бастион', desc: 'Gremak · широкий крейсер', draw: drawConfBastion },
+        { name: 'Готовый', desc: 'Конфедерация · патрульный истребитель', image: SHIP_IMG.select, miningImage: SHIP_IMG.mining },
+        { name: 'Готовый II', desc: 'Конфедерация · ударный корвет', image: SHIP_IMG.confed2Select, miningImage: SHIP_IMG.confed2Mining },
     ],
     dps: [
-        { name: 'Готовый', desc: 'Ваш пиксель-арт · референс', image: SHIP_IMG.select },
-        { name: 'Шрам',   desc: 'Scrap · асимметричный корпус', draw: drawRebelShram },
+        { name: 'Шрам', desc: 'Scrap · асимметричный корпус', draw: drawRebelShram },
         { name: 'Сборка', desc: 'Yoral · грузовой фрейтер', draw: drawRebelSborka },
-        { name: 'Улом',   desc: 'Industrial · тяжёлый блок', draw: drawRebelUlom },
     ],
     sniper: [
-        { name: 'Готовый', desc: 'Ваш пиксель-арт · референс', image: SHIP_IMG.select },
         { name: 'Спираль', desc: 'Phidi · кольцо-полумесяц', draw: drawAlienSpiral },
-        { name: 'Жнец',    desc: 'Phidi · клешни-сборщик', draw: drawAlienZhnec },
-        { name: 'Сеть',    desc: 'Phidi · жало-разведчик', draw: drawAlienSet },
+        { name: 'Жнец', desc: 'Phidi · клешни-сборщик', draw: drawAlienZhnec },
     ],
 };
 
@@ -1267,6 +1273,11 @@ const Storage = {
         const local = this.loadLocal();
         const cloud = await this.loadCloud();
         state = this.pickBestSave(local, cloud);
+        if (state.factionId != null) {
+            const list = SHIP_CATALOG[state.factionId] || SHIP_CATALOG.tank;
+            if (state.shipIndex == null || state.shipIndex < 0) state.shipIndex = 0;
+            if (state.shipIndex >= list.length) state.shipIndex = list.length - 1;
+        }
         if (!state.profileComplete && state.playerName && state.factionId !== null && state.shipIndex !== null) {
             state.profileComplete = true;
         }
@@ -1394,9 +1405,21 @@ function getShipList(factionId = state.factionId) {
     return SHIP_CATALOG[factionId] || SHIP_CATALOG.tank;
 }
 
+function normalizeShipIndex() {
+    if (state.factionId == null) return;
+    const list = getShipList();
+    if (state.shipIndex == null || state.shipIndex < 0) state.shipIndex = 0;
+    if (state.shipIndex >= list.length) state.shipIndex = list.length - 1;
+}
+
 function getCurrentShip() {
+    normalizeShipIndex();
     const list = getShipList();
     return list[state.shipIndex ?? 0] || list[0];
+}
+
+function getShipMiningSrc(ship = getCurrentShip()) {
+    return ship.miningImage || ship.image || null;
 }
 
 function drawCurrentShip(pixelSize = 3) {
@@ -1789,11 +1812,18 @@ function renderPlayerShip() {
     flame.width = 5;
     flame.height = 10;
     el.appendChild(flame);
-    const img = document.createElement('img');
-    img.src = SHIP_IMG.mining;
-    img.alt = 'Корабль';
-    img.draggable = false;
-    el.appendChild(img);
+
+    const ship = getCurrentShip();
+    const miningSrc = getShipMiningSrc(ship);
+    if (miningSrc) {
+        const img = document.createElement('img');
+        img.src = miningSrc;
+        img.alt = ship.name;
+        img.draggable = false;
+        el.appendChild(img);
+    } else {
+        el.appendChild(renderShipGraphic(ship, state.factionId, 3));
+    }
     updateShipVisual();
 }
 
