@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.17.1</title>
+    <title>Space Dream v2.17.2</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -395,15 +395,16 @@
         }
         .ship-flame {
             position: absolute;
-            left: 0;
-            top: 0;
+            left: 50%;
+            top: 50%;
             width: 12px;
             height: 30px;
-            transform: translate(-50%, -50%);
+            /* двигатели у нижнего края спрайта (корма) */
+            transform: translate(-50%, calc(-50% + 28px));
             image-rendering: pixelated;
             image-rendering: crisp-edges;
             pointer-events: none;
-            z-index: 9;
+            z-index: 0;
             opacity: 0;
         }
         .ship-flame.active { opacity: 1; }
@@ -615,7 +616,6 @@
                 <div class="planet-wrap" id="planet-wrap"></div>
             </div>
             <svg class="laser-layer" id="laser-layer"></svg>
-            <canvas class="ship-flame" id="ship-flame" width="5" height="10"></canvas>
             <div class="player-ship" id="player-ship"></div>
         </div>
         <div class="mining-tap" id="mining-tap"></div>
@@ -699,7 +699,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.17.1';
+const VERSION = '2.17.2';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -1561,14 +1561,6 @@ function updateCamera() {
     $('mining-world').style.transform = `translate3d(${-Math.round(cx)}px, ${-Math.round(cy)}px, 0)`;
 }
 
-function getShipTailWorld(dist = 34) {
-    const rad = (shipRotation + 90) * Math.PI / 180;
-    return {
-        x: shipPos.x + Math.cos(rad) * dist,
-        y: shipPos.y + Math.sin(rad) * dist,
-    };
-}
-
 function drawShipFlame(cvs, frame) {
     const ctx = cvs.getContext('2d');
     ctx.clearRect(0, 0, cvs.width, cvs.height);
@@ -1578,7 +1570,6 @@ function drawShipFlame(cvs, frame) {
     const cx = 2 + sway;
     const baseY = 1 + wobble;
 
-    // Пламя рисуем в сторону кормы (вниз по локальной Y канваса)
     ctx.fillStyle = '#662200';
     ctx.fillRect(cx, baseY + 7 + wobble, 1, 1);
     ctx.fillStyle = '#994400';
@@ -1604,13 +1595,9 @@ function updateShipVisual() {
     const flying = !!shipTarget;
     el.classList.toggle('flying', flying);
 
-    const flame = $('ship-flame');
+    const flame = el.querySelector('.ship-flame');
     if (flame) {
         if (flying) {
-            const tail = getShipTailWorld(34);
-            flame.style.left = tail.x + 'px';
-            flame.style.top = tail.y + 'px';
-            flame.style.transform = `translate(-50%, -50%) rotate(${shipRotation}deg)`;
             flame.classList.add('active');
             shipFlameTick++;
             drawShipFlame(flame, shipFlameTick);
@@ -1669,7 +1656,7 @@ function ensureShipFlightLoop() {
             return;
         }
 
-        // Нос корабля смотрит вверх на спрайте → +90° к углу движения
+        // Нос смотрит вверх на спрайте → +90° к углу движения
         const targetRot = Math.atan2(dy, dx) * 180 / Math.PI + 90;
         shipRotation = lerpAngle(shipRotation, targetRot, SHIP_ROT_LERP);
 
@@ -1933,6 +1920,12 @@ function renderPlayerShip() {
     const el = $('player-ship');
     el.innerHTML = '';
 
+    const flame = document.createElement('canvas');
+    flame.className = 'ship-flame';
+    flame.width = 5;
+    flame.height = 10;
+    el.appendChild(flame);
+
     const ship = getCurrentShip();
     const miningSrc = getShipMiningSrc(ship);
     if (miningSrc) {
@@ -1940,6 +1933,8 @@ function renderPlayerShip() {
         img.src = miningSrc;
         img.alt = ship.name;
         img.draggable = false;
+        // PNG нарисован носом вниз — переворачиваем под логику «нос вверх»
+        img.style.transform = 'scaleY(-1)';
         el.appendChild(img);
     } else {
         el.appendChild(renderShipGraphic(ship, state.factionId, 3));
@@ -2660,8 +2655,7 @@ async function resetGame() {
     planetRenderState = null;
     planetActiveSparks = [];
     planetSparkUntil = 0;
-    $('ship-flame')?.getContext('2d')?.clearRect(0, 0, 5, 10);
-    $('ship-flame')?.classList.remove('active');
+    $('player-ship')?.querySelector('.ship-flame')?.getContext('2d')?.clearRect(0, 0, 5, 10);
     $('mining-world')?.querySelectorAll('.mine-object, .mine-loot').forEach(el => el.remove());
     delete $('mining-world')?.dataset.planet;
 
