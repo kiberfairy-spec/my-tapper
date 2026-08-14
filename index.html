@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.20.2</title>
+    <title>Space Dream v2.21.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -695,7 +695,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.20.2';
+const VERSION = '2.21.0';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -744,6 +744,8 @@ const SHIP_IMG = {
     confed2Small: 'ships/Готовый_1_2_3.PNG',
     guild1: 'ships/Гильдия_1_1.png',
     guild2: 'ships/Гильдия_1_2.png',
+    rebel1: 'ships/Повстанцы_1_1.png',
+    rebel2: 'ships/Повстанцы_1_2.png',
 };
 
 const FACTIONS = [
@@ -1343,8 +1345,8 @@ const SHIP_CATALOG = {
         { name: 'Корвет', desc: 'Ударный корвет · усиленная броня', image: SHIP_IMG.confed2Large },
     ],
     dps: [
-        { name: 'Шрам', desc: 'Партизанский корвет · сварка и обломки', draw: drawRebelShram },
-        { name: 'Сборка', desc: 'Грузовой фрегат · модульная «сборка на коленке»', draw: drawRebelSborka },
+        { name: 'Улом', desc: 'Партизанский штурмовик · корпус из обломков', image: SHIP_IMG.rebel1 },
+        { name: 'Диверсант', desc: 'Ударный корвет · скрытые энергоячейки', image: SHIP_IMG.rebel2 },
     ],
     sniper: [
         { name: 'Магнат', desc: 'Флагман гильдии · тяжёлый торговый крейсер', image: SHIP_IMG.guild1 },
