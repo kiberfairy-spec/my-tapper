@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.17.0</title>
+    <title>Space Dream v2.17.1</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -365,6 +365,8 @@
         .planet-canvas {
             width: 100%; height: 100%; display: block;
             image-rendering: auto;
+            transform-origin: 50% 50%;
+            will-change: transform;
         }
         .player-ship {
             position: absolute; z-index: 10; pointer-events: none;
@@ -393,18 +395,18 @@
         }
         .ship-flame {
             position: absolute;
-            left: 50%;
-            top: 50%;
+            left: 0;
+            top: 0;
             width: 12px;
             height: 30px;
-            transform: translate(-50%, 17px);
+            transform: translate(-50%, -50%);
             image-rendering: pixelated;
             image-rendering: crisp-edges;
             pointer-events: none;
-            z-index: 0;
+            z-index: 9;
             opacity: 0;
         }
-        .player-ship.flying .ship-flame { opacity: 1; }
+        .ship-flame.active { opacity: 1; }
         .laser-layer {
             position: absolute; left: 0; top: 0;
             width: 100%; height: 100%;
@@ -613,6 +615,7 @@
                 <div class="planet-wrap" id="planet-wrap"></div>
             </div>
             <svg class="laser-layer" id="laser-layer"></svg>
+            <canvas class="ship-flame" id="ship-flame" width="5" height="10"></canvas>
             <div class="player-ship" id="player-ship"></div>
         </div>
         <div class="mining-tap" id="mining-tap"></div>
@@ -696,7 +699,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.17.0';
+const VERSION = '2.17.1';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -710,8 +713,11 @@ let planetSparkTimer = null;
 let planetRenderState = null;
 let planetSpinAngle = 0;
 let planetSpinRaf = null;
+let planetSpinLast = 0;
 let planetActiveSparks = [];
 let planetSparkUntil = 0;
+const PLANET_SPIN_RAD_S = 0.065;
+const PLANET_SPIN_BOOST = 1.75;
 const SAVE_KEY = 'space_dream_save';
 const DEV_FREE_FUEL = true; // временно: без ограничений топлива для тестов
 const SHIP_MOVE_SPEED = 98;
@@ -1555,6 +1561,14 @@ function updateCamera() {
     $('mining-world').style.transform = `translate3d(${-Math.round(cx)}px, ${-Math.round(cy)}px, 0)`;
 }
 
+function getShipTailWorld(dist = 34) {
+    const rad = (shipRotation + 90) * Math.PI / 180;
+    return {
+        x: shipPos.x + Math.cos(rad) * dist,
+        y: shipPos.y + Math.sin(rad) * dist,
+    };
+}
+
 function drawShipFlame(cvs, frame) {
     const ctx = cvs.getContext('2d');
     ctx.clearRect(0, 0, cvs.width, cvs.height);
@@ -1564,13 +1578,11 @@ function drawShipFlame(cvs, frame) {
     const cx = 2 + sway;
     const baseY = 1 + wobble;
 
-    // Тонкий шлейф 1 px
+    // Пламя рисуем в сторону кормы (вниз по локальной Y канваса)
     ctx.fillStyle = '#662200';
     ctx.fillRect(cx, baseY + 7 + wobble, 1, 1);
     ctx.fillStyle = '#994400';
     ctx.fillRect(cx, baseY + 6, 1, 1);
-
-    // Узкий столб пламени ~1 px
     ctx.fillStyle = '#ff4400';
     ctx.fillRect(cx, baseY + 2, 1, 4 + wobble);
     ctx.fillStyle = '#ff9900';
@@ -1588,15 +1600,26 @@ function updateShipVisual() {
     el.style.left = shipPos.x + 'px';
     el.style.top = shipPos.y + 'px';
     el.style.transform = `translate(-50%, -50%) rotate(${shipRotation}deg)`;
+
     const flying = !!shipTarget;
     el.classList.toggle('flying', flying);
-    const flame = el.querySelector('.ship-flame');
-    if (flying && flame) {
-        shipFlameTick++;
-        drawShipFlame(flame, shipFlameTick);
-    } else if (flame) {
-        flame.getContext('2d').clearRect(0, 0, flame.width, flame.height);
+
+    const flame = $('ship-flame');
+    if (flame) {
+        if (flying) {
+            const tail = getShipTailWorld(34);
+            flame.style.left = tail.x + 'px';
+            flame.style.top = tail.y + 'px';
+            flame.style.transform = `translate(-50%, -50%) rotate(${shipRotation}deg)`;
+            flame.classList.add('active');
+            shipFlameTick++;
+            drawShipFlame(flame, shipFlameTick);
+        } else {
+            flame.classList.remove('active');
+            flame.getContext('2d').clearRect(0, 0, flame.width, flame.height);
+        }
     }
+
     updateCamera();
 }
 
@@ -1708,7 +1731,7 @@ function stopPlanetSpin() {
     planetSpinRaf = null;
 }
 
-function paintPlanetSurface() {
+function paintPlanetBase() {
     if (!planetRenderState) return;
     const st = planetRenderState;
     const { ctx, cx, cy, radius, size, img, imgW, imgH, dpr } = st;
@@ -1718,18 +1741,23 @@ function paintPlanetSurface() {
     ctx.beginPath();
     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
     ctx.clip();
-    ctx.translate(cx, cy);
-    ctx.rotate(planetSpinAngle);
-    ctx.translate(-cx, -cy);
     const diam = radius * 2;
     const scale = Math.max(diam / imgW, diam / imgH);
     const drawW = imgW * scale;
     const drawH = imgH * scale;
     ctx.drawImage(img, cx - drawW / 2, cy - drawH / 2, drawW, drawH);
     ctx.restore();
-    sealCanvasOpaque(ctx, cx * dpr, cy * dpr, radius * dpr);
+    if (!st.sealed) {
+        sealCanvasOpaque(ctx, cx * dpr, cy * dpr, radius * dpr);
+        st.sealed = true;
+    }
+}
 
+function paintPlanetSparks() {
+    if (!planetRenderState) return;
+    paintPlanetBase();
     if (planetActiveSparks.length && performance.now() < planetSparkUntil) {
+        const { ctx, cx, cy, radius } = planetRenderState;
         ctx.save();
         ctx.beginPath();
         ctx.arc(cx, cy, radius - 1, 0, Math.PI * 2);
@@ -1737,17 +1765,31 @@ function paintPlanetSurface() {
         for (const s of planetActiveSparks) drawSpiceSparkle(ctx, s.x, s.y, s.kind);
         ctx.restore();
     }
+}
 
-    st.base = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
+function paintPlanetSurface() {
+    paintPlanetSparks();
+    if (planetRenderState?.cvs) {
+        planetRenderState.cvs.style.transform = `rotate(${planetSpinAngle}rad)`;
+    }
 }
 
 function startPlanetSpin() {
     stopPlanetSpin();
-    const tick = () => {
+    planetSpinLast = performance.now();
+    const tick = (now) => {
         if (!planetRenderState) return;
-        planetSpinAngle += 0.00027;
+        const dt = Math.min(0.05, (now - planetSpinLast) / 1000);
+        planetSpinLast = now;
+        const speed = shipTarget ? PLANET_SPIN_RAD_S * PLANET_SPIN_BOOST : PLANET_SPIN_RAD_S;
+        planetSpinAngle += speed * dt;
         if (planetSpinAngle > Math.PI * 2) planetSpinAngle -= Math.PI * 2;
-        paintPlanetSurface();
+        if (planetRenderState.cvs) {
+            planetRenderState.cvs.style.transform = `rotate(${planetSpinAngle}rad)`;
+        }
+        if (planetActiveSparks.length && performance.now() < planetSparkUntil) {
+            paintPlanetSparks();
+        }
         planetSpinRaf = requestAnimationFrame(tick);
     };
     planetSpinRaf = requestAnimationFrame(tick);
@@ -1863,6 +1905,7 @@ function drawPlanet() {
 
         planetRenderState = {
             ctx,
+            cvs,
             cx,
             cy,
             radius: r,
@@ -1873,8 +1916,10 @@ function drawPlanet() {
             dpr,
             displayW: size,
             displayH: size,
+            sealed: false,
         };
         planetSpinAngle = 0;
+        cvs.style.transform = 'rotate(0rad)';
         paintPlanetSurface();
         startPlanetSpin();
         startPlanetFlashes();
@@ -1887,11 +1932,6 @@ function drawPlanet() {
 function renderPlayerShip() {
     const el = $('player-ship');
     el.innerHTML = '';
-    const flame = document.createElement('canvas');
-    flame.className = 'ship-flame';
-    flame.width = 5;
-    flame.height = 10;
-    el.appendChild(flame);
 
     const ship = getCurrentShip();
     const miningSrc = getShipMiningSrc(ship);
@@ -2156,6 +2196,7 @@ function layoutMining() {
     initMiningWorld();
     resetShipToOrbit();
     if (!mineObjects.length) generateMineObjects();
+    if (planetRenderState) startPlanetSpin();
 }
 
 function onMiningResize() {
@@ -2619,6 +2660,8 @@ async function resetGame() {
     planetRenderState = null;
     planetActiveSparks = [];
     planetSparkUntil = 0;
+    $('ship-flame')?.getContext('2d')?.clearRect(0, 0, 5, 10);
+    $('ship-flame')?.classList.remove('active');
     $('mining-world')?.querySelectorAll('.mine-object, .mine-loot').forEach(el => el.remove());
     delete $('mining-world')?.dataset.planet;
 
