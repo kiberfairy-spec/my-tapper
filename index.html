@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.22.5</title>
+    <title>Space Dream v2.22.6</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -506,59 +506,78 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            padding: 6px 8px 4px;
+            padding: 8px 10px 6px;
             box-sizing: border-box;
+            border-width: 2px;
+            border-style: solid;
         }
         #ship-wtitle {
             flex-shrink: 0;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
             line-height: 1.3;
             font-size: 6px;
         }
+        #win-ship .faction-brief {
+            flex-shrink: 0;
+            font-family: 'Rajdhani', 'Segoe UI', sans-serif;
+            font-size: 7px;
+            line-height: 1.35;
+            color: #c8d0e0;
+            background: rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            padding: 6px 8px;
+            margin-bottom: 8px;
+        }
+        #win-ship .faction-brief-title {
+            font-size: 8px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            margin-bottom: 3px;
+        }
+        #win-ship .faction-brief p {
+            margin: 0 0 4px;
+            font-weight: 300;
+        }
+        #win-ship .faction-brief strong {
+            font-weight: 600;
+            color: #eef2fa;
+        }
+        #win-ship .faction-brief .brief-plus { color: #7fd4ff; }
+        #win-ship .faction-brief .brief-minus { color: #ff9a8a; }
         #ship-list {
-            flex: 1;
-            min-height: 0;
+            flex-shrink: 0;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 6px;
+            gap: 8px;
             width: 100%;
-            align-items: stretch;
-            align-content: stretch;
-            overflow: hidden;
+            align-items: start;
         }
         #ship-list .card {
             width: auto;
             min-width: 0;
-            min-height: 0;
-            padding: 4px;
+            padding: 6px;
             overflow: hidden;
             transition: border-color .15s, box-shadow .15s;
         }
         #ship-list .ship-name {
-            flex-shrink: 0;
-            font-size: 4px;
-            margin-bottom: 3px;
+            font-size: 5px;
+            margin-bottom: 6px;
             line-height: 1.2;
         }
         #ship-list .ship-preview {
-            flex: 1;
-            min-height: 0;
-            padding: 4px 2px;
+            min-height: 170px;
+            padding: 6px 2px;
         }
-        #ship-list .ship-preview > span {
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
+        #ship-list .ship-preview canvas,
+        #ship-list .ship-preview .ship-sprite-img {
             max-width: 100%;
-            max-height: 100%;
-            height: 100% !important;
-            width: 100%;
+            height: auto;
         }
-        #ship-list .ship-preview canvas {
-            max-width: 100%;
-            max-height: 100%;
-            height: auto !important;
-            width: auto;
+        #win-ship .ship-actions {
+            flex-shrink: 0;
+            margin-top: auto;
+            padding-top: 6px;
         }
         #win-ship .btn {
             flex-shrink: 0;
@@ -577,10 +596,13 @@
             background: radial-gradient(ellipse at 50% 50%, rgba(255, 204, 68, 0.1) 0%, transparent 72%);
         }
         @media (max-height: 620px) {
-            #ship-wtitle { font-size: 5px; margin-bottom: 2px; }
-            #ship-list { gap: 4px; }
-            #ship-list .card { padding: 3px; }
-            #ship-list .ship-name { font-size: 3px; margin-bottom: 2px; }
+            #ship-wtitle { font-size: 5px; margin-bottom: 4px; }
+            #win-ship .faction-brief { font-size: 6px; padding: 4px 6px; margin-bottom: 6px; }
+            #win-ship .faction-brief-title { font-size: 7px; }
+            #ship-list { gap: 6px; }
+            #ship-list .card { padding: 4px; }
+            #ship-list .ship-name { font-size: 4px; margin-bottom: 4px; }
+            #ship-list .ship-preview { min-height: 120px; padding: 4px 2px; }
             #win-ship .btn { padding: 4px; font-size: 4px; margin: 1px 0; }
         }
         .card.selected { border-color: #ffaa00; box-shadow: 0 0 12px rgba(255,170,0,.25); }
@@ -678,9 +700,12 @@
     </div>
     <div class="window hidden" id="win-ship">
         <div class="wtitle" id="ship-wtitle">ВЫБЕРИ КОРАБЛЬ</div>
+        <div class="faction-brief hidden" id="faction-brief"></div>
         <div id="ship-list"></div>
-        <button class="btn btn-back" id="btn-ship-back">← НАЗАД К ФРАКЦИЯМ</button>
-        <button class="btn" id="btn-ship-confirm" disabled>ПОДТВЕРДИТЬ</button>
+        <div class="ship-actions">
+            <button class="btn btn-back" id="btn-ship-back">← НАЗАД К ФРАКЦИЯМ</button>
+            <button class="btn" id="btn-ship-confirm" disabled>ПОДТВЕРДИТЬ</button>
+        </div>
     </div>
     <div class="window hidden" id="win-hangar">
         <div class="wtitle">АНГАР</div>
@@ -738,7 +763,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.22.5';
+const VERSION = '2.22.6';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -838,7 +863,7 @@ const SHIP_W = 40, SHIP_H = 56;
 const SHIP_NORM_W = 49;
 const SHIP_NORM_H = 54;
 const SHIP_MINING_H = 56;
-const SHIP_SELECT_H = 140;
+const SHIP_SELECT_H = 200;
 const SHIP_EXTRA = { o:'#e87828', r:'#cc3038', g:'#40e8ff', y:'#d8b030', p:'#a048e0' };
 let _shipDrawExtras = SHIP_EXTRA;
 
@@ -2767,9 +2792,28 @@ function renderFactions() {
     });
 }
 
+function renderFactionBrief(faction) {
+    const box = $('faction-brief');
+    if (!box) return;
+    if (!faction?.lore) {
+        box.classList.add('hidden');
+        box.innerHTML = '';
+        return;
+    }
+    box.classList.remove('hidden');
+    box.style.borderColor = faction.color + '55';
+    box.innerHTML = `
+        <div class="faction-brief-title" style="color:${faction.color}">${faction.name}${faction.subtitle ? ` (${faction.subtitle})` : ''}</div>
+        <p>${faction.lore}</p>
+        ${faction.strength ? `<p class="brief-plus"><strong>Сильная сторона (${faction.strengthLabel || '—'}):</strong> ${faction.strength}</p>` : ''}
+        ${faction.weakness ? `<p class="brief-minus"><strong>Слабая сторона (${faction.weaknessLabel || '—'}):</strong> ${faction.weakness}</p>` : ''}
+    `;
+}
+
 function renderShips() {
     const ships = getShipList();
     const faction = FACTIONS.find(f => f.id === state.factionId);
+    const winShip = $('win-ship');
     const titleEl = $('ship-wtitle');
     if (titleEl) {
         if (faction) {
@@ -2780,6 +2824,10 @@ function renderShips() {
             titleEl.style.color = '';
         }
     }
+    if (winShip) {
+        winShip.style.borderColor = faction?.color || 'var(--accent)';
+    }
+    renderFactionBrief(faction);
 
     $('ship-list').innerHTML = ships.map((ship, i) =>
         `<div class="card ${(state.shipIndex ?? -1) === i ? 'selected' : ''}" data-ship="${i}">
