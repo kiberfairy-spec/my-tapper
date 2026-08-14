@@ -698,7 +698,8 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.17.6';
+const VERSION = '2.17.7';
+const SHIP_NOSE_ROT_OFFSET = 90;
 const SHIP_FLAME_OFFSET = 18;
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
@@ -1196,16 +1197,16 @@ function drawAlienSet(ctx, px, p) { drawMap(ctx, px, p, MAP_ALIEN_SET); }
 
 const SHIP_CATALOG = {
     tank: [
-        { name: 'Штурмовик', desc: 'Патрульный истребитель · стандарт флота', image: SHIP_IMG.select, miningImage: SHIP_IMG.mining },
-        { name: 'Корвет', desc: 'Ударный корвет · усиленная броня', image: SHIP_IMG.confed2Large, miningImage: SHIP_IMG.confed2Small },
+        { name: 'Штурмовик', desc: 'Патрульный истребитель · стандарт флота', image: SHIP_IMG.select, miningImage: SHIP_IMG.mining, miningFacing: 'down' },
+        { name: 'Корвет', desc: 'Ударный корвет · усиленная броня', image: SHIP_IMG.confed2Large, miningImage: SHIP_IMG.confed2Small, miningFacing: 'up' },
     ],
     dps: [
-        { name: 'Шрам', desc: 'Партизанский корвет · сварка и обломки', draw: drawRebelShram },
-        { name: 'Сборка', desc: 'Грузовой фрегат · модульная «сборка на коленке»', draw: drawRebelSborka },
+        { name: 'Шрам', desc: 'Партизанский корвет · сварка и обломки', draw: drawRebelShram, miningFacing: 'up' },
+        { name: 'Сборка', desc: 'Грузовой фрегат · модульная «сборка на коленке»', draw: drawRebelSborka, miningFacing: 'up' },
     ],
     sniper: [
-        { name: 'Спираль', desc: 'Энергокольцо · импульсное оружие гильдии', draw: drawAlienSpiral },
-        { name: 'Жнец', desc: 'Гравизахват · квантовый ударный корабль', draw: drawAlienZhnec },
+        { name: 'Спираль', desc: 'Энергокольцо · импульсное оружие гильдии', draw: drawAlienSpiral, miningFacing: 'up' },
+        { name: 'Жнец', desc: 'Гравизахват · квантовый ударный корабль', draw: drawAlienZhnec, miningFacing: 'up' },
     ],
 };
 
@@ -1552,43 +1553,65 @@ function updateCamera() {
     $('mining-world').style.transform = `translate3d(${-Math.round(cx)}px, ${-Math.round(cy)}px, 0)`;
 }
 
-function isPngMiningShip(ship = getCurrentShip()) {
-    return !!getShipMiningSrc(ship);
+function getShipMiningFacing(ship = getCurrentShip()) {
+    return ship?.miningFacing === 'down' ? 'down' : 'up';
 }
 
 function getShipRotOffset(ship = getCurrentShip()) {
-    // Canvas: нос вверху спрайта. PNG на добыче: flip Y + смещение −90°.
-    return isPngMiningShip(ship) ? -90 : 90;
+    // Нос вверху на спрайте → +90°; нос внизу (ship-mining) → −90°.
+    return getShipMiningFacing(ship) === 'down' ? -SHIP_NOSE_ROT_OFFSET : SHIP_NOSE_ROT_OFFSET;
+}
+
+function getShipFlameOffset(ship = getCurrentShip()) {
+    return getShipMiningFacing(ship) === 'down' ? -SHIP_FLAME_OFFSET : SHIP_FLAME_OFFSET;
 }
 
 function getShipNoseRad(ship = getCurrentShip()) {
-    return isPngMiningShip(ship)
+    return getShipMiningFacing(ship) === 'down'
         ? (shipRotation + 90) * Math.PI / 180
         : (shipRotation - 90) * Math.PI / 180;
 }
 
-function drawShipFlame(cvs, frame) {
+function drawShipFlame(cvs, frame, enginesBottom = true) {
     const ctx = cvs.getContext('2d');
     ctx.clearRect(0, 0, cvs.width, cvs.height);
     ctx.imageSmoothingEnabled = false;
     const wobble = frame % 3;
     const sway = (frame % 2 === 0) ? 0 : (frame % 4 === 1 ? 1 : -1);
     const cx = 2 + sway;
-    const baseY = 1 + wobble;
 
-    ctx.fillStyle = '#662200';
-    ctx.fillRect(cx, baseY + 6 + wobble, 1, 1);
-    ctx.fillStyle = '#994400';
-    ctx.fillRect(cx, baseY + 5, 1, 1);
-    ctx.fillStyle = '#ff4400';
-    ctx.fillRect(cx, baseY + 2, 1, 3 + wobble);
-    ctx.fillStyle = '#ff9900';
-    ctx.fillRect(cx, baseY + 1, 1, 2);
-    ctx.fillStyle = '#ffdd55';
-    ctx.fillRect(cx, baseY + 2, 1, 1);
-    if (sway !== 0) {
-        ctx.fillStyle = '#ff6600';
-        ctx.fillRect(cx - sway, baseY + 3, 1, 2);
+    if (enginesBottom) {
+        const baseY = 1 + wobble;
+        ctx.fillStyle = '#ffdd55';
+        ctx.fillRect(cx, baseY, 1, 1);
+        ctx.fillStyle = '#ff9900';
+        ctx.fillRect(cx, baseY + 1, 1, 2);
+        ctx.fillStyle = '#ff4400';
+        ctx.fillRect(cx, baseY + 3, 1, 3 + wobble);
+        ctx.fillStyle = '#994400';
+        ctx.fillRect(cx, baseY + 5 + wobble, 1, 1);
+        ctx.fillStyle = '#662200';
+        ctx.fillRect(cx, baseY + 6 + wobble, 1, 1);
+        if (sway !== 0) {
+            ctx.fillStyle = '#ff6600';
+            ctx.fillRect(cx - sway, baseY + 2, 1, 2);
+        }
+    } else {
+        const baseY = 8 - wobble;
+        ctx.fillStyle = '#ffdd55';
+        ctx.fillRect(cx, baseY, 1, 1);
+        ctx.fillStyle = '#ff9900';
+        ctx.fillRect(cx, baseY - 1, 1, 2);
+        ctx.fillStyle = '#ff4400';
+        ctx.fillRect(cx, baseY - 4 - wobble, 1, 3 + wobble);
+        ctx.fillStyle = '#994400';
+        ctx.fillRect(cx, baseY - 5 - wobble, 1, 1);
+        ctx.fillStyle = '#662200';
+        ctx.fillRect(cx, Math.max(0, baseY - 7 - wobble), 1, 1);
+        if (sway !== 0) {
+            ctx.fillStyle = '#ff6600';
+            ctx.fillRect(cx - sway, baseY - 3, 1, 2);
+        }
     }
 }
 
@@ -1601,12 +1624,15 @@ function updateShipVisual() {
     const flying = !!shipTarget;
     el.classList.toggle('flying', flying);
 
+    const ship = getCurrentShip();
     const flame = el.querySelector('.ship-flame');
     if (flame) {
+        const flameY = getShipFlameOffset(ship);
+        flame.style.transform = `translate(-50%, calc(-50% + ${flameY}px))`;
         if (flying) {
             flame.classList.add('active');
             shipFlameTick++;
-            drawShipFlame(flame, shipFlameTick);
+            drawShipFlame(flame, shipFlameTick, getShipMiningFacing(ship) === 'up');
         } else {
             flame.classList.remove('active');
             flame.getContext('2d').clearRect(0, 0, flame.width, flame.height);
@@ -1938,7 +1964,6 @@ function renderPlayerShip() {
         img.src = miningSrc;
         img.alt = ship.name;
         img.draggable = false;
-        img.style.transform = 'scaleY(-1)';
         el.appendChild(img);
     } else {
         el.appendChild(renderShipGraphic(ship, state.factionId, 3));
