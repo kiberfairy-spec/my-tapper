@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.18.1</title>
+    <title>Space Dream v2.18.2</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -699,7 +699,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.18.1';
+const VERSION = '2.18.2';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -1197,7 +1197,7 @@ function drawAlienSet(ctx, px, p) { drawMap(ctx, px, p, MAP_ALIEN_SET); }
 const SHIP_CATALOG = {
     tank: [
         { name: 'Штурмовик', desc: 'Патрульный истребитель · стандарт флота', image: SHIP_IMG.select },
-        { name: 'Корвет', desc: 'Ударный корвет · усиленная броня', image: SHIP_IMG.confed2Large, miningImage: SHIP_IMG.confed2Small },
+        { name: 'Корвет', desc: 'Ударный корвет · усиленная броня', image: SHIP_IMG.confed2Large },
     ],
     dps: [
         { name: 'Шрам', desc: 'Партизанский корвет · сварка и обломки', draw: drawRebelShram },
