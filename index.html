@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.23.1</title>
+    <title>Space Dream v2.23.2</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -435,7 +435,7 @@
             cursor: pointer; pointer-events: auto;
             filter: drop-shadow(0 0 6px rgba(255,200,80,.45));
             transition: opacity .3s, transform .2s;
-            min-width: 56px; min-height: 56px;
+            min-width: 44px; min-height: 44px;
             display: flex; align-items: center; justify-content: center;
             touch-action: manipulation;
         }
@@ -764,9 +764,9 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.23.1';
+const VERSION = '2.23.2';
 const ORBIT_DIST = 120;
-const PLANET_SCALE = 1.2;
+const PLANET_SCALE = 1.28;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
 const PLANET_DISPLAY_W = Math.round(360 * PLANET_SCALE);
 const PLANET_SPARK_MS = 420;
@@ -795,8 +795,8 @@ const WORLD_PAD_RATIO = 0.95;
 const WORLD_PAD_TRIM = 25; // уменьшение карты добычи с каждой стороны
 let worldBounds = { width: 960, height: 1160, centerX: 480, centerY: 580 };
 let MAP_CENTER = { x: 480, y: 580 };
-const MINE_STOP_DIST = 46;
-const MINE_STOP_DIST_METEOR = MINE_STOP_DIST + 20;
+const MINE_STOP_DIST = 51;
+const MINE_STOP_DIST_METEOR = 66;
 const MINE_LASER_MS = 3000;
 const MINE_PER_WAVE = 9;
 const MINE_KINDS = {
@@ -815,7 +815,7 @@ const MINE_IMG = {
         'mines/ПИРАТЫ_2-Photoroom.png',
     ],
 };
-const MINE_OBJECT_H = 56;
+const MINE_OBJECT_H = 44;
 
 function pickMineImageSrc(kind) {
     const entry = MINE_IMG[kind];
