@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.17.3</title>
+    <title>Space Dream v2.17.4</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -399,8 +399,7 @@
             top: 50%;
             width: 12px;
             height: 30px;
-            /* двигатели у нижнего края спрайта (корма) */
-            transform: translate(-50%, calc(-50% + 28px));
+            transform: translate(-50%, -50%);
             image-rendering: pixelated;
             image-rendering: crisp-edges;
             pointer-events: none;
@@ -699,7 +698,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.17.3';
+const VERSION = '2.17.4';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -1552,33 +1551,71 @@ function updateCamera() {
     $('mining-world').style.transform = `translate3d(${-Math.round(cx)}px, ${-Math.round(cy)}px, 0)`;
 }
 
-function drawShipFlame(cvs, frame) {
+function isPngMiningShip(ship = getCurrentShip()) {
+    return !!getShipMiningSrc(ship);
+}
+
+// PNG: нос внизу файла, двигатели сверху. Canvas: нос вверху, двигатели внизу.
+function getShipRotOffset(ship = getCurrentShip()) {
+    return isPngMiningShip(ship) ? -90 : 90;
+}
+
+function getShipFlameOffset(ship = getCurrentShip()) {
+    return isPngMiningShip(ship) ? -28 : 28;
+}
+
+function getShipNoseRad(ship = getCurrentShip()) {
+    return isPngMiningShip(ship)
+        ? (shipRotation + 90) * Math.PI / 180
+        : (shipRotation - 90) * Math.PI / 180;
+}
+
+function drawShipFlame(cvs, frame, tailDown = true) {
     const ctx = cvs.getContext('2d');
     ctx.clearRect(0, 0, cvs.width, cvs.height);
     ctx.imageSmoothingEnabled = false;
     const wobble = frame % 3;
     const sway = (frame % 2 === 0) ? 0 : (frame % 4 === 1 ? 1 : -1);
     const cx = 2 + sway;
-    const baseY = 1 + wobble;
 
-    ctx.fillStyle = '#662200';
-    ctx.fillRect(cx, baseY + 7 + wobble, 1, 1);
-    ctx.fillStyle = '#994400';
-    ctx.fillRect(cx, baseY + 6, 1, 1);
-    ctx.fillStyle = '#ff4400';
-    ctx.fillRect(cx, baseY + 2, 1, 4 + wobble);
-    ctx.fillStyle = '#ff9900';
-    ctx.fillRect(cx, baseY + 1, 1, 2);
-    ctx.fillStyle = '#ffdd55';
-    ctx.fillRect(cx, baseY + 2, 1, 1);
-    if (sway !== 0) {
-        ctx.fillStyle = '#ff6600';
-        ctx.fillRect(cx - sway, baseY + 3, 1, 2);
+    if (tailDown) {
+        const baseY = 1 + wobble;
+        ctx.fillStyle = '#662200';
+        ctx.fillRect(cx, baseY + 7 + wobble, 1, 1);
+        ctx.fillStyle = '#994400';
+        ctx.fillRect(cx, baseY + 6, 1, 1);
+        ctx.fillStyle = '#ff4400';
+        ctx.fillRect(cx, baseY + 2, 1, 4 + wobble);
+        ctx.fillStyle = '#ff9900';
+        ctx.fillRect(cx, baseY + 1, 1, 2);
+        ctx.fillStyle = '#ffdd55';
+        ctx.fillRect(cx, baseY + 2, 1, 1);
+        if (sway !== 0) {
+            ctx.fillStyle = '#ff6600';
+            ctx.fillRect(cx - sway, baseY + 3, 1, 2);
+        }
+    } else {
+        const baseY = 8 - wobble;
+        ctx.fillStyle = '#ffdd55';
+        ctx.fillRect(cx, baseY - 1, 1, 1);
+        ctx.fillStyle = '#ff9900';
+        ctx.fillRect(cx, baseY - 2, 1, 2);
+        ctx.fillStyle = '#ff4400';
+        ctx.fillRect(cx, baseY - 5 - wobble, 1, 3 + wobble);
+        ctx.fillStyle = '#994400';
+        ctx.fillRect(cx, baseY - 6 - wobble, 1, 1);
+        ctx.fillStyle = '#662200';
+        ctx.fillRect(cx, Math.max(0, baseY - 8 - wobble), 1, 1);
+        if (sway !== 0) {
+            ctx.fillStyle = '#ff6600';
+            ctx.fillRect(cx - sway, baseY - 4, 1, 2);
+        }
     }
 }
 
 function updateShipVisual() {
     const el = $('player-ship');
+    const ship = getCurrentShip();
     el.style.left = shipPos.x + 'px';
     el.style.top = shipPos.y + 'px';
     el.style.transform = `translate(-50%, -50%) rotate(${shipRotation}deg)`;
@@ -1588,10 +1625,12 @@ function updateShipVisual() {
 
     const flame = el.querySelector('.ship-flame');
     if (flame) {
+        const flameY = getShipFlameOffset(ship);
+        flame.style.transform = `translate(-50%, calc(-50% + ${flameY}px))`;
         if (flying) {
             flame.classList.add('active');
             shipFlameTick++;
-            drawShipFlame(flame, shipFlameTick);
+            drawShipFlame(flame, shipFlameTick, !isPngMiningShip(ship));
         } else {
             flame.classList.remove('active');
             flame.getContext('2d').clearRect(0, 0, flame.width, flame.height);
@@ -1607,7 +1646,7 @@ function screenToWorld(sx, sy) {
 }
 
 function getShipNose(offset = 28) {
-    const rad = (shipRotation - 90) * Math.PI / 180;
+    const rad = getShipNoseRad();
     return { x: shipPos.x + Math.cos(rad) * offset, y: shipPos.y + Math.sin(rad) * offset };
 }
 
@@ -1647,8 +1686,7 @@ function ensureShipFlightLoop() {
             return;
         }
 
-        // Нос смотрит вверх на спрайте → +90° к углу движения
-        const targetRot = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+        const targetRot = Math.atan2(dy, dx) * 180 / Math.PI + getShipRotOffset();
         shipRotation = lerpAngle(shipRotation, targetRot, SHIP_ROT_LERP);
 
         const step = SHIP_MOVE_SPEED * dt;
@@ -1924,8 +1962,6 @@ function renderPlayerShip() {
         img.src = miningSrc;
         img.alt = ship.name;
         img.draggable = false;
-        // PNG нарисован носом вниз — переворачиваем под логику «нос вверх»
-        img.style.transform = 'scaleY(-1)';
         el.appendChild(img);
     } else {
         el.appendChild(renderShipGraphic(ship, state.factionId, 3));
@@ -2338,7 +2374,7 @@ function fireLasersAt(obj, onDone, color = 'blue') {
     const cls = color === 'red' ? 'laser-beam laser-red' : 'laser-beam laser-blue';
 
     offsets.forEach(off => {
-        const rad = (shipRotation - 90) * Math.PI / 180;
+        const rad = getShipNoseRad();
         const px = nose.x + Math.cos(rad + Math.PI / 2) * off;
         const py = nose.y + Math.sin(rad + Math.PI / 2) * off;
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
