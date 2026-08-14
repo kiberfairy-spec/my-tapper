@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.19.1</title>
+    <title>Space Dream v2.20.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -695,7 +695,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.19.1';
+const VERSION = '2.20.0';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -742,6 +742,8 @@ const SHIP_IMG = {
     planet: 'ships/planet-anime.png',
     confed2Large: 'ships/Готовый_1_2_3(бол).PNG',
     confed2Small: 'ships/Готовый_1_2_3.PNG',
+    guild1: 'ships/Гильдия_1_1.jpeg',
+    guild2: 'ships/Гильдия_1_2.jpeg',
 };
 
 const FACTIONS = [
@@ -820,7 +822,18 @@ function isAccentStripe(r, g, b) {
     return false;
 }
 
-function recolorAccentStripes(ctx, accentHex) {
+function isGuildStripe(r, g, b) {
+    if (b > 140 && g > 110 && b >= g - 25) return false;
+    if (r > 165 && g > 130 && b < 95) return false;
+    if (g > 50 && g > r + 10 && g > b + 6) return true;
+    return false;
+}
+
+function shouldRecolorStripe(r, g, b, factionId) {
+    return factionId === 'sniper' ? isGuildStripe(r, g, b) : isAccentStripe(r, g, b);
+}
+
+function recolorAccentStripes(ctx, accentHex, factionId = 'tank') {
     const w = ctx.canvas.width;
     const h = ctx.canvas.height;
     const img = ctx.getImageData(0, 0, w, h);
@@ -828,7 +841,7 @@ function recolorAccentStripes(ctx, accentHex) {
     const ac = hexToRgb(accentHex);
     for (let i = 0; i < d.length; i += 4) {
         const r = d[i], g = d[i + 1], b = d[i + 2], a = d[i + 3];
-        if (a < 20 || !isAccentStripe(r, g, b)) continue;
+        if (a < 20 || !shouldRecolorStripe(r, g, b, factionId)) continue;
         const lum = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
         const shade = 0.5 + lum * 0.7;
         d[i] = Math.min(255, Math.round(ac.r * shade));
@@ -856,22 +869,22 @@ function getSpriteContentBounds(ctx) {
     return { minX, minY, w: maxX - minX + 1, h: maxY - minY + 1 };
 }
 
-function normalizeShipCanvas(srcCanvas) {
+function normalizeShipCanvas(srcCanvas, outW = SHIP_NORM_W, outH = SHIP_NORM_H) {
     const srcCtx = srcCanvas.getContext('2d');
     const b = getSpriteContentBounds(srcCtx);
     const out = document.createElement('canvas');
-    out.width = SHIP_NORM_W;
-    out.height = SHIP_NORM_H;
+    out.width = outW;
+    out.height = outH;
     const ctx = out.getContext('2d');
     ctx.imageSmoothingEnabled = false;
-    const pad = 1;
-    const availW = SHIP_NORM_W - pad * 2;
-    const availH = SHIP_NORM_H - pad * 2;
+    const pad = Math.max(1, Math.round(Math.min(outW, outH) * 0.04));
+    const availW = outW - pad * 2;
+    const availH = outH - pad * 2;
     const scale = Math.min(availW / b.w, availH / b.h);
     const dw = Math.max(1, Math.round(b.w * scale));
     const dh = Math.max(1, Math.round(b.h * scale));
-    const dx = Math.floor((SHIP_NORM_W - dw) / 2);
-    const dy = Math.floor((SHIP_NORM_H - dh) / 2);
+    const dx = Math.floor((outW - dw) / 2);
+    const dy = Math.floor((outH - dh) / 2);
     ctx.drawImage(srcCanvas, b.minX, b.minY, b.w, b.h, dx, dy, dw, dh);
     return out;
 }
@@ -885,15 +898,25 @@ function buildFactionShipImage(src, factionId, sizeStyle, onReady) {
         const tctx = tmp.getContext('2d');
         tctx.imageSmoothingEnabled = false;
         tctx.drawImage(loader, 0, 0);
-        recolorAccentStripes(tctx, getFactionStripe(factionId));
+        recolorAccentStripes(tctx, getFactionStripe(factionId), factionId);
 
-        const cvs = normalizeShipCanvas(tmp);
+        const targetH = parseInt(sizeStyle.height || sizeStyle.maxHeight || String(SHIP_NORM_H), 10);
+        const hiRes = loader.naturalWidth > 80 || loader.naturalHeight > 80;
+        let outW = SHIP_NORM_W;
+        let outH = SHIP_NORM_H;
+        if (hiRes) {
+            const b = getSpriteContentBounds(tctx);
+            outH = targetH;
+            outW = Math.max(1, Math.round(targetH * (b.w / b.h)));
+        }
+
+        const cvs = normalizeShipCanvas(tmp, outW, outH);
         cvs.className = 'ship-sprite-img';
         if (sizeStyle.height) cvs.style.height = sizeStyle.height;
         if (sizeStyle.maxHeight) cvs.style.maxHeight = sizeStyle.maxHeight;
         if (sizeStyle.width) cvs.style.width = sizeStyle.width;
         else cvs.style.width = 'auto';
-        cvs.style.imageRendering = 'pixelated';
+        cvs.style.imageRendering = hiRes ? 'auto' : 'pixelated';
         onReady(cvs);
     };
     loader.src = src;
@@ -1307,8 +1330,8 @@ const SHIP_CATALOG = {
         { name: 'Сборка', desc: 'Грузовой фрегат · модульная «сборка на коленке»', draw: drawRebelSborka },
     ],
     sniper: [
-        { name: 'Спираль', desc: 'Энергокольцо · импульсное оружие гильдии', draw: drawAlienSpiral },
-        { name: 'Жнец', desc: 'Гравизахват · квантовый ударный корабль', draw: drawAlienZhnec },
+        { name: 'Магнат', desc: 'Флагман гильдии · тяжёлый торговый крейсер', image: SHIP_IMG.guild1 },
+        { name: 'Вексель', desc: 'Контрактный патруль · сбор премий и долгов', image: SHIP_IMG.guild2 },
     ],
 };
 
