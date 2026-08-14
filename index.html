@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.16.3</title>
+    <title>Space Dream v2.16.4</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -484,6 +484,7 @@
         .start-hint { font-size: 5px; color: #ff6666; text-align: center; min-height: 10px; margin-top: 2px; }
         .btn { width: 100%; padding: 7px; margin: 5px 0; background: #040c04; border: 2px solid var(--accent); color: var(--text); font-family: inherit; font-size: 6px; cursor: pointer; }
         .btn:disabled { opacity: .4; cursor: not-allowed; }
+        .btn-back { border-color: #556; color: #9aa; margin-top: 4px; }
         .btn-sm { width: auto; padding: 3px 6px; font-size: 4px; }
         .hidden { display: none !important; }
         .row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
@@ -626,6 +627,7 @@
         <div class="wtitle">ВЫБЕРИ КОРАБЛЬ</div>
         <div class="faction-brief hidden" id="faction-brief"></div>
         <div class="row" id="ship-list"></div>
+        <button class="btn btn-back" id="btn-ship-back">← НАЗАД К ФРАКЦИЯМ</button>
         <button class="btn" id="btn-ship-confirm" disabled>ПОДТВЕРДИТЬ</button>
     </div>
     <div class="window hidden" id="win-hangar">
@@ -684,7 +686,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.16.3';
+const VERSION = '2.16.4';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -2640,6 +2642,10 @@ function bindEvents() {
     };
 
     $('btn-ship-confirm').onclick = completeProfile;
+
+    $('btn-ship-back').onclick = () => {
+        showWindow('faction');
+    };
 
     $('btn-reset').onclick = async () => {
         if (!confirm('Сбросить прогресс и выбрать фракцию заново?')) return;
