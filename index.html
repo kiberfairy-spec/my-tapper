@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.20.0</title>
+    <title>Space Dream v2.20.1</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -695,7 +695,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.20.0';
+const VERSION = '2.20.1';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -851,7 +851,21 @@ function recolorAccentStripes(ctx, accentHex, factionId = 'tank') {
     ctx.putImageData(img, 0, 0);
 }
 
-function getSpriteContentBounds(ctx) {
+function removeDarkBackground(ctx, threshold = 36) {
+    const w = ctx.canvas.width;
+    const h = ctx.canvas.height;
+    const img = ctx.getImageData(0, 0, w, h);
+    const d = img.data;
+    for (let i = 0; i < d.length; i += 4) {
+        const r = d[i], g = d[i + 1], b = d[i + 2];
+        if (r <= threshold && g <= threshold && b <= threshold) d[i + 3] = 0;
+    }
+    ctx.putImageData(img, 0, 0);
+}
+
+function needsBackgroundKey(src) {
+    return /\.jpe?g$/i.test(src);
+}
     const w = ctx.canvas.width;
     const h = ctx.canvas.height;
     const d = ctx.getImageData(0, 0, w, h).data;
@@ -898,6 +912,7 @@ function buildFactionShipImage(src, factionId, sizeStyle, onReady) {
         const tctx = tmp.getContext('2d');
         tctx.imageSmoothingEnabled = false;
         tctx.drawImage(loader, 0, 0);
+        if (needsBackgroundKey(src)) removeDarkBackground(tctx);
         recolorAccentStripes(tctx, getFactionStripe(factionId), factionId);
 
         const targetH = parseInt(sizeStyle.height || sizeStyle.maxHeight || String(SHIP_NORM_H), 10);
