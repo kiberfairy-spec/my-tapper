@@ -866,6 +866,8 @@ function removeDarkBackground(ctx, threshold = 36) {
 function needsBackgroundKey(src) {
     return /\.jpe?g$/i.test(src);
 }
+
+function getSpriteContentBounds(ctx) {
     const w = ctx.canvas.width;
     const h = ctx.canvas.height;
     const d = ctx.getImageData(0, 0, w, h).data;
