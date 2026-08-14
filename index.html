@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.17.6</title>
+    <title>Space Dream v2.17.8</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -395,15 +395,15 @@
         }
         .ship-flame {
             position: absolute;
-            left: 50%;
-            top: 50%;
-            width: 10px;
-            height: 22px;
-            transform: translate(-50%, calc(-50% + 18px));
+            left: 0;
+            top: 0;
+            width: 12px;
+            height: 30px;
+            transform: translate(-50%, -50%);
             image-rendering: pixelated;
             image-rendering: crisp-edges;
             pointer-events: none;
-            z-index: 0;
+            z-index: 9;
             opacity: 0;
         }
         .ship-flame.active { opacity: 1; }
@@ -615,6 +615,7 @@
                 <div class="planet-wrap" id="planet-wrap"></div>
             </div>
             <svg class="laser-layer" id="laser-layer"></svg>
+            <canvas class="ship-flame" id="ship-flame" width="5" height="10"></canvas>
             <div class="player-ship" id="player-ship"></div>
         </div>
         <div class="mining-tap" id="mining-tap"></div>
@@ -698,9 +699,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.17.7';
-const SHIP_NOSE_ROT_OFFSET = 90;
-const SHIP_FLAME_OFFSET = 18;
+const VERSION = '2.17.8';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -1197,16 +1196,16 @@ function drawAlienSet(ctx, px, p) { drawMap(ctx, px, p, MAP_ALIEN_SET); }
 
 const SHIP_CATALOG = {
     tank: [
-        { name: 'Штурмовик', desc: 'Патрульный истребитель · стандарт флота', image: SHIP_IMG.select, miningImage: SHIP_IMG.mining, miningFacing: 'down' },
-        { name: 'Корвет', desc: 'Ударный корвет · усиленная броня', image: SHIP_IMG.confed2Large, miningImage: SHIP_IMG.confed2Small, miningFacing: 'up' },
+        { name: 'Штурмовик', desc: 'Патрульный истребитель · стандарт флота', image: SHIP_IMG.select, miningImage: SHIP_IMG.mining },
+        { name: 'Корвет', desc: 'Ударный корвет · усиленная броня', image: SHIP_IMG.confed2Large, miningImage: SHIP_IMG.confed2Small },
     ],
     dps: [
-        { name: 'Шрам', desc: 'Партизанский корвет · сварка и обломки', draw: drawRebelShram, miningFacing: 'up' },
-        { name: 'Сборка', desc: 'Грузовой фрегат · модульная «сборка на коленке»', draw: drawRebelSborka, miningFacing: 'up' },
+        { name: 'Шрам', desc: 'Партизанский корвет · сварка и обломки', draw: drawRebelShram },
+        { name: 'Сборка', desc: 'Грузовой фрегат · модульная «сборка на коленке»', draw: drawRebelSborka },
     ],
     sniper: [
-        { name: 'Спираль', desc: 'Энергокольцо · импульсное оружие гильдии', draw: drawAlienSpiral, miningFacing: 'up' },
-        { name: 'Жнец', desc: 'Гравизахват · квантовый ударный корабль', draw: drawAlienZhnec, miningFacing: 'up' },
+        { name: 'Спираль', desc: 'Энергокольцо · импульсное оружие гильдии', draw: drawAlienSpiral },
+        { name: 'Жнец', desc: 'Гравизахват · квантовый ударный корабль', draw: drawAlienZhnec },
     ],
 };
 
@@ -1510,6 +1509,11 @@ function getShipMiningSrc(ship = getCurrentShip()) {
     return ship.miningImage || ship.image || null;
 }
 
+function needsMiningFlip(ship = getCurrentShip()) {
+    // ship-mining.png в файле перевёрнут относительно ship-select.png
+    return ship.miningImage === SHIP_IMG.mining;
+}
+
 function drawCurrentShip(pixelSize = 3) {
     const ship = getCurrentShip();
     return renderShipGraphic(ship, state.factionId, pixelSize);
@@ -1553,65 +1557,36 @@ function updateCamera() {
     $('mining-world').style.transform = `translate3d(${-Math.round(cx)}px, ${-Math.round(cy)}px, 0)`;
 }
 
-function getShipMiningFacing(ship = getCurrentShip()) {
-    return ship?.miningFacing === 'down' ? 'down' : 'up';
+function getShipTailWorld(dist = 34) {
+    const rad = (shipRotation + 90) * Math.PI / 180;
+    return {
+        x: shipPos.x + Math.cos(rad) * dist,
+        y: shipPos.y + Math.sin(rad) * dist,
+    };
 }
 
-function getShipRotOffset(ship = getCurrentShip()) {
-    // Нос вверху на спрайте → +90°; нос внизу (ship-mining) → −90°.
-    return getShipMiningFacing(ship) === 'down' ? -SHIP_NOSE_ROT_OFFSET : SHIP_NOSE_ROT_OFFSET;
-}
-
-function getShipFlameOffset(ship = getCurrentShip()) {
-    return getShipMiningFacing(ship) === 'down' ? -SHIP_FLAME_OFFSET : SHIP_FLAME_OFFSET;
-}
-
-function getShipNoseRad(ship = getCurrentShip()) {
-    return getShipMiningFacing(ship) === 'down'
-        ? (shipRotation + 90) * Math.PI / 180
-        : (shipRotation - 90) * Math.PI / 180;
-}
-
-function drawShipFlame(cvs, frame, enginesBottom = true) {
+function drawShipFlame(cvs, frame) {
     const ctx = cvs.getContext('2d');
     ctx.clearRect(0, 0, cvs.width, cvs.height);
     ctx.imageSmoothingEnabled = false;
     const wobble = frame % 3;
     const sway = (frame % 2 === 0) ? 0 : (frame % 4 === 1 ? 1 : -1);
     const cx = 2 + sway;
+    const baseY = 1 + wobble;
 
-    if (enginesBottom) {
-        const baseY = 1 + wobble;
-        ctx.fillStyle = '#ffdd55';
-        ctx.fillRect(cx, baseY, 1, 1);
-        ctx.fillStyle = '#ff9900';
-        ctx.fillRect(cx, baseY + 1, 1, 2);
-        ctx.fillStyle = '#ff4400';
-        ctx.fillRect(cx, baseY + 3, 1, 3 + wobble);
-        ctx.fillStyle = '#994400';
-        ctx.fillRect(cx, baseY + 5 + wobble, 1, 1);
-        ctx.fillStyle = '#662200';
-        ctx.fillRect(cx, baseY + 6 + wobble, 1, 1);
-        if (sway !== 0) {
-            ctx.fillStyle = '#ff6600';
-            ctx.fillRect(cx - sway, baseY + 2, 1, 2);
-        }
-    } else {
-        const baseY = 8 - wobble;
-        ctx.fillStyle = '#ffdd55';
-        ctx.fillRect(cx, baseY, 1, 1);
-        ctx.fillStyle = '#ff9900';
-        ctx.fillRect(cx, baseY - 1, 1, 2);
-        ctx.fillStyle = '#ff4400';
-        ctx.fillRect(cx, baseY - 4 - wobble, 1, 3 + wobble);
-        ctx.fillStyle = '#994400';
-        ctx.fillRect(cx, baseY - 5 - wobble, 1, 1);
-        ctx.fillStyle = '#662200';
-        ctx.fillRect(cx, Math.max(0, baseY - 7 - wobble), 1, 1);
-        if (sway !== 0) {
-            ctx.fillStyle = '#ff6600';
-            ctx.fillRect(cx - sway, baseY - 3, 1, 2);
-        }
+    ctx.fillStyle = '#662200';
+    ctx.fillRect(cx, baseY + 7 + wobble, 1, 1);
+    ctx.fillStyle = '#994400';
+    ctx.fillRect(cx, baseY + 6, 1, 1);
+    ctx.fillStyle = '#ff4400';
+    ctx.fillRect(cx, baseY + 2, 1, 4 + wobble);
+    ctx.fillStyle = '#ff9900';
+    ctx.fillRect(cx, baseY + 1, 1, 2);
+    ctx.fillStyle = '#ffdd55';
+    ctx.fillRect(cx, baseY + 2, 1, 1);
+    if (sway !== 0) {
+        ctx.fillStyle = '#ff6600';
+        ctx.fillRect(cx - sway, baseY + 3, 1, 2);
     }
 }
 
@@ -1624,15 +1599,16 @@ function updateShipVisual() {
     const flying = !!shipTarget;
     el.classList.toggle('flying', flying);
 
-    const ship = getCurrentShip();
-    const flame = el.querySelector('.ship-flame');
+    const flame = $('ship-flame');
     if (flame) {
-        const flameY = getShipFlameOffset(ship);
-        flame.style.transform = `translate(-50%, calc(-50% + ${flameY}px))`;
         if (flying) {
+            const tail = getShipTailWorld(34);
+            flame.style.left = tail.x + 'px';
+            flame.style.top = tail.y + 'px';
+            flame.style.transform = `translate(-50%, -50%) rotate(${shipRotation}deg)`;
             flame.classList.add('active');
             shipFlameTick++;
-            drawShipFlame(flame, shipFlameTick, getShipMiningFacing(ship) === 'up');
+            drawShipFlame(flame, shipFlameTick);
         } else {
             flame.classList.remove('active');
             flame.getContext('2d').clearRect(0, 0, flame.width, flame.height);
@@ -1648,7 +1624,7 @@ function screenToWorld(sx, sy) {
 }
 
 function getShipNose(offset = 28) {
-    const rad = getShipNoseRad();
+    const rad = (shipRotation - 90) * Math.PI / 180;
     return { x: shipPos.x + Math.cos(rad) * offset, y: shipPos.y + Math.sin(rad) * offset };
 }
 
@@ -1688,7 +1664,7 @@ function ensureShipFlightLoop() {
             return;
         }
 
-        const targetRot = Math.atan2(dy, dx) * 180 / Math.PI + getShipRotOffset();
+        const targetRot = Math.atan2(dy, dx) * 180 / Math.PI + 90;
         shipRotation = lerpAngle(shipRotation, targetRot, SHIP_ROT_LERP);
 
         const step = SHIP_MOVE_SPEED * dt;
@@ -1951,12 +1927,6 @@ function renderPlayerShip() {
     const el = $('player-ship');
     el.innerHTML = '';
 
-    const flame = document.createElement('canvas');
-    flame.className = 'ship-flame';
-    flame.width = 5;
-    flame.height = 10;
-    el.appendChild(flame);
-
     const ship = getCurrentShip();
     const miningSrc = getShipMiningSrc(ship);
     if (miningSrc) {
@@ -1964,6 +1934,7 @@ function renderPlayerShip() {
         img.src = miningSrc;
         img.alt = ship.name;
         img.draggable = false;
+        if (needsMiningFlip(ship)) img.style.transform = 'scaleY(-1)';
         el.appendChild(img);
     } else {
         el.appendChild(renderShipGraphic(ship, state.factionId, 3));
@@ -2376,7 +2347,7 @@ function fireLasersAt(obj, onDone, color = 'blue') {
     const cls = color === 'red' ? 'laser-beam laser-red' : 'laser-beam laser-blue';
 
     offsets.forEach(off => {
-        const rad = getShipNoseRad();
+        const rad = (shipRotation - 90) * Math.PI / 180;
         const px = nose.x + Math.cos(rad + Math.PI / 2) * off;
         const py = nose.y + Math.sin(rad + Math.PI / 2) * off;
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
@@ -2684,7 +2655,8 @@ async function resetGame() {
     planetRenderState = null;
     planetActiveSparks = [];
     planetSparkUntil = 0;
-    $('player-ship')?.querySelector('.ship-flame')?.getContext('2d')?.clearRect(0, 0, 5, 10);
+    $('ship-flame')?.getContext('2d')?.clearRect(0, 0, 5, 10);
+    $('ship-flame')?.classList.remove('active');
     $('mining-world')?.querySelectorAll('.mine-object, .mine-loot').forEach(el => el.remove());
     delete $('mining-world')?.dataset.planet;
 
