@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.17.2</title>
+    <title>Space Dream v2.17.3</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -699,7 +699,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.17.2';
+const VERSION = '2.17.3';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -716,16 +716,17 @@ let planetSpinRaf = null;
 let planetSpinLast = 0;
 let planetActiveSparks = [];
 let planetSparkUntil = 0;
-const PLANET_SPIN_RAD_S = 0.065;
-const PLANET_SPIN_BOOST = 1.75;
+const PLANET_SPIN_RAD_S = 0.018;
+const PLANET_SPIN_BOOST = 1.2;
 const SAVE_KEY = 'space_dream_save';
 const DEV_FREE_FUEL = true; // временно: без ограничений топлива для тестов
 const SHIP_MOVE_SPEED = 98;
 const SHIP_ROT_LERP = 0.30;
 const FUEL_PER_FLIGHT = 10;
 
-// Карта: экран + 300 px запаса с каждой стороны
-const WORLD_PAD = 300;
+// Карта: планета в центре мира, поле шире экрана для свободного полёта
+const WORLD_PAD_MIN = 520;
+const WORLD_PAD_RATIO = 0.95;
 let worldBounds = { width: 960, height: 1160, centerX: 480, centerY: 580 };
 let MAP_CENTER = { x: 480, y: 580 };
 const MINE_STOP_DIST = 46;
@@ -1521,7 +1522,7 @@ function lerpAngle(from, to, t) {
 function refreshWorldBounds() {
     const { w: vw, h: vh } = getMiningViewportMetrics();
     if (vw < 1 || vh < 1) return;
-    const pad = WORLD_PAD;
+    const pad = Math.max(WORLD_PAD_MIN, Math.round(Math.max(vw, vh) * WORLD_PAD_RATIO));
     const width = Math.round(vw + pad * 2);
     const height = Math.round(vh + pad * 2);
     worldBounds = {
@@ -1541,19 +1542,9 @@ function getViewportSize() {
 function updateCamera() {
     const vp = $('mining-viewport');
     if (!vp) return;
-    const { w: vw, h: vh, ox, oy } = getMiningViewportMetrics();
-    const focusX = ox + vw / 2;
-    const focusY = oy + vh / 2;
-    let cx = MAP_CENTER.x - focusX;
-    let cy = MAP_CENTER.y - focusY;
-    const sx = shipPos.x - cx;
-    const sy = shipPos.y - cy;
-    const padX = vw * 0.3;
-    const padY = vh * 0.3;
-    if (sx < padX) cx = shipPos.x - padX;
-    else if (sx > vw - padX) cx = shipPos.x - (vw - padX);
-    if (sy < padY) cy = shipPos.y - padY;
-    else if (sy > vh - padY) cy = shipPos.y - (vh - padY);
+    const { w: vw, h: vh } = getMiningViewportMetrics();
+    let cx = shipPos.x - vw / 2;
+    let cy = shipPos.y - vh / 2;
     cx = Math.max(0, Math.min(worldBounds.width - vw, cx));
     cy = Math.max(0, Math.min(worldBounds.height - vh, cy));
     camera.x = cx;
