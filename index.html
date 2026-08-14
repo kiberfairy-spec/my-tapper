@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.24.1</title>
+    <title>Space Dream v2.25.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -579,13 +579,61 @@
             line-height: 1.2;
         }
         #ship-list .ship-preview {
-            min-height: 170px;
+            min-height: 150px;
             padding: 6px 2px;
         }
         #ship-list .ship-preview canvas,
         #ship-list .ship-preview .ship-sprite-img {
             max-width: 100%;
             height: auto;
+        }
+        #ship-list .ship-stats {
+            width: 100%;
+            margin-top: 4px;
+            font-family: 'Rajdhani', 'Segoe UI', sans-serif;
+        }
+        #ship-list .ship-stat-row {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            margin-bottom: 2px;
+        }
+        #ship-list .ship-stat-label {
+            width: 12px;
+            flex-shrink: 0;
+            font-size: 3px;
+            color: #9aa3b8;
+            text-align: left;
+        }
+        #ship-list .ship-stat-bar-wrap {
+            flex: 1;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 1px;
+            overflow: hidden;
+        }
+        #ship-list .ship-stat-bar {
+            height: 100%;
+            border-radius: 1px;
+            min-width: 1px;
+        }
+        #ship-list .ship-stat-bar.high {
+            background: linear-gradient(90deg, #2a8844, #44cc66);
+            box-shadow: 0 0 4px rgba(68, 204, 102, 0.45);
+        }
+        #ship-list .ship-stat-bar.low {
+            background: linear-gradient(90deg, #992222, #cc4444);
+            box-shadow: 0 0 4px rgba(204, 68, 68, 0.35);
+        }
+        #ship-list .ship-stat-bar.mid {
+            background: #667788;
+        }
+        #ship-list .ship-stat-val {
+            width: 11px;
+            flex-shrink: 0;
+            font-size: 3px;
+            text-align: right;
+            color: #c8d0e0;
         }
         #win-ship .ship-actions {
             flex-shrink: 0;
@@ -776,7 +824,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.24.1';
+const VERSION = '2.25.0';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.28;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -854,6 +902,14 @@ const SHIP_IMG = {
     rebel2: 'ships/Повстанцы_1_2.png',
 };
 
+const FACTION_STAT_BASE = 30;
+const FACTION_STAT_LABELS = [
+    { key: 'hp', label: 'HP' },
+    { key: 'shield', label: 'Щ' },
+    { key: 'damage', label: 'У' },
+    { key: 'attackSpeed', label: 'СК' },
+];
+
 const FACTIONS = [
     {
         id: 'tank',
@@ -865,7 +921,7 @@ const FACTIONS = [
         weaknessLabel: 'Урон',
         weakness: 'Средний урон. Оружие строго калибровано военными стандартами — оно надёжное, но лишено «искры». У них нет сверхмощных боеголовок, только тактическая точность.',
         color: '#4488aa',
-        shield: 40, damage: 20, speed: 15,
+        hp: 40, shield: 40, damage: 20, attackSpeed: 20,
     },
     {
         id: 'dps',
@@ -877,7 +933,7 @@ const FACTIONS = [
         weaknessLabel: 'Защита',
         weakness: 'Низкая защита. Корабли собраны «на коленке» из обшивки звездолётов-мусоровозов. Любой серьёзный залп пробивает корпус.',
         color: '#aa5533',
-        shield: 15, damage: 25, speed: 35,
+        hp: 22, shield: 22, damage: 32, attackSpeed: 42,
     },
     {
         id: 'sniper',
@@ -889,9 +945,29 @@ const FACTIONS = [
         weaknessLabel: 'Скорость',
         weakness: 'Низкая скорость атаки. Их орудия долго перезаряжаются и требуют охлаждения. Промах стоит им дорого, так как темп стрельбы очень медленный.',
         color: '#aa9933',
-        shield: 20, damage: 40, speed: 15,
+        hp: 25, shield: 25, damage: 45, attackSpeed: 25,
     },
 ];
+
+function getFactionBaseStats(factionId = state.factionId) {
+    const f = FACTIONS.find(x => x.id === factionId);
+    if (!f) return { hp: FACTION_STAT_BASE, shield: FACTION_STAT_BASE, damage: FACTION_STAT_BASE, attackSpeed: FACTION_STAT_BASE };
+    return { hp: f.hp, shield: f.shield, damage: f.damage, attackSpeed: f.attackSpeed };
+}
+
+function renderFactionStatBarsHtml(faction) {
+    if (!faction) return '';
+    const rows = FACTION_STAT_LABELS.map(({ key, label }) => {
+        const val = faction[key] ?? FACTION_STAT_BASE;
+        const cls = val > FACTION_STAT_BASE ? 'high' : val < FACTION_STAT_BASE ? 'low' : 'mid';
+        return `<div class="ship-stat-row">
+            <span class="ship-stat-label">${label}</span>
+            <div class="ship-stat-bar-wrap"><div class="ship-stat-bar ${cls}" style="width:${val}%"></div></div>
+            <span class="ship-stat-val">${val}</span>
+        </div>`;
+    }).join('');
+    return `<div class="ship-stats">${rows}</div>`;
+}
 
 // Палитры по референсам Gremak / Yoral / Phidi
 const SHIP_PAL = {
@@ -2991,7 +3067,7 @@ function startPvP() {
 function renderFactions() {
     $('faction-list').innerHTML = FACTIONS.map(f =>
         `<button class="btn" style="border-color:${f.color};color:${f.color}" data-fid="${f.id}">
-            ◆ ${f.name}<br><small style="font-size:4px">Щ:${f.shield} У:${f.damage} С:${f.speed}</small>
+            ◆ ${f.name}<br><small style="font-size:4px">HP:${f.hp} Щ:${f.shield} У:${f.damage} СК:${f.attackSpeed}</small>
         </button>`
     ).join('');
     $('faction-list').querySelectorAll('[data-fid]').forEach(btn => {
@@ -3046,6 +3122,7 @@ function renderShips() {
         `<div class="card ${(state.shipIndex ?? -1) === i ? 'selected' : ''}" data-ship="${i}">
             <div class="ship-name">${ship.name}</div>
             <div class="ship-preview" data-preview="${i}"></div>
+            ${renderFactionStatBarsHtml(faction)}
         </div>`
     ).join('');
 
