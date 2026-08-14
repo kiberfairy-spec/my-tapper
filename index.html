@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.25.1</title>
+    <title>Space Dream v2.26.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -644,6 +644,21 @@
         #hangar-ship .ship-stat-label,
         #hangar-ship .ship-stat-val { font-size: 4px; }
         #hangar-ship .ship-stat-bar-wrap { height: 5px; }
+        .hangar-balance-hint {
+            font-family: 'Rajdhani', 'Segoe UI', sans-serif;
+            font-size: 4px;
+            text-align: center;
+            margin-top: 5px;
+            color: #9aa3b8;
+        }
+        .hangar-balance-hint.ok { color: #44cc66; }
+        .hangar-balance-hint.warn { color: #ccaa44; }
+        .upgrade-row .upgrade-blocked {
+            display: block;
+            font-size: 3px;
+            color: #cc6666;
+            margin-top: 2px;
+        }
         #win-ship .ship-actions {
             flex-shrink: 0;
             margin-top: auto;
@@ -833,7 +848,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.25.1';
+const VERSION = '2.26.0';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.28;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -913,6 +928,8 @@ const SHIP_IMG = {
 
 const FACTION_STAT_BASE = 30;
 const UPGRADE_STAT_BONUS = 5;
+const UPGRADE_SPREAD_MAX = 5;
+const COMBAT_UPGRADE_KEYS = ['hp', 'damage', 'shield', 'speed'];
 const FACTION_STAT_LABELS = [
     { key: 'hp', label: 'HP' },
     { key: 'shield', label: 'Щ' },
@@ -965,11 +982,43 @@ function getFactionBaseStats(factionId = state.factionId) {
     return { hp: f.hp, shield: f.shield, damage: f.damage, attackSpeed: f.attackSpeed };
 }
 
+function getCombatUpgradeLevels() {
+    const u = state.upgrades;
+    return {
+        hp: u.hp || 0,
+        damage: u.damage || 0,
+        shield: u.shield || 0,
+        speed: u.speed || 0,
+    };
+}
+
+function canUpgradeCombatStat(key) {
+    if (!COMBAT_UPGRADE_KEYS.includes(key)) return true;
+    const lvls = getCombatUpgradeLevels();
+    const next = lvls[key] + 1;
+    const minOther = Math.min(...COMBAT_UPGRADE_KEYS.filter(k => k !== key).map(k => lvls[k]));
+    return next <= minOther + UPGRADE_SPREAD_MAX;
+}
+
+function getCombatUpgradeBlockHint(key) {
+    if (canUpgradeCombatStat(key)) return '';
+    return `Поднимите отстающие статы — разрыв больше ${UPGRADE_SPREAD_MAX}`;
+}
+
+function getUpgradeSpreadHint() {
+    const lvls = getCombatUpgradeLevels();
+    const vals = COMBAT_UPGRADE_KEYS.map(k => lvls[k]);
+    const spread = Math.max(...vals) - Math.min(...vals);
+    if (spread <= 2) return { cls: 'ok', text: 'Прокачка сбалансирована' };
+    if (spread < UPGRADE_SPREAD_MAX) return { cls: 'warn', text: `Разрыв уровней: ${spread} / ${UPGRADE_SPREAD_MAX}` };
+    return { cls: 'warn', text: `Разрыв ${spread} — подтяните отстающие статы` };
+}
+
 function getShipCombatStats() {
     const base = getFactionBaseStats();
     const u = state.upgrades;
     const stats = {
-        hp: base.hp,
+        hp: base.hp + (u.hp || 0) * UPGRADE_STAT_BONUS,
         shield: base.shield + u.shield * UPGRADE_STAT_BONUS,
         damage: base.damage + u.damage * UPGRADE_STAT_BONUS,
         attackSpeed: base.attackSpeed + u.speed * UPGRADE_STAT_BONUS,
@@ -1628,9 +1677,10 @@ const ARTIFACTS = [
 ];
 
 const UPGRADES = [
+    { key:'hp',       label:'ХП',             max:30 },
     { key:'damage',   label:'УРОН',           max:30 },
     { key:'shield',   label:'ЗАЩИТА',         max:30 },
-    { key:'speed',    label:'СКОРОСТЬ',       max:30 },
+    { key:'speed',    label:'СК. АТАКИ',      max:30 },
     { key:'luck',     label:'УДАЧА',          max:5  },
     { key:'fuelTank', label:'ТОПЛИВНЫЙ БАК',  max:10 },
 ];
@@ -1645,7 +1695,7 @@ const defaultState = () => ({
     level: 1, exp: 0, vip: 0, pvpScore: 0,
     resources: { credits:0, fuel:100, spice:0, shards:0, shieldParts:0, weaponParts:0, speedParts:0 },
     maxFuel: 100,
-    upgrades: { damage:0, shield:0, speed:0, luck:0, fuelTank:0 },
+    upgrades: { hp:0, damage:0, shield:0, speed:0, luck:0, fuelTank:0 },
     artifact: { id:null, level:0 },
     checkin: { day:1, lastClaim:null, claimedToday:false },
     bp: { paid:false, day:1, lastClaim:null, claimedToday:false },
@@ -1743,6 +1793,7 @@ const Storage = {
         const local = this.loadLocal();
         const cloud = await this.loadCloud();
         state = this.pickBestSave(local, cloud);
+        state.upgrades = { ...defaultState().upgrades, ...(state.upgrades || {}) };
         if (state.factionId != null) {
             const list = SHIP_CATALOG[state.factionId] || SHIP_CATALOG.tank;
             if (state.shipIndex == null || state.shipIndex < 0) state.shipIndex = 0;
@@ -3043,18 +3094,23 @@ function upgradeCost(key) {
 
 function renderHangar() {
     const r = state.resources;
+    const spreadHint = getUpgradeSpreadHint();
     $('hangar-ship').innerHTML = '';
     $('hangar-ship').appendChild(drawCurrentShip(5));
     $('hangar-ship').insertAdjacentHTML('beforeend', renderStatBarsHtml(getShipCombatStats()));
+    $('hangar-ship').insertAdjacentHTML('beforeend',
+        `<div class="hangar-balance-hint ${spreadHint.cls}">${spreadHint.text}</div>`);
     $('hangar-res').textContent = `🪙${Math.floor(r.credits)} ⛽${Math.floor(r.fuel)}/${state.maxFuel} 🛡️${r.shieldParts} ⚔️${r.weaponParts} 💎${r.spice} 🧩${r.shards}`;
 
     $('upgrade-list').innerHTML = UPGRADES.map(u => {
-        const lvl = state.upgrades[u.key];
+        const lvl = state.upgrades[u.key] ?? 0;
         const cost = upgradeCost(u.key);
-        const can = lvl < u.max && r.credits >= cost.credits;
-        const bonus = (u.key === 'damage' || u.key === 'shield' || u.key === 'speed')
-            ? ` +${UPGRADE_STAT_BONUS}` : '';
-        return `<div class="upgrade-row"><span>${u.label} ${lvl}/${u.max}${bonus}</span><button class="btn btn-sm" ${can?'':'disabled'} data-upg="${u.key}">${cost.credits}🪙</button></div>`;
+        const spreadOk = canUpgradeCombatStat(u.key);
+        const can = lvl < u.max && r.credits >= cost.credits && spreadOk;
+        const bonus = COMBAT_UPGRADE_KEYS.includes(u.key) ? ` +${UPGRADE_STAT_BONUS}` : '';
+        const blocked = COMBAT_UPGRADE_KEYS.includes(u.key) && !spreadOk
+            ? `<span class="upgrade-blocked">Разрыв > ${UPGRADE_SPREAD_MAX}</span>` : '';
+        return `<div class="upgrade-row"><span>${u.label} ${lvl}/${u.max}${bonus}${blocked}</span><button class="btn btn-sm" ${can?'':'disabled'} data-upg="${u.key}" title="${spreadOk ? '' : getCombatUpgradeBlockHint(u.key)}">${cost.credits}🪙</button></div>`;
     }).join('');
 
     $('upgrade-list').querySelectorAll('[data-upg]').forEach(btn => {
@@ -3063,6 +3119,7 @@ function renderHangar() {
             const u = UPGRADES.find(x => x.key === key);
             const cost = upgradeCost(key);
             if (state.upgrades[key] >= u.max || state.resources.credits < cost.credits) return;
+            if (!canUpgradeCombatStat(key)) return;
             state.resources.credits -= cost.credits;
             state.upgrades[key]++;
             if (key === 'fuelTank') { state.maxFuel += 10; state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + 10); }
