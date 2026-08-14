@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.22.8</title>
+    <title>Space Dream v2.22.9</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -764,7 +764,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.22.8';
+const VERSION = '2.22.9';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -792,6 +792,7 @@ const FUEL_PER_FLIGHT = 10;
 // Карта: планета в центре мира, поле шире экрана для свободного полёта
 const WORLD_PAD_MIN = 520;
 const WORLD_PAD_RATIO = 0.95;
+const WORLD_PAD_TRIM = 25; // уменьшение карты добычи с каждой стороны
 let worldBounds = { width: 960, height: 1160, centerX: 480, centerY: 580 };
 let MAP_CENTER = { x: 480, y: 580 };
 const MINE_STOP_DIST = 46;
@@ -1771,7 +1772,7 @@ function lerpAngle(from, to, t) {
 function refreshWorldBounds() {
     const { w: vw, h: vh } = getMiningViewportMetrics();
     if (vw < 1 || vh < 1) return;
-    const pad = Math.max(WORLD_PAD_MIN, Math.round(Math.max(vw, vh) * WORLD_PAD_RATIO));
+    const pad = Math.max(WORLD_PAD_MIN, Math.round(Math.max(vw, vh) * WORLD_PAD_RATIO)) - WORLD_PAD_TRIM;
     const width = Math.round(vw + pad * 2);
     const height = Math.round(vh + pad * 2);
     worldBounds = {
