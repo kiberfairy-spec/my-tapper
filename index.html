@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.17.9</title>
+    <title>Space Dream v2.18.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -699,7 +699,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.17.9';
+const VERSION = '2.18.0';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -1509,21 +1509,6 @@ function getShipMiningSrc(ship = getCurrentShip()) {
     return ship.miningImage || ship.image || null;
 }
 
-function isShipNoseDown(ship = getCurrentShip()) {
-    // ship-mining.png: нос вниз, двигатели вверх (в отличие от Корвета)
-    return ship.miningImage === SHIP_IMG.mining;
-}
-
-function getShipRotOffset(ship = getCurrentShip()) {
-    return isShipNoseDown(ship) ? -90 : 90;
-}
-
-function getShipNoseRad(ship = getCurrentShip()) {
-    return isShipNoseDown(ship)
-        ? (shipRotation + 90) * Math.PI / 180
-        : (shipRotation - 90) * Math.PI / 180;
-}
-
 function drawCurrentShip(pixelSize = 3) {
     const ship = getCurrentShip();
     return renderShipGraphic(ship, state.factionId, pixelSize);
@@ -1567,10 +1552,9 @@ function updateCamera() {
     $('mining-world').style.transform = `translate3d(${-Math.round(cx)}px, ${-Math.round(cy)}px, 0)`;
 }
 
-function getShipTailWorld(dist = 34, ship = getCurrentShip()) {
-    const rad = isShipNoseDown(ship)
-        ? (shipRotation - 90) * Math.PI / 180
-        : (shipRotation + 90) * Math.PI / 180;
+function getShipTailWorld(dist = 34) {
+    // Нос вверху спрайта → корма смотрит на +90° от поворота корабля
+    const rad = (shipRotation + 90) * Math.PI / 180;
     return {
         x: shipPos.x + Math.cos(rad) * dist,
         y: shipPos.y + Math.sin(rad) * dist,
@@ -1636,7 +1620,7 @@ function screenToWorld(sx, sy) {
 }
 
 function getShipNose(offset = 28) {
-    const rad = getShipNoseRad();
+    const rad = (shipRotation - 90) * Math.PI / 180;
     return { x: shipPos.x + Math.cos(rad) * offset, y: shipPos.y + Math.sin(rad) * offset };
 }
 
@@ -1676,7 +1660,8 @@ function ensureShipFlightLoop() {
             return;
         }
 
-        const targetRot = Math.atan2(dy, dx) * 180 / Math.PI + getShipRotOffset();
+        // Нос вверху спрайта → +90° к углу движения
+        const targetRot = Math.atan2(dy, dx) * 180 / Math.PI + 90;
         shipRotation = lerpAngle(shipRotation, targetRot, SHIP_ROT_LERP);
 
         const step = SHIP_MOVE_SPEED * dt;
@@ -2358,7 +2343,7 @@ function fireLasersAt(obj, onDone, color = 'blue') {
     const cls = color === 'red' ? 'laser-beam laser-red' : 'laser-beam laser-blue';
 
     offsets.forEach(off => {
-        const rad = getShipNoseRad();
+        const rad = (shipRotation - 90) * Math.PI / 180;
         const px = nose.x + Math.cos(rad + Math.PI / 2) * off;
         const py = nose.y + Math.sin(rad + Math.PI / 2) * off;
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
