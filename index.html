@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.23.3</title>
+    <title>Space Dream v2.24.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -440,6 +440,7 @@
             touch-action: manipulation;
         }
         .mine-object.mine-meteor { min-width: 56px; min-height: 56px; }
+        .mine-object.mine-pirate { transition: opacity .3s; }
         .mine-object canvas,
         .mine-object .mine-sprite-img {
             display: block;
@@ -765,7 +766,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.23.3';
+const VERSION = '2.24.0';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.28;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -796,8 +797,10 @@ const WORLD_PAD_RATIO = 0.95;
 const WORLD_PAD_TRIM = 25; // уменьшение карты добычи с каждой стороны
 let worldBounds = { width: 960, height: 1160, centerX: 480, centerY: 580 };
 let MAP_CENTER = { x: 480, y: 580 };
-const MINE_STOP_DIST = 51;
+const MINE_STOP_DIST_WRECK = 56;
+const MINE_STOP_DIST_PIRATE = 61;
 const MINE_STOP_DIST_METEOR = 66;
+const PIRATE_PATROL_SPEED = SHIP_MOVE_SPEED * 0.5;
 const MINE_LASER_MS = 3000;
 const MINE_PER_WAVE = 9;
 const MINE_KINDS = {
@@ -1542,6 +1545,7 @@ let shipFlameTick = 0;
 let shipFlying = false;
 let camera = { x: 0, y: 0 };
 let mineObjects = [];
+let piratePatrolFrame = null;
 let selectedBoost = null;
 let returningToPlanet = false;
 
@@ -2318,6 +2322,7 @@ function switchTab(tab) {
         });
     } else {
         stopPlanetSpin();
+        stopPiratePatrol();
         $('mining-screen').classList.remove('active');
         $('overlay').classList.add('active');
         if (tab === 'hangar') { showWindow('hangar'); renderHangar(); }
@@ -2463,7 +2468,87 @@ function getShipHome() {
 }
 
 function getMineStopDist(kind) {
-    return kind === 'meteor' ? MINE_STOP_DIST_METEOR : MINE_STOP_DIST;
+    if (kind === 'meteor') return MINE_STOP_DIST_METEOR;
+    if (kind === 'pirate') return MINE_STOP_DIST_PIRATE;
+    return MINE_STOP_DIST_WRECK;
+}
+
+function pickPiratePatrolPoint() {
+    const cx = MAP_CENTER.x;
+    const cy = MAP_CENTER.y;
+    const margin = 40;
+    const minDist = PLANET_HUB_R + 90;
+    const maxDist = Math.min(worldBounds.width, worldBounds.height) / 2 - 55;
+    for (let i = 0; i < 60; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const dist = minDist + Math.random() * Math.max(40, maxDist - minDist);
+        let x = cx + Math.cos(angle) * dist;
+        let y = cy + Math.sin(angle) * dist;
+        x = Math.max(margin, Math.min(worldBounds.width - margin, x));
+        y = Math.max(margin, Math.min(worldBounds.height - margin, y));
+        if (Math.hypot(x - cx, y - cy) >= minDist) return { x, y };
+    }
+    return clampWorld(cx + minDist, cy, margin);
+}
+
+function updatePirateVisual(obj) {
+    obj.el.style.left = obj.x + 'px';
+    obj.el.style.top = obj.y + 'px';
+    obj.el.style.transform = `translate(-50%, -50%) rotate(${obj.rotation || 0}deg)`;
+}
+
+function initPiratePatrol(obj) {
+    obj.rotation = Math.random() * 360;
+    obj.patrolTarget = pickPiratePatrolPoint();
+    obj.patrolPaused = false;
+    updatePirateVisual(obj);
+}
+
+function stopPiratePatrol() {
+    if (piratePatrolFrame) cancelAnimationFrame(piratePatrolFrame);
+    piratePatrolFrame = null;
+}
+
+function ensurePiratePatrolLoop() {
+    if (piratePatrolFrame || currentTab !== 'mining') return;
+    let last = performance.now();
+
+    const tick = now => {
+        const pirates = mineObjects.filter(o => o.kind === 'pirate' && !o.patrolPaused);
+        if (!pirates.length || currentTab !== 'mining') {
+            stopPiratePatrol();
+            return;
+        }
+
+        const dt = Math.min(0.05, (now - last) / 1000);
+        last = now;
+
+        for (const obj of pirates) {
+            if (!obj.patrolTarget) obj.patrolTarget = pickPiratePatrolPoint();
+
+            const dx = obj.patrolTarget.x - obj.x;
+            const dy = obj.patrolTarget.y - obj.y;
+            const dist = Math.hypot(dx, dy);
+
+            if (dist < 4) {
+                obj.patrolTarget = pickPiratePatrolPoint();
+                continue;
+            }
+
+            obj.rotation = lerpAngle(obj.rotation || 0, Math.atan2(dy, dx) * 180 / Math.PI + 90, SHIP_ROT_LERP);
+            const move = Math.min(PIRATE_PATROL_SPEED * dt, dist);
+            obj.x += (dx / dist) * move;
+            obj.y += (dy / dist) * move;
+            const clamped = clampWorld(obj.x, obj.y, 40);
+            obj.x = clamped.x;
+            obj.y = clamped.y;
+            updatePirateVisual(obj);
+        }
+
+        piratePatrolFrame = requestAnimationFrame(tick);
+    };
+
+    piratePatrolFrame = requestAnimationFrame(tick);
 }
 
 function clampWorld(x, y, margin = 28) {
@@ -2489,6 +2574,7 @@ function layoutMining() {
     initMiningWorld();
     resetShipToOrbit();
     if (!mineObjects.length) generateMineObjects();
+    ensurePiratePatrolLoop();
     if (planetRenderState) startPlanetSpin();
 }
 
@@ -2605,10 +2691,14 @@ function generateMineObjects() {
         el.style.top = y + 'px';
         el.appendChild(createMineSprite(kind));
 
-        mineObjects.push({ x, y, kind, el });
-        bindMineObject(mineObjects[mineObjects.length - 1]);
+        const objRef = { x, y, kind, el };
+        mineObjects.push(objRef);
+        if (kind === 'pirate') initPiratePatrol(objRef);
+        bindMineObject(objRef);
         world.insertBefore(el, $('player-ship'));
     });
+
+    ensurePiratePatrolLoop();
 
     // Эффекты поверх объектов
     const laser = $('laser-layer');
@@ -2637,24 +2727,62 @@ function rollLootForKind(kind) {
     return `Пират: +${spice} 💎 +${credits} 🪙`;
 }
 
+function getPirateNose(obj, offset = 22) {
+    const rad = ((obj.rotation || 0) - 90) * Math.PI / 180;
+    return {
+        x: obj.x + Math.cos(rad) * offset,
+        y: obj.y + Math.sin(rad) * offset,
+    };
+}
+
+function appendLaserBeam(layer, x1, y1, x2, y2, color = 'blue') {
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('class', color === 'red' ? 'laser-beam laser-red' : 'laser-beam laser-blue');
+    line.setAttribute('x1', x1);
+    line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2);
+    line.setAttribute('y2', y2);
+    layer.appendChild(line);
+}
+
 function fireLasersAt(obj, onDone, color = 'blue') {
     const layer = $('laser-layer');
     layer.innerHTML = '';
     const nose = getShipNose();
     const offsets = [-4, 0, 4];
-    const cls = color === 'red' ? 'laser-beam laser-red' : 'laser-beam laser-blue';
+    const rad = (shipRotation - 90) * Math.PI / 180;
 
     offsets.forEach(off => {
-        const rad = (shipRotation - 90) * Math.PI / 180;
         const px = nose.x + Math.cos(rad + Math.PI / 2) * off;
         const py = nose.y + Math.sin(rad + Math.PI / 2) * off;
-        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('class', cls);
-        line.setAttribute('x1', px);
-        line.setAttribute('y1', py);
-        line.setAttribute('x2', obj.x);
-        line.setAttribute('y2', obj.y);
-        layer.appendChild(line);
+        appendLaserBeam(layer, px, py, obj.x, obj.y, color);
+    });
+
+    setTimeout(() => {
+        layer.innerHTML = '';
+        onDone();
+    }, MINE_LASER_MS);
+}
+
+function firePirateDuel(obj, onDone) {
+    const layer = $('laser-layer');
+    layer.innerHTML = '';
+    const playerNose = getShipNose();
+    const pirateNose = getPirateNose(obj);
+    const playerRad = (shipRotation - 90) * Math.PI / 180;
+    const pirateRad = ((obj.rotation || 0) - 90) * Math.PI / 180;
+    const offsets = [-4, 0, 4];
+
+    offsets.forEach(off => {
+        const px = playerNose.x + Math.cos(playerRad + Math.PI / 2) * off;
+        const py = playerNose.y + Math.sin(playerRad + Math.PI / 2) * off;
+        appendLaserBeam(layer, px, py, obj.x, obj.y, 'red');
+    });
+
+    offsets.forEach(off => {
+        const px = pirateNose.x + Math.cos(pirateRad + Math.PI / 2) * off;
+        const py = pirateNose.y + Math.sin(pirateRad + Math.PI / 2) * off;
+        appendLaserBeam(layer, px, py, shipPos.x, shipPos.y, 'red');
     });
 
     setTimeout(() => {
@@ -2696,12 +2824,13 @@ function fireSoundWavesAt(obj, onDone) {
 function fireMineEffect(obj, onDone) {
     if (obj.kind === 'meteor') fireSoundWavesAt(obj, onDone);
     else if (obj.kind === 'wreck') fireLasersAt(obj, onDone, 'blue');
-    else fireLasersAt(obj, onDone, 'red');
+    else firePirateDuel(obj, onDone);
 }
 
 function flyToMine(obj) {
     if (shipFlying || returningToPlanet) return;
     if (!mineObjects.includes(obj)) return;
+    if (obj.kind === 'pirate') obj.patrolPaused = true;
     if (!DEV_FREE_FUEL && state.resources.fuel < FUEL_PER_FLIGHT) {
         flyToPlanetDock();
         return;
@@ -2958,6 +3087,7 @@ async function resetGame() {
     shipAnimFrame = null;
     shipFlying = false;
     returningToPlanet = false;
+    stopPiratePatrol();
     mineObjects = [];
     if (window._neonFlickerTimer) { clearInterval(window._neonFlickerTimer); window._neonFlickerTimer = null; }
     if (planetFlashTimer) { clearInterval(planetFlashTimer); planetFlashTimer = null; }
