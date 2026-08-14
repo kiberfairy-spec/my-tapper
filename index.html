@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.16.2</title>
+    <title>Space Dream v2.16.3</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -684,7 +684,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.16.2';
+const VERSION = '2.16.3';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -732,11 +732,13 @@ const SHIP_IMG = {
 const FACTIONS = [
     {
         id: 'tank',
-        name: 'Конфедерация',
-        subtitle: '',
-        lore: '',
-        strength: '',
-        weakness: '',
+        name: 'Конфедерация Земли',
+        subtitle: 'Фракция Порядка',
+        lore: 'Официальный военный флот земного альянса, действующий по уставу, с мощными щитами и стандартизированными орудиями, прибывший для «наведения порядка» и экспроприации ресурсов.',
+        strengthLabel: 'Защита',
+        strength: 'Высокая защита. Мощные генераторы энергетического щита и толстая броня делают их корабли настоящими танками. Они переживают прямые попадания, которые уничтожили бы другие фракции.',
+        weaknessLabel: 'Урон',
+        weakness: 'Средний урон. Оружие строго калибровано военными стандартами — оно надёжное, но лишено «искры». У них нет сверхмощных боеголовок, только тактическая точность.',
         color: '#4488aa',
         shield: 40, damage: 20, speed: 15,
     },
@@ -745,18 +747,22 @@ const FACTIONS = [
         name: 'Повстанцы',
         subtitle: 'Фракция Свободы',
         lore: 'Жители планеты-колонии, ведущие партизанскую войну против захватчиков, используя знание местных аномалий и переработанный хлам против технологичного врага.',
+        strengthLabel: 'Скорость',
         strength: 'Высокая скорость атаки. Они не могут позволить себе дорогие бронебойные снаряды, но компенсируют это шквальным огнём из быстрых, модифицированных пушек. Высокий DPS (урон в секунду).',
+        weaknessLabel: 'Защита',
         weakness: 'Низкая защита. Корабли собраны «на коленке» из обшивки звездолётов-мусоровозов. Любой серьёзный залп пробивает корпус.',
         color: '#aa5533',
         shield: 15, damage: 25, speed: 35,
     },
     {
         id: 'sniper',
-        name: 'Торговая гильдия',
-        subtitle: '',
-        lore: '',
-        strength: '',
-        weakness: '',
+        name: 'Торговая Гильдия',
+        subtitle: 'Фракция Технологий',
+        lore: 'Загадочные инопланетные корпораты из далёкой галактики, для которых война — всего лишь бизнес-расход; их корабли оснащены экспериментальной энергией и точными гравитационными захватами.',
+        strengthLabel: 'Урон',
+        strength: 'Высокий урон. Их оружие — энергетические импульсы и квантовые сгустки, плавящие броню за один выстрел. Каждое попадание критично.',
+        weaknessLabel: 'Скорость',
+        weakness: 'Низкая скорость атаки. Их орудия долго перезаряжаются и требуют охлаждения. Промах стоит им дорого, так как темп стрельбы очень медленный.',
         color: '#aa9933',
         shield: 20, damage: 40, speed: 15,
     },
@@ -2523,8 +2529,8 @@ function renderFactionBrief(faction) {
     box.innerHTML = `
         <div class="faction-brief-title" style="color:${faction.color}">${faction.name}${faction.subtitle ? ` (${faction.subtitle})` : ''}</div>
         <p>${faction.lore}</p>
-        ${faction.strength ? `<p class="brief-plus"><strong>Сильная сторона (Скорость):</strong> ${faction.strength}</p>` : ''}
-        ${faction.weakness ? `<p class="brief-minus"><strong>Слабая сторона (Защита):</strong> ${faction.weakness}</p>` : ''}
+        ${faction.strength ? `<p class="brief-plus"><strong>Сильная сторона (${faction.strengthLabel || '—'}):</strong> ${faction.strength}</p>` : ''}
+        ${faction.weakness ? `<p class="brief-minus"><strong>Слабая сторона (${faction.weaknessLabel || '—'}):</strong> ${faction.weakness}</p>` : ''}
     `;
 }
 
