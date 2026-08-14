@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.21.0</title>
+    <title>Space Dream v2.22.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -695,7 +695,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.21.0';
+const VERSION = '2.22.0';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -737,11 +737,9 @@ const MINE_KINDS = {
 
 // PNG-спрайты из папки ships/
 const SHIP_IMG = {
-    mining: 'ships/ship-mining.png',
-    select: 'ships/ship-select.png',
     planet: 'ships/planet-anime.png',
-    confed2Large: 'ships/Готовый_1_2_3(бол).PNG',
-    confed2Small: 'ships/Готовый_1_2_3.PNG',
+    confed1: 'ships/Конфедерация_1_1.PNG',
+    confed2: 'ships/Конфедерация_1_2.PNG',
     guild1: 'ships/Гильдия_1_1.png',
     guild2: 'ships/Гильдия_1_2.png',
     rebel1: 'ships/Повстанцы_1_1.png',
@@ -801,8 +799,17 @@ const SHIP_SELECT_H = 200;
 const SHIP_EXTRA = { o:'#e87828', r:'#cc3038', g:'#40e8ff', y:'#d8b030', p:'#a048e0' };
 let _shipDrawExtras = SHIP_EXTRA;
 
+function getFactionStripeColor(factionId) {
+    switch (factionId) {
+        case 'tank': return '#4488aa';   // голубые полоски
+        case 'dps': return '#141010';    // чёрные полоски на оранжевом корпусе
+        case 'sniper': return '#8B2942'; // бордовые полоски на жёлтом корпусе
+        default: return '#4488aa';
+    }
+}
+
 function getFactionStripe(factionId) {
-    return (FACTIONS.find(f => f.id === factionId) || FACTIONS[0]).color;
+    return getFactionStripeColor(factionId);
 }
 
 function getShipExtras(factionId) {
@@ -815,7 +822,7 @@ function hexToRgb(hex) {
     return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
 }
 
-function isAccentStripe(r, g, b) {
+function isConfederationStripe(r, g, b) {
     const spread = Math.max(r, g, b) - Math.min(r, g, b);
     if (spread < 28) return false;
     if (b > 130 && g > 90 && b >= r - 10) return false;
@@ -824,15 +831,25 @@ function isAccentStripe(r, g, b) {
     return false;
 }
 
+function isRebelStripe(r, g, b) {
+    if (r < 60 && g < 60 && b < 60) return true;
+    if (r > 120 && r < 235 && g > 95 && g < 210 && b > 55 && b < 170 && r > g && g > b && r - g < 55) return true;
+    return false;
+}
+
 function isGuildStripe(r, g, b) {
-    if (b > 140 && g > 110 && b >= g - 25) return false;
     if (r > 165 && g > 130 && b < 95) return false;
-    if (g > 50 && g > r + 10 && g > b + 6) return true;
+    if (b > 140 && g > 100 && b >= g - 25) return false;
+    if (g > 45 && g > r + 8 && g > b + 5) return true;
+    if (r > 70 && r < 140 && g < 55 && b < 55 && r > g + 20) return true;
     return false;
 }
 
 function shouldRecolorStripe(r, g, b, factionId) {
-    return factionId === 'sniper' ? isGuildStripe(r, g, b) : isAccentStripe(r, g, b);
+    if (factionId === 'tank') return isConfederationStripe(r, g, b);
+    if (factionId === 'dps') return isRebelStripe(r, g, b);
+    if (factionId === 'sniper') return isGuildStripe(r, g, b);
+    return isConfederationStripe(r, g, b);
 }
 
 function recolorAccentStripes(ctx, accentHex, factionId = 'tank') {
@@ -917,7 +934,7 @@ function buildFactionShipImage(src, factionId, sizeStyle, onReady) {
         tctx.imageSmoothingEnabled = false;
         tctx.drawImage(loader, 0, 0);
         if (needsBackgroundKey(src)) removeDarkBackground(tctx);
-        recolorAccentStripes(tctx, getFactionStripe(factionId), factionId);
+        recolorAccentStripes(tctx, getFactionStripeColor(factionId), factionId);
 
         const targetH = parseInt(sizeStyle.height || sizeStyle.maxHeight || String(SHIP_NORM_H), 10);
         const hiRes = loader.naturalWidth > 80 || loader.naturalHeight > 80;
@@ -1341,8 +1358,8 @@ function drawAlienSet(ctx, px, p) { drawMap(ctx, px, p, MAP_ALIEN_SET); }
 
 const SHIP_CATALOG = {
     tank: [
-        { name: 'Штурмовик', desc: 'Патрульный истребитель · стандарт флота', image: SHIP_IMG.select },
-        { name: 'Корвет', desc: 'Ударный корвет · усиленная броня', image: SHIP_IMG.confed2Large },
+        { name: 'Штурмовик', desc: 'Патрульный истребитель · стандарт флота', image: SHIP_IMG.confed1 },
+        { name: 'Корвет', desc: 'Ударный корвет · усиленная броня', image: SHIP_IMG.confed2 },
     ],
     dps: [
         { name: 'Улом', desc: 'Партизанский штурмовик · корпус из обломков', image: SHIP_IMG.rebel1 },
