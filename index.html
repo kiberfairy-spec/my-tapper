@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.22.2</title>
+    <title>Space Dream v2.22.3</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -487,8 +487,7 @@
         .hidden { display: none !important; }
         .row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
         .card { border: 2px solid var(--accent); padding: 8px; text-align: center; cursor: pointer; font-size: 5px; width: 100%; display: flex; flex-direction: column; align-items: center; }
-        .ship-name { font-size: 6px; color: var(--gold); margin-bottom: 4px; }
-        .ship-desc { font-size: 4px; color: #888; margin-bottom: 8px; line-height: 1.6; }
+        .ship-name { font-size: 6px; color: var(--gold); margin-bottom: 8px; }
         .ship-preview {
             width: 100%; min-height: 200px; display: flex; align-items: center; justify-content: center;
             background: radial-gradient(ellipse at 50% 50%, rgba(20,24,48,.9) 0%, transparent 72%);
@@ -537,8 +536,7 @@
         }
         #ship-list .card { width: auto; min-width: 0; padding: 6px; }
         #ship-list .ship-preview { min-height: 140px; padding: 6px 2px; }
-        #ship-list .ship-name { font-size: 5px; }
-        #ship-list .ship-desc { font-size: 3px; margin-bottom: 4px; }
+        #ship-list .ship-name { font-size: 5px; margin-bottom: 6px; }
         .card.selected { border-color: #ffaa00; box-shadow: 0 0 12px rgba(255,170,0,.25); }
         .upgrade-row { display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--accent); padding: 4px; margin: 3px 0; font-size: 5px; }
         .mine-loot {
@@ -695,7 +693,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.22.2';
+const VERSION = '2.22.3';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -1358,16 +1356,16 @@ function drawAlienSet(ctx, px, p) { drawMap(ctx, px, p, MAP_ALIEN_SET); }
 
 const SHIP_CATALOG = {
     tank: [
-        { name: 'Штурмовик', desc: 'Патрульный истребитель · стандарт флота', image: SHIP_IMG.confed1 },
-        { name: 'Корвет', desc: 'Ударный корвет · усиленная броня', image: SHIP_IMG.confed2 },
+        { name: 'Штурмовик', image: SHIP_IMG.confed1 },
+        { name: 'Корвет', image: SHIP_IMG.confed2 },
     ],
     dps: [
-        { name: 'Улом', desc: 'Партизанский штурмовик · корпус из обломков', image: SHIP_IMG.rebel1 },
-        { name: 'Диверсант', desc: 'Ударный корвет · скрытые энергоячейки', image: SHIP_IMG.rebel2 },
+        { name: 'Улом', image: SHIP_IMG.rebel1 },
+        { name: 'Диверсант', image: SHIP_IMG.rebel2 },
     ],
     sniper: [
-        { name: 'Магнат', desc: 'Флагман гильдии · тяжёлый торговый крейсер', image: SHIP_IMG.guild1 },
-        { name: 'Вексель', desc: 'Контрактный патруль · сбор премий и долгов', image: SHIP_IMG.guild2 },
+        { name: 'Магнат', image: SHIP_IMG.guild1 },
+        { name: 'Вексель', image: SHIP_IMG.guild2 },
     ],
 };
 
@@ -2750,7 +2748,6 @@ function renderShips() {
     $('ship-list').innerHTML = ships.map((ship, i) =>
         `<div class="card ${(state.shipIndex ?? -1) === i ? 'selected' : ''}" data-ship="${i}">
             <div class="ship-name">${ship.name}</div>
-            <div class="ship-desc">${ship.desc}</div>
             <div class="ship-preview" data-preview="${i}"></div>
         </div>`
     ).join('');
