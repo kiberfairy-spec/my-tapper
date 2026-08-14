@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.22.7</title>
+    <title>Space Dream v2.22.8</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -764,7 +764,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.22.7';
+const VERSION = '2.22.8';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -805,8 +805,19 @@ const MINE_KINDS = {
 };
 const MINE_IMG = {
     meteor: 'mines/Метеорит_1.png',
+    pirate: [
+        'mines/ПИРАТЫ-Photoroom.png',
+        'mines/ПИРАТЫ_2-Photoroom.png',
+    ],
 };
 const MINE_OBJECT_H = 56;
+
+function pickMineImageSrc(kind) {
+    const entry = MINE_IMG[kind];
+    if (!entry) return null;
+    if (Array.isArray(entry)) return entry[Math.floor(Math.random() * entry.length)];
+    return entry;
+}
 
 // PNG-спрайты из папки ships/
 const SHIP_IMG = {
@@ -2391,7 +2402,7 @@ function createMineSprite(kind) {
     wrap.style.justifyContent = 'center';
     wrap.style.lineHeight = '0';
 
-    const src = MINE_IMG[kind];
+    const src = pickMineImageSrc(kind);
     if (src) {
         buildMineObjectImage(src, cvs => {
             wrap.textContent = '';
