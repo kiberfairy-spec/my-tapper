@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.22.6</title>
+    <title>Space Dream v2.22.7</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -439,7 +439,8 @@
             display: flex; align-items: center; justify-content: center;
             touch-action: manipulation;
         }
-        .mine-object canvas {
+        .mine-object canvas,
+        .mine-object .mine-sprite-img {
             display: block;
             image-rendering: pixelated;
             image-rendering: crisp-edges;
@@ -763,7 +764,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.22.6';
+const VERSION = '2.22.7';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -802,6 +803,10 @@ const MINE_KINDS = {
     wreck:  { label: 'Обломки' },
     pirate: { label: 'Пират' },
 };
+const MINE_IMG = {
+    meteor: 'mines/Метеорит_1.png',
+};
+const MINE_OBJECT_H = 56;
 
 // PNG-спрайты из папки ships/
 const SHIP_IMG = {
@@ -2299,6 +2304,29 @@ function switchTab(tab) {
     }
 }
 
+function buildMineObjectImage(src, onReady) {
+    const loader = new Image();
+    loader.onload = () => {
+        const tmp = document.createElement('canvas');
+        tmp.width = loader.naturalWidth;
+        tmp.height = loader.naturalHeight;
+        const tctx = tmp.getContext('2d');
+        tctx.imageSmoothingEnabled = false;
+        tctx.drawImage(loader, 0, 0);
+        if (needsBackgroundKey(src)) removeDarkBackground(tctx);
+        const b = getSpriteContentBounds(tctx);
+        const outH = MINE_OBJECT_H;
+        const outW = Math.max(1, Math.round(outH * (b.w / b.h)));
+        const cvs = normalizeShipCanvas(tmp, outW, outH);
+        cvs.className = 'mine-sprite-img';
+        cvs.style.height = outH + 'px';
+        cvs.style.width = 'auto';
+        onReady(cvs);
+    };
+    loader.onerror = () => onReady(null);
+    loader.src = src;
+}
+
 // ─── Добыча ──────────────────────────────────────────────────
 function drawMeteorSprite(ctx, ps) {
     for (let y = 0; y < 14; y++) for (let x = 0; x < 14; x++) {
@@ -2342,7 +2370,7 @@ function drawPirateSprite(ctx, ps) {
     px(6, 13, '#ff4444');
 }
 
-function createMineSprite(kind) {
+function createMineCanvasSprite(kind) {
     const ps = kind === 'meteor' ? 6 : 2;
     const size = { meteor: [14, 14], wreck: [14, 12], pirate: [12, 14] }[kind];
     const cvs = document.createElement('canvas');
@@ -2354,6 +2382,26 @@ function createMineSprite(kind) {
     else if (kind === 'wreck') drawWreckSprite(ctx, ps);
     else drawPirateSprite(ctx, ps);
     return cvs;
+}
+
+function createMineSprite(kind) {
+    const wrap = document.createElement('span');
+    wrap.style.display = 'inline-flex';
+    wrap.style.alignItems = 'center';
+    wrap.style.justifyContent = 'center';
+    wrap.style.lineHeight = '0';
+
+    const src = MINE_IMG[kind];
+    if (src) {
+        buildMineObjectImage(src, cvs => {
+            wrap.textContent = '';
+            wrap.appendChild(cvs || createMineCanvasSprite(kind));
+        });
+        return wrap;
+    }
+
+    wrap.appendChild(createMineCanvasSprite(kind));
+    return wrap;
 }
 
 function initMiningWorld() {
