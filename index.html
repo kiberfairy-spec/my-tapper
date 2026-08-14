@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.25.0</title>
+    <title>Space Dream v2.25.1</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -587,54 +587,63 @@
             max-width: 100%;
             height: auto;
         }
-        #ship-list .ship-stats {
+        .ship-stats {
             width: 100%;
             margin-top: 4px;
             font-family: 'Rajdhani', 'Segoe UI', sans-serif;
         }
-        #ship-list .ship-stat-row {
+        .ship-stat-row {
             display: flex;
             align-items: center;
             gap: 3px;
             margin-bottom: 2px;
         }
-        #ship-list .ship-stat-label {
+        .ship-stat-label {
             width: 12px;
             flex-shrink: 0;
             font-size: 3px;
             color: #9aa3b8;
             text-align: left;
         }
-        #ship-list .ship-stat-bar-wrap {
+        .ship-stat-bar-wrap {
             flex: 1;
             height: 4px;
             background: rgba(255, 255, 255, 0.08);
             border-radius: 1px;
             overflow: hidden;
         }
-        #ship-list .ship-stat-bar {
+        .ship-stat-bar {
             height: 100%;
             border-radius: 1px;
             min-width: 1px;
+            transition: width .25s ease-out;
         }
-        #ship-list .ship-stat-bar.high {
+        .ship-stat-bar.high {
             background: linear-gradient(90deg, #2a8844, #44cc66);
             box-shadow: 0 0 4px rgba(68, 204, 102, 0.45);
         }
-        #ship-list .ship-stat-bar.low {
+        .ship-stat-bar.low {
             background: linear-gradient(90deg, #992222, #cc4444);
             box-shadow: 0 0 4px rgba(204, 68, 68, 0.35);
         }
-        #ship-list .ship-stat-bar.mid {
+        .ship-stat-bar.mid {
             background: #667788;
         }
-        #ship-list .ship-stat-val {
+        .ship-stat-val {
             width: 11px;
             flex-shrink: 0;
             font-size: 3px;
             text-align: right;
             color: #c8d0e0;
         }
+        #ship-list .ship-stats { margin-top: 4px; }
+        #hangar-ship .ship-stats {
+            max-width: 200px;
+            margin: 6px auto 0;
+        }
+        #hangar-ship .ship-stat-label,
+        #hangar-ship .ship-stat-val { font-size: 4px; }
+        #hangar-ship .ship-stat-bar-wrap { height: 5px; }
         #win-ship .ship-actions {
             flex-shrink: 0;
             margin-top: auto;
@@ -824,7 +833,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.25.0';
+const VERSION = '2.25.1';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.28;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -903,6 +912,7 @@ const SHIP_IMG = {
 };
 
 const FACTION_STAT_BASE = 30;
+const UPGRADE_STAT_BONUS = 5;
 const FACTION_STAT_LABELS = [
     { key: 'hp', label: 'HP' },
     { key: 'shield', label: 'Щ' },
@@ -955,18 +965,41 @@ function getFactionBaseStats(factionId = state.factionId) {
     return { hp: f.hp, shield: f.shield, damage: f.damage, attackSpeed: f.attackSpeed };
 }
 
-function renderFactionStatBarsHtml(faction) {
-    if (!faction) return '';
+function getShipCombatStats() {
+    const base = getFactionBaseStats();
+    const u = state.upgrades;
+    const stats = {
+        hp: base.hp,
+        shield: base.shield + u.shield * UPGRADE_STAT_BONUS,
+        damage: base.damage + u.damage * UPGRADE_STAT_BONUS,
+        attackSpeed: base.attackSpeed + u.speed * UPGRADE_STAT_BONUS,
+    };
+    const art = ARTIFACTS.find(a => a.id === state.artifact.id);
+    if (art && state.artifact.level > 0) {
+        const key = art.effect === 'speed' ? 'attackSpeed' : art.effect;
+        stats[key] += state.artifact.level * art.per;
+    }
+    return stats;
+}
+
+function renderStatBarsHtml(stats) {
+    if (!stats) return '';
     const rows = FACTION_STAT_LABELS.map(({ key, label }) => {
-        const val = faction[key] ?? FACTION_STAT_BASE;
+        const val = stats[key] ?? FACTION_STAT_BASE;
         const cls = val > FACTION_STAT_BASE ? 'high' : val < FACTION_STAT_BASE ? 'low' : 'mid';
+        const barW = Math.min(100, val);
         return `<div class="ship-stat-row">
             <span class="ship-stat-label">${label}</span>
-            <div class="ship-stat-bar-wrap"><div class="ship-stat-bar ${cls}" style="width:${val}%"></div></div>
+            <div class="ship-stat-bar-wrap"><div class="ship-stat-bar ${cls}" style="width:${barW}%"></div></div>
             <span class="ship-stat-val">${val}</span>
         </div>`;
     }).join('');
     return `<div class="ship-stats">${rows}</div>`;
+}
+
+function renderFactionStatBarsHtml(faction) {
+    if (!faction) return '';
+    return renderStatBarsHtml(getFactionBaseStats(faction.id));
 }
 
 // Палитры по референсам Gremak / Yoral / Phidi
@@ -3012,13 +3045,16 @@ function renderHangar() {
     const r = state.resources;
     $('hangar-ship').innerHTML = '';
     $('hangar-ship').appendChild(drawCurrentShip(5));
+    $('hangar-ship').insertAdjacentHTML('beforeend', renderStatBarsHtml(getShipCombatStats()));
     $('hangar-res').textContent = `🪙${Math.floor(r.credits)} ⛽${Math.floor(r.fuel)}/${state.maxFuel} 🛡️${r.shieldParts} ⚔️${r.weaponParts} 💎${r.spice} 🧩${r.shards}`;
 
     $('upgrade-list').innerHTML = UPGRADES.map(u => {
         const lvl = state.upgrades[u.key];
         const cost = upgradeCost(u.key);
         const can = lvl < u.max && r.credits >= cost.credits;
-        return `<div class="upgrade-row"><span>${u.label} ${lvl}/${u.max}</span><button class="btn btn-sm" ${can?'':'disabled'} data-upg="${u.key}">${cost.credits}🪙</button></div>`;
+        const bonus = (u.key === 'damage' || u.key === 'shield' || u.key === 'speed')
+            ? ` +${UPGRADE_STAT_BONUS}` : '';
+        return `<div class="upgrade-row"><span>${u.label} ${lvl}/${u.max}${bonus}</span><button class="btn btn-sm" ${can?'':'disabled'} data-upg="${u.key}">${cost.credits}🪙</button></div>`;
     }).join('');
 
     $('upgrade-list').querySelectorAll('[data-upg]').forEach(btn => {
