@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.16.4</title>
+    <title>Space Dream v2.17.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -530,7 +530,17 @@
         }
         .faction-brief .brief-plus { color: #7fd4ff; }
         .faction-brief .brief-minus { color: #ff9a8a; }
-        #ship-list { flex-direction: column; gap: 12px; width: 100%; align-items: stretch; }
+        #ship-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            width: 100%;
+            align-items: stretch;
+        }
+        #ship-list .card { width: auto; min-width: 0; padding: 6px; }
+        #ship-list .ship-preview { min-height: 140px; padding: 6px 2px; }
+        #ship-list .ship-name { font-size: 5px; }
+        #ship-list .ship-desc { font-size: 3px; margin-bottom: 4px; }
         .card.selected { border-color: #ffaa00; box-shadow: 0 0 12px rgba(255,170,0,.25); }
         .upgrade-row { display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--accent); padding: 4px; margin: 3px 0; font-size: 5px; }
         .mine-loot {
@@ -686,7 +696,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.16.4';
+const VERSION = '2.17.0';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -1179,16 +1189,16 @@ function drawAlienSet(ctx, px, p) { drawMap(ctx, px, p, MAP_ALIEN_SET); }
 
 const SHIP_CATALOG = {
     tank: [
-        { name: 'Готовый', desc: 'Конфедерация · патрульный истребитель', image: SHIP_IMG.select, miningImage: SHIP_IMG.mining },
-        { name: 'Готовый II', desc: 'Конфедерация · ударный корвет', image: SHIP_IMG.confed2Large, miningImage: SHIP_IMG.confed2Small },
+        { name: 'Штурмовик', desc: 'Патрульный истребитель · стандарт флота', image: SHIP_IMG.select, miningImage: SHIP_IMG.mining },
+        { name: 'Корвет', desc: 'Ударный корвет · усиленная броня', image: SHIP_IMG.confed2Large, miningImage: SHIP_IMG.confed2Small },
     ],
     dps: [
-        { name: 'Шрам', desc: 'Scrap · асимметричный корпус', draw: drawRebelShram },
-        { name: 'Сборка', desc: 'Yoral · грузовой фрейтер', draw: drawRebelSborka },
+        { name: 'Шрам', desc: 'Партизанский корвет · сварка и обломки', draw: drawRebelShram },
+        { name: 'Сборка', desc: 'Грузовой фрегат · модульная «сборка на коленке»', draw: drawRebelSborka },
     ],
     sniper: [
-        { name: 'Спираль', desc: 'Phidi · кольцо-полумесяц', draw: drawAlienSpiral },
-        { name: 'Жнец', desc: 'Phidi · клешни-сборщик', draw: drawAlienZhnec },
+        { name: 'Спираль', desc: 'Энергокольцо · импульсное оружие гильдии', draw: drawAlienSpiral },
+        { name: 'Жнец', desc: 'Гравизахват · квантовый ударный корабль', draw: drawAlienZhnec },
     ],
 };
 
