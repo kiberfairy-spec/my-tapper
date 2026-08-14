@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.23.2</title>
+    <title>Space Dream v2.23.3</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -439,6 +439,7 @@
             display: flex; align-items: center; justify-content: center;
             touch-action: manipulation;
         }
+        .mine-object.mine-meteor { min-width: 56px; min-height: 56px; }
         .mine-object canvas,
         .mine-object .mine-sprite-img {
             display: block;
@@ -764,7 +765,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.23.2';
+const VERSION = '2.23.3';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.28;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -816,6 +817,11 @@ const MINE_IMG = {
     ],
 };
 const MINE_OBJECT_H = 44;
+const MINE_OBJECT_H_METEOR = 56;
+
+function getMineObjectHeight(kind) {
+    return kind === 'meteor' ? MINE_OBJECT_H_METEOR : MINE_OBJECT_H;
+}
 
 function pickMineImageSrc(kind) {
     const entry = MINE_IMG[kind];
@@ -2320,7 +2326,7 @@ function switchTab(tab) {
     }
 }
 
-function buildMineObjectImage(src, onReady) {
+function buildMineObjectImage(src, kind, onReady) {
     const loader = new Image();
     loader.onload = () => {
         const tmp = document.createElement('canvas');
@@ -2331,7 +2337,7 @@ function buildMineObjectImage(src, onReady) {
         tctx.drawImage(loader, 0, 0);
         if (needsBackgroundKey(src)) removeDarkBackground(tctx);
         const b = getSpriteContentBounds(tctx);
-        const outH = MINE_OBJECT_H;
+        const outH = getMineObjectHeight(kind);
         const outW = Math.max(1, Math.round(outH * (b.w / b.h)));
         const cvs = normalizeShipCanvas(tmp, outW, outH);
         cvs.className = 'mine-sprite-img';
@@ -2409,7 +2415,7 @@ function createMineSprite(kind) {
 
     const src = pickMineImageSrc(kind);
     if (src) {
-        buildMineObjectImage(src, cvs => {
+        buildMineObjectImage(src, kind, cvs => {
             wrap.textContent = '';
             wrap.appendChild(cvs || createMineCanvasSprite(kind));
         });
