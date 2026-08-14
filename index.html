@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.18.2</title>
+    <title>Space Dream v2.19.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -699,7 +699,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.18.2';
+const VERSION = '2.19.0';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -789,12 +789,74 @@ const FACTIONS = [
 
 // Палитры по референсам Gremak / Yoral / Phidi
 const SHIP_PAL = {
-    tank:   ['','#101820','#283038','#485058','#8898a8','#d8e0e8','#40d8ff','#e85028','#ffffff'],
-    dps:    ['','#181008','#302018','#504030','#786050','#a88868','#d8a830','#c85820','#c8b898'],
-    sniper: ['','#0a1018','#203028','#385848','#508870','#c0a050','#a048e0','#40e8c8','#f0ffe8'],
+    tank:   ['','#101820','#283038','#485058','#8898a8','#d8e0e8','#40d8ff','#4488aa','#ffffff'],
+    dps:    ['','#181008','#302018','#504030','#786050','#a88868','#d8a830','#aa5533','#c8b898'],
+    sniper: ['','#0a1018','#203028','#385848','#508870','#aa9933','#a048e0','#40e8c8','#f0ffe8'],
 };
 const SHIP_W = 40, SHIP_H = 56;
 const SHIP_EXTRA = { o:'#e87828', r:'#cc3038', g:'#40e8ff', y:'#d8b030', p:'#a048e0' };
+let _shipDrawExtras = SHIP_EXTRA;
+
+function getFactionStripe(factionId) {
+    return (FACTIONS.find(f => f.id === factionId) || FACTIONS[0]).color;
+}
+
+function getShipExtras(factionId) {
+    const stripe = getFactionStripe(factionId);
+    return { o: stripe, r: '#cc3038', g: '#40e8ff', y: stripe, p: '#a048e0' };
+}
+
+function hexToRgb(hex) {
+    const n = parseInt(hex.slice(1), 16);
+    return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+
+function isAccentStripe(r, g, b) {
+    const spread = Math.max(r, g, b) - Math.min(r, g, b);
+    if (spread < 28) return false;
+    if (b > 130 && g > 90 && b >= r - 10) return false;
+    if (g > 110 && b > 70 && Math.abs(g - b) < 35) return false;
+    if (r > 95 && g > 40 && b < 100 && r > b + 25 && r > g + 15) return true;
+    return false;
+}
+
+function recolorAccentStripes(ctx, accentHex) {
+    const w = ctx.canvas.width;
+    const h = ctx.canvas.height;
+    const img = ctx.getImageData(0, 0, w, h);
+    const d = img.data;
+    const ac = hexToRgb(accentHex);
+    for (let i = 0; i < d.length; i += 4) {
+        const r = d[i], g = d[i + 1], b = d[i + 2], a = d[i + 3];
+        if (a < 20 || !isAccentStripe(r, g, b)) continue;
+        const lum = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
+        const shade = 0.5 + lum * 0.7;
+        d[i] = Math.min(255, Math.round(ac.r * shade));
+        d[i + 1] = Math.min(255, Math.round(ac.g * shade));
+        d[i + 2] = Math.min(255, Math.round(ac.b * shade));
+    }
+    ctx.putImageData(img, 0, 0);
+}
+
+function buildFactionShipImage(src, factionId, sizeStyle, onReady) {
+    const loader = new Image();
+    loader.onload = () => {
+        const cvs = document.createElement('canvas');
+        cvs.width = loader.naturalWidth;
+        cvs.height = loader.naturalHeight;
+        cvs.className = 'ship-sprite-img';
+        const ctx = cvs.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(loader, 0, 0);
+        recolorAccentStripes(ctx, getFactionStripe(factionId));
+        if (sizeStyle.height) cvs.style.height = sizeStyle.height;
+        if (sizeStyle.maxHeight) cvs.style.maxHeight = sizeStyle.maxHeight;
+        cvs.style.width = 'auto';
+        cvs.style.imageRendering = 'pixelated';
+        onReady(cvs);
+    };
+    loader.src = src;
+}
 
 function drawPixelMatrix(ctx, px, matrix, palette) {
     const mh = matrix.length, mw = matrix[0].length;
@@ -813,7 +875,7 @@ function drawMap(ctx, px, p, map) {
     for (let y = 0; y < mh; y++) for (let x = 0; x < map[y].length; x++) {
         const ch = map[y][x];
         if (ch === '.' || ch === ' ') continue;
-        const col = (ch >= '1' && ch <= '8') ? p[+ch] : SHIP_EXTRA[ch];
+        const col = (ch >= '1' && ch <= '8') ? p[+ch] : _shipDrawExtras[ch];
         if (!col) continue;
         ctx.fillStyle = col;
         ctx.fillRect((ox + x) * px, (oy + y) * px, px, px);
@@ -847,7 +909,7 @@ function applyOutline(ctx, px) {
 
 // ── КОНФЕДЕРАЦИЯ — Gremak / Yoral ─────────────────────────────
 // «Страж» — пиксельная матрица из ShipMatrix.java (30×32, контур уже внутри)
-const PAL_STRAZH = ['','#101820','#283038','#485058','#8898a8','#e8f0f8','#e87828','#40d8ff','#2860a8'];
+const PAL_STRAZH = ['','#101820','#283038','#485058','#8898a8','#e8f0f8','#4488aa','#40d8ff','#2860a8'];
 const MATRIX_STRAZH = [
     [0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0],
     [0,0,1,5,5,2,2,5,5,1,0,0,0,0,0,0,0,0,0,1,5,5,2,2,5,5,1,0,0,0],
@@ -1211,22 +1273,25 @@ const SHIP_CATALOG = {
 
 function renderShipGraphic(ship, factionId, pixelSize = 4) {
     if (ship.image) {
-        const img = document.createElement('img');
-        img.src = ship.image;
-        img.className = 'ship-sprite-img';
-        img.alt = ship.name;
-        img.draggable = false;
-        // Большая картинка — выбор корабля и ангар
-        if (pixelSize >= 6) img.style.maxHeight = '200px';
-        else if (pixelSize >= 4) img.style.maxHeight = '160px';
-        else img.style.height = '96px';
-        img.style.width = 'auto';
-        return img;
+        const wrap = document.createElement('span');
+        wrap.style.display = 'inline-block';
+        wrap.style.lineHeight = '0';
+        const sizeStyle = pixelSize >= 6
+            ? { maxHeight: '200px' }
+            : pixelSize >= 4
+                ? { maxHeight: '160px' }
+                : { height: '96px' };
+        buildFactionShipImage(ship.image, factionId, sizeStyle, cvs => {
+            wrap.textContent = '';
+            wrap.appendChild(cvs);
+        });
+        return wrap;
     }
     return renderShipCanvas(ship.draw, factionId, pixelSize);
 }
 
 function renderShipCanvas(drawFn, factionId, pixelSize = 4) {
+    _shipDrawExtras = getShipExtras(factionId);
     const p = SHIP_PAL[factionId] || SHIP_PAL.tank;
     const cvs = document.createElement('canvas');
     cvs.width = SHIP_W * pixelSize;
@@ -1927,14 +1992,13 @@ function renderPlayerShip() {
     const ship = getCurrentShip();
     const miningSrc = getShipMiningSrc(ship);
     if (miningSrc) {
-        const img = document.createElement('img');
-        img.src = miningSrc;
-        img.alt = ship.name;
-        img.draggable = false;
-        el.appendChild(img);
-    } else {
-        el.appendChild(renderShipGraphic(ship, state.factionId, 3));
+        buildFactionShipImage(miningSrc, state.factionId, { height: '56px' }, cvs => {
+            el.appendChild(cvs);
+            updateShipVisual();
+        });
+        return;
     }
+    el.appendChild(renderShipGraphic(ship, state.factionId, 3));
     updateShipVisual();
 }
 
