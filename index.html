@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.19.0</title>
+    <title>Space Dream v2.19.1</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -373,17 +373,9 @@
             transform: translate(-50%, -50%);
             transition: none;
         }
-        .player-ship img {
-            position: relative;
-            z-index: 1;
-            display: block;
-            image-rendering: pixelated;
-            image-rendering: crisp-edges;
-            height: 56px;
-            width: auto;
-            pointer-events: none;
-        }
-        .player-ship canvas {
+        .player-ship img,
+        .player-ship canvas,
+        .player-ship .ship-sprite-img {
             position: relative;
             z-index: 1;
             display: block;
@@ -461,7 +453,11 @@
             height: auto;
             pointer-events: none;
         }
-        .ship-preview .ship-sprite-img { max-height: 200px; width: auto; }
+        .ship-preview .ship-sprite-img {
+            height: 200px;
+            width: auto;
+            max-width: 100%;
+        }
 
         /* ── Окна ── */
         .overlay {
@@ -699,7 +695,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.19.0';
+const VERSION = '2.19.1';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.2;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -794,6 +790,10 @@ const SHIP_PAL = {
     sniper: ['','#0a1018','#203028','#385848','#508870','#aa9933','#a048e0','#40e8c8','#f0ffe8'],
 };
 const SHIP_W = 40, SHIP_H = 56;
+const SHIP_NORM_W = 49;
+const SHIP_NORM_H = 54;
+const SHIP_MINING_H = 56;
+const SHIP_SELECT_H = 200;
 const SHIP_EXTRA = { o:'#e87828', r:'#cc3038', g:'#40e8ff', y:'#d8b030', p:'#a048e0' };
 let _shipDrawExtras = SHIP_EXTRA;
 
@@ -838,20 +838,61 @@ function recolorAccentStripes(ctx, accentHex) {
     ctx.putImageData(img, 0, 0);
 }
 
+function getSpriteContentBounds(ctx) {
+    const w = ctx.canvas.width;
+    const h = ctx.canvas.height;
+    const d = ctx.getImageData(0, 0, w, h).data;
+    let minX = w, minY = h, maxX = -1, maxY = -1;
+    for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+            if (d[(y * w + x) * 4 + 3] <= 20) continue;
+            if (x < minX) minX = x;
+            if (y < minY) minY = y;
+            if (x > maxX) maxX = x;
+            if (y > maxY) maxY = y;
+        }
+    }
+    if (maxX < minX || maxY < minY) return { minX: 0, minY: 0, w, h };
+    return { minX, minY, w: maxX - minX + 1, h: maxY - minY + 1 };
+}
+
+function normalizeShipCanvas(srcCanvas) {
+    const srcCtx = srcCanvas.getContext('2d');
+    const b = getSpriteContentBounds(srcCtx);
+    const out = document.createElement('canvas');
+    out.width = SHIP_NORM_W;
+    out.height = SHIP_NORM_H;
+    const ctx = out.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    const pad = 1;
+    const availW = SHIP_NORM_W - pad * 2;
+    const availH = SHIP_NORM_H - pad * 2;
+    const scale = Math.min(availW / b.w, availH / b.h);
+    const dw = Math.max(1, Math.round(b.w * scale));
+    const dh = Math.max(1, Math.round(b.h * scale));
+    const dx = Math.floor((SHIP_NORM_W - dw) / 2);
+    const dy = Math.floor((SHIP_NORM_H - dh) / 2);
+    ctx.drawImage(srcCanvas, b.minX, b.minY, b.w, b.h, dx, dy, dw, dh);
+    return out;
+}
+
 function buildFactionShipImage(src, factionId, sizeStyle, onReady) {
     const loader = new Image();
     loader.onload = () => {
-        const cvs = document.createElement('canvas');
-        cvs.width = loader.naturalWidth;
-        cvs.height = loader.naturalHeight;
+        const tmp = document.createElement('canvas');
+        tmp.width = loader.naturalWidth;
+        tmp.height = loader.naturalHeight;
+        const tctx = tmp.getContext('2d');
+        tctx.imageSmoothingEnabled = false;
+        tctx.drawImage(loader, 0, 0);
+        recolorAccentStripes(tctx, getFactionStripe(factionId));
+
+        const cvs = normalizeShipCanvas(tmp);
         cvs.className = 'ship-sprite-img';
-        const ctx = cvs.getContext('2d');
-        ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(loader, 0, 0);
-        recolorAccentStripes(ctx, getFactionStripe(factionId));
         if (sizeStyle.height) cvs.style.height = sizeStyle.height;
         if (sizeStyle.maxHeight) cvs.style.maxHeight = sizeStyle.maxHeight;
-        cvs.style.width = 'auto';
+        if (sizeStyle.width) cvs.style.width = sizeStyle.width;
+        else cvs.style.width = 'auto';
         cvs.style.imageRendering = 'pixelated';
         onReady(cvs);
     };
@@ -1277,9 +1318,9 @@ function renderShipGraphic(ship, factionId, pixelSize = 4) {
         wrap.style.display = 'inline-block';
         wrap.style.lineHeight = '0';
         const sizeStyle = pixelSize >= 6
-            ? { maxHeight: '200px' }
+            ? { height: SHIP_SELECT_H + 'px' }
             : pixelSize >= 4
-                ? { maxHeight: '160px' }
+                ? { height: '160px' }
                 : { height: '96px' };
         buildFactionShipImage(ship.image, factionId, sizeStyle, cvs => {
             wrap.textContent = '';
@@ -1992,7 +2033,7 @@ function renderPlayerShip() {
     const ship = getCurrentShip();
     const miningSrc = getShipMiningSrc(ship);
     if (miningSrc) {
-        buildFactionShipImage(miningSrc, state.factionId, { height: '56px' }, cvs => {
+        buildFactionShipImage(miningSrc, state.factionId, { height: SHIP_MINING_H + 'px' }, cvs => {
             el.appendChild(cvs);
             updateShipVisual();
         });
