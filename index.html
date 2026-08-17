@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.27.2</title>
+    <title>Space Dream v2.27.3</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -115,7 +115,7 @@
             align-items: center;
             gap: 4px;
             flex-shrink: 0;
-            max-width: 30%;
+            max-width: 38%;
             min-width: 0;
         }
         .top-player .avatar {
@@ -135,10 +135,11 @@
         .top-player .avatar.has-photo { color: transparent; }
         .player-meta {
             display: flex;
-            align-items: baseline;
+            align-items: center;
             gap: 3px;
             min-width: 0;
             line-height: 1;
+            flex-wrap: nowrap;
         }
         .top-player .pname {
             font-size: 9px;
@@ -156,7 +157,17 @@
             flex-shrink: 0;
         }
         .player-vip {
-            display: none;
+            font-size: 7px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            color: #ffd400;
+            white-space: nowrap;
+            flex-shrink: 0;
+            padding: 1px 4px;
+            border: 1px solid rgba(255, 212, 0, 0.45);
+            border-radius: 3px;
+            background: rgba(40, 32, 0, 0.4);
+            text-shadow: 0 0 6px rgba(255, 212, 0, 0.45);
         }
 
         /* Ресурсы — одна строка справа */
@@ -1009,7 +1020,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.27.2';
+const VERSION = '2.27.3';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.28;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
