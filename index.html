@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.28.1</title>
+    <title>Space Dream v2.28.2</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -1074,7 +1074,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.28.1';
+const VERSION = '2.28.2';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.28;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -2215,7 +2215,8 @@ function clampCamera(cx, cy) {
 function applyWorldTransform() {
     const world = $('mining-world');
     if (!world) return;
-    world.style.transform = `translate3d(${-Math.round(camera.x)}px, ${-Math.round(camera.y)}px, 0) scale(${mapZoom})`;
+    // scale → translate: экран = (мир − камера) × zoom — корабль остаётся в центре
+    world.style.transform = `scale(${mapZoom}) translate3d(${-Math.round(camera.x)}px, ${-Math.round(camera.y)}px, 0)`;
 }
 
 function updateCamera() {
