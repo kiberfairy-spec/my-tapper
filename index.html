@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.27.3</title>
+    <title>Space Dream v2.27.4</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -346,48 +346,101 @@
             left: var(--game-inset-left);
             right: var(--game-inset-right);
             z-index: 100;
-            min-height: 72px;
+            min-height: 76px;
             background: linear-gradient(0deg, rgba(2, 4, 18, 0.98) 0%, rgba(8, 12, 36, 0.92) 100%);
             border-top: 1px solid rgba(0, 232, 255, 0.4);
             box-shadow: 0 -4px 28px rgba(0, 232, 255, 0.12), inset 0 1px 0 rgba(255, 43, 214, 0.15);
-            display: flex; align-items: center; justify-content: space-around; padding: 6px 4px;
+            display: flex; align-items: center; justify-content: space-around; padding: 8px 4px 10px;
             font-family: 'Rajdhani', 'Segoe UI', sans-serif;
         }
         .nav-btn {
-            flex: 1; margin: 0 3px; max-width: 88px; padding: 8px 4px;
-            background: linear-gradient(180deg, rgba(12, 20, 48, 0.85) 0%, rgba(4, 8, 24, 0.95) 100%);
-            border: 1px solid rgba(0, 232, 255, 0.35);
-            border-radius: 4px;
-            color: #a8c8e8;
-            font-family: inherit; font-size: 9px; font-weight: 600;
+            -webkit-appearance: none;
+            appearance: none;
+            flex: 1;
+            margin: 0 3px;
+            max-width: 88px;
+            padding: 9px 4px 8px;
+            background-color: #060818;
+            background-image:
+                linear-gradient(180deg, rgba(0, 232, 255, 0.14) 0%, transparent 42%),
+                linear-gradient(180deg, #142040 0%, #0a1028 55%, #040610 100%);
+            border: 2px solid rgba(0, 232, 255, 0.45);
+            border-radius: 6px;
+            color: #b8d4f0;
+            font-family: inherit;
+            font-size: 9px;
+            font-weight: 600;
             letter-spacing: 0.04em;
-            cursor: pointer; text-align: center;
-            box-shadow: 0 0 8px rgba(0, 232, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-            transition: transform 0.12s ease, box-shadow 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+            cursor: pointer;
+            text-align: center;
+            box-shadow:
+                0 4px 0 #020408,
+                0 5px 14px rgba(0, 0, 0, 0.55),
+                0 0 10px rgba(0, 232, 255, 0.12),
+                inset 0 1px 0 rgba(255, 255, 255, 0.18),
+                inset 0 -3px 6px rgba(0, 0, 0, 0.45);
+            text-shadow: 0 0 6px rgba(0, 232, 255, 0.25);
+            transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.08s ease, border-color 0.12s ease, color 0.12s ease;
+            transform: translateY(0);
         }
-        .nav-btn:active:not(.nav-btn-reset) {
-            transform: scale(0.96) translateY(1px);
-            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5), 0 0 4px rgba(0, 232, 255, 0.15);
+        .nav-btn:active:not(:disabled) {
+            transform: translateY(3px);
+            filter: brightness(1.08);
+            box-shadow:
+                0 1px 0 #020408,
+                0 2px 6px rgba(0, 0, 0, 0.45),
+                0 0 8px rgba(0, 232, 255, 0.18),
+                inset 0 3px 8px rgba(0, 0, 0, 0.55),
+                inset 0 1px 0 rgba(255, 255, 255, 0.06);
         }
         .nav-btn.active {
-            background: linear-gradient(180deg, rgba(0, 60, 90, 0.5) 0%, rgba(20, 8, 48, 0.85) 100%);
+            background-image:
+                linear-gradient(180deg, rgba(255, 43, 214, 0.18) 0%, transparent 42%),
+                linear-gradient(180deg, #1a2858 0%, #120830 55%, #080418 100%);
             border-color: var(--neon-magenta);
             color: #fff;
             box-shadow:
-                0 0 14px var(--neon-glow-m),
-                0 0 24px rgba(0, 232, 255, 0.2),
-                inset 0 0 12px rgba(255, 43, 214, 0.12);
-            text-shadow: 0 0 8px var(--neon-glow-m);
+                0 4px 0 #180818,
+                0 5px 16px rgba(255, 43, 214, 0.25),
+                0 0 16px var(--neon-glow-m),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                inset 0 -3px 6px rgba(0, 0, 0, 0.4);
+            text-shadow: 0 0 10px var(--neon-glow-m);
+        }
+        .nav-btn.active:active:not(:disabled) {
+            transform: translateY(3px);
+            box-shadow:
+                0 1px 0 #180818,
+                0 2px 8px rgba(255, 43, 214, 0.3),
+                0 0 12px var(--neon-glow-m),
+                inset 0 3px 10px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.06);
         }
         .nav-btn-reset {
-            border-color: rgba(255, 80, 80, 0.55);
-            color: #ff9999;
-            box-shadow: 0 0 8px rgba(255, 80, 80, 0.15);
+            border-color: rgba(255, 80, 80, 0.6);
+            color: #ffaaaa;
+            background-color: #180408;
+            background-image:
+                linear-gradient(180deg, rgba(255, 100, 100, 0.14) 0%, transparent 42%),
+                linear-gradient(180deg, #401018 0%, #280810 55%, #180408 100%);
+            box-shadow:
+                0 4px 0 #180004,
+                0 5px 14px rgba(0, 0, 0, 0.5),
+                0 0 10px rgba(255, 80, 80, 0.2),
+                inset 0 1px 0 rgba(255, 160, 160, 0.2),
+                inset 0 -3px 6px rgba(0, 0, 0, 0.45);
+            text-shadow: 0 0 6px rgba(255, 80, 80, 0.35);
             max-width: 58px;
             flex: 0.85;
         }
-        .nav-btn-reset:active {
-            transform: scale(0.96);
+        .nav-btn-reset:active:not(:disabled) {
+            transform: translateY(3px);
+            filter: brightness(1.1);
+            box-shadow:
+                0 1px 0 #180004,
+                0 2px 6px rgba(0, 0, 0, 0.45),
+                0 0 12px rgba(255, 80, 80, 0.35),
+                inset 0 3px 8px rgba(0, 0, 0, 0.55);
         }
 
         .mining-world {
@@ -1020,7 +1073,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.27.3';
+const VERSION = '2.27.4';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.28;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
