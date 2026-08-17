@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.32.1</title>
+    <title>Space Dream v2.32.2</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -1574,7 +1574,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.32.1';
+const VERSION = '2.32.2';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.28;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -2554,9 +2554,10 @@ const LUCK_BONUS_PER_LVL = 0.12;
 
 // Таблица лута при уничтожении объекта на вкладке «Добыча» (сумма = 100%)
 const MINE_LOOT_TABLE = [
-    { pct: 45, id: 'nothing' },
+    { pct: 39, id: 'nothing' },
     { pct: 20, id: 'credits', min: 10, max: 100, icon: '🪙' },
     { pct: 10, id: 'fuel', min: 5, max: 15, icon: '⛽' },
+    { pct: 6, id: 'hp', min: 2, max: 6, partKey: 'hp' },
     { pct: 6, id: 'shield', min: 2, max: 6, partKey: 'shield' },
     { pct: 6, id: 'damage', min: 2, max: 6, partKey: 'damage' },
     { pct: 6, id: 'speed', min: 2, max: 6, partKey: 'speed' },
