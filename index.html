@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.30.6</title>
+    <title>Space Dream v2.30.7</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -287,8 +287,12 @@
             justify-content: flex-end;
             flex: 1;
             min-width: 0;
-            max-width: 52px;
+            max-width: 56px;
             z-index: 1;
+        }
+        .res-node-fuel {
+            max-width: 72px;
+            flex: 1.25;
         }
         /* Разъём на шине */
         .res-node::before {
@@ -382,9 +386,20 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 42px;
+            max-width: 48px;
         }
-        .res-pill-hero .res-val { max-width: 48px; }
+        .res-node-fuel .res-val {
+            max-width: none;
+            overflow: visible;
+            text-overflow: clip;
+            font-size: 7px;
+            letter-spacing: 0;
+        }
+        .res-node-fuel .res-pill {
+            padding: 2px 4px;
+            gap: 1px;
+        }
+        .res-pill-hero .res-val { max-width: 52px; }
         .top-panel .resource-neon {
             --neon-color: #00e8ff;
             --neon-glow: rgba(0, 232, 255, 0.85);
@@ -1260,7 +1275,7 @@
             </div>
         </div>
         <div class="top-hud-resources">
-            <div class="res-node neon-blue">
+            <div class="res-node res-node-fuel neon-blue">
                 <span class="hud-wire"></span>
                 <div class="res-pill resource-neon neon-blue">
                     <span class="res-icon">⛽</span>
@@ -1408,7 +1423,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.30.6';
+const VERSION = '2.30.7';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.28;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
