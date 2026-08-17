@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.33.0</title>
+    <title>Space Dream v2.33.1</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -1017,7 +1017,8 @@
             box-shadow: inset 0 0 20px rgba(0, 232, 255, 0.06);
         }
         .ship-preview canvas { image-rendering: pixelated; image-rendering: crisp-edges; max-width: 100%; height: auto; }
-        .overlay:has(#win-ship:not(.hidden)) {
+        .overlay:has(#win-ship:not(.hidden)),
+        .overlay:has(#win-hangar:not(.hidden)) {
             align-items: stretch;
             justify-content: stretch;
         }
@@ -1149,12 +1150,61 @@
         }
         #ship-list .ship-stats { margin-top: 4px; }
         #hangar-ship .ship-stats {
-            max-width: 200px;
+            max-width: 280px;
             margin: 6px auto 0;
         }
         #hangar-ship .ship-stat-label,
         #hangar-ship .ship-stat-val { font-size: 4px; }
         #hangar-ship .ship-stat-bar-wrap { height: 5px; }
+        #win-hangar {
+            width: 100%;
+            height: 100%;
+            max-width: none;
+            max-height: none;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            padding: 8px 10px 6px;
+            box-sizing: border-box;
+            border-width: 2px;
+            border-style: solid;
+        }
+        #win-hangar > .wtitle {
+            flex-shrink: 0;
+            margin-bottom: 6px;
+            font-size: 10px;
+        }
+        .hangar-header {
+            flex-shrink: 0;
+            text-align: center;
+        }
+        #hangar-ship {
+            margin: 2px 0 4px;
+        }
+        #hangar-ship canvas,
+        #hangar-ship .ship-sprite-img {
+            max-height: 96px;
+            width: auto;
+            height: auto;
+        }
+        #hangar-res {
+            font-size: 5px;
+            margin-bottom: 6px;
+        }
+        .hangar-scroll {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            padding-right: 2px;
+            margin-top: 2px;
+            border-top: 1px solid rgba(0, 232, 255, 0.15);
+            padding-top: 6px;
+        }
+        .hangar-scroll .upgrade-section-head {
+            margin-top: 0;
+        }
         .hangar-balance-hint {
             font-family: 'Rajdhani', 'Segoe UI', sans-serif;
             font-size: 4px;
@@ -1607,15 +1657,19 @@
     </div>
     <div class="window hidden" id="win-hangar">
         <div class="wtitle">АНГАР</div>
-        <div id="hangar-ship" style="text-align:center;margin:8px 0"></div>
-        <div id="hangar-res" style="font-size:5px;text-align:center;margin-bottom:8px"></div>
-        <div class="upgrade-section-head">
-            <span class="wtitle upgrade-section-title">УЛУЧШЕНИЯ</span>
-            <button type="button" class="hangar-help-btn" id="btn-hangar-help" title="Как работает прокачка">?</button>
+        <div class="hangar-header">
+            <div id="hangar-ship"></div>
+            <div id="hangar-res"></div>
         </div>
-        <div id="upgrade-list"></div>
-        <div class="wtitle" style="margin-top:10px;font-size:6px">АРТЕФАКТЫ</div>
-        <div class="row" id="artifact-list"></div>
+        <div class="hangar-scroll">
+            <div class="upgrade-section-head">
+                <span class="wtitle upgrade-section-title">УЛУЧШЕНИЯ</span>
+                <button type="button" class="hangar-help-btn" id="btn-hangar-help" title="Как работает прокачка">?</button>
+            </div>
+            <div id="upgrade-list"></div>
+            <div class="wtitle" style="margin-top:10px;font-size:6px">АРТЕФАКТЫ</div>
+            <div class="row" id="artifact-list"></div>
+        </div>
     </div>
     <div class="window hidden" id="win-pvp">
         <div class="wtitle">КОСМОБИТВА</div>
@@ -1687,7 +1741,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.33.0';
+const VERSION = '2.33.1';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.28;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -4266,7 +4320,7 @@ function renderHangar() {
     const r = state.resources;
     const spreadHint = getUpgradeSpreadHint();
     $('hangar-ship').innerHTML = '';
-    $('hangar-ship').appendChild(drawCurrentShip(5));
+    $('hangar-ship').appendChild(drawCurrentShip(4));
     $('hangar-ship').insertAdjacentHTML('beforeend', renderStatBarsHtml(getShipCombatStats()));
     $('hangar-ship').insertAdjacentHTML('beforeend',
         `<div class="hangar-balance-hint ${spreadHint.cls}">${spreadHint.text}</div>` +
