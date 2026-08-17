@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.27.4</title>
+    <title>Space Dream v2.28.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -446,6 +446,7 @@
         .mining-world {
             position: absolute; left: 0; top: 0;
             will-change: transform;
+            transform-origin: 0 0;
             background: transparent;
             box-sizing: border-box;
             border: 1px solid rgba(0, 232, 255, 0.25);
@@ -1073,7 +1074,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.27.4';
+const VERSION = '2.28.0';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.28;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -1938,6 +1939,10 @@ let shipAnimFrame = null;
 let shipFlameTick = 0;
 let shipFlying = false;
 let camera = { x: 0, y: 0 };
+let mapZoom = 1;
+let cameraFollowShip = true;
+const MAP_ZOOM_MIN = 0.65;
+const MAP_ZOOM_MAX = 2.2;
 let mineObjects = [];
 let piratePatrolFrame = null;
 let selectedBoost = null;
@@ -2198,17 +2203,32 @@ function getViewportSize() {
     return { w, h };
 }
 
-function updateCamera() {
-    const vp = $('mining-viewport');
-    if (!vp) return;
+function clampCamera(cx, cy) {
     const { w: vw, h: vh } = getMiningViewportMetrics();
-    let cx = shipPos.x - vw / 2;
-    let cy = shipPos.y - vh / 2;
-    cx = Math.max(0, Math.min(worldBounds.width - vw, cx));
-    cy = Math.max(0, Math.min(worldBounds.height - vh, cy));
-    camera.x = cx;
-    camera.y = cy;
-    $('mining-world').style.transform = `translate3d(${-Math.round(cx)}px, ${-Math.round(cy)}px, 0)`;
+    const viewW = vw / mapZoom;
+    const viewH = vh / mapZoom;
+    return {
+        x: Math.max(0, Math.min(Math.max(0, worldBounds.width - viewW), cx)),
+        y: Math.max(0, Math.min(Math.max(0, worldBounds.height - viewH), cy)),
+    };
+}
+
+function applyWorldTransform() {
+    const world = $('mining-world');
+    if (!world) return;
+    world.style.transform = `translate3d(${-Math.round(camera.x)}px, ${-Math.round(camera.y)}px, 0) scale(${mapZoom})`;
+}
+
+function updateCamera() {
+    if (cameraFollowShip) {
+        const { w: vw, h: vh } = getMiningViewportMetrics();
+        const viewW = vw / mapZoom;
+        const viewH = vh / mapZoom;
+        const c = clampCamera(shipPos.x - viewW / 2, shipPos.y - viewH / 2);
+        camera.x = c.x;
+        camera.y = c.y;
+    }
+    applyWorldTransform();
 }
 
 function getShipTailWorld(dist = 34) {
@@ -2275,7 +2295,10 @@ function updateShipVisual() {
 
 function screenToWorld(sx, sy) {
     const rect = $('mining-viewport').getBoundingClientRect();
-    return { x: sx - rect.left + camera.x, y: sy - rect.top + camera.y };
+    return {
+        x: (sx - rect.left) / mapZoom + camera.x,
+        y: (sy - rect.top) / mapZoom + camera.y,
+    };
 }
 
 function getShipNose(offset = 28) {
@@ -2337,6 +2360,7 @@ function ensureShipFlightLoop() {
 }
 
 function flyShipTo(x, y, onArrive) {
+    cameraFollowShip = true;
     const p = clampWorld(x, y);
     shipTarget = { x: p.x, y: p.y, onArrive };
     ensureShipFlightLoop();
@@ -2961,6 +2985,7 @@ function setShipPos(x, y, rot = shipRotation) {
 
 function moveShip(wx, wy) {
     if (shipFlying) return;
+    cameraFollowShip = true;
     const p = clampWorld(wx, wy);
     flyShipTo(p.x, p.y);
 }
@@ -3274,6 +3299,20 @@ function initMiningTap() {
     vp.dataset.ready = '1';
     let lastTouch = 0;
     let touchStart = null;
+    let pinchState = null;
+    let pinchUsed = false;
+
+    const touchDistance = touches => {
+        if (touches.length < 2) return 0;
+        const dx = touches[0].clientX - touches[1].clientX;
+        const dy = touches[0].clientY - touches[1].clientY;
+        return Math.hypot(dx, dy);
+    };
+
+    const touchCenter = (touches, rect) => ({
+        x: (touches[0].clientX + touches[1].clientX) / 2 - rect.left,
+        y: (touches[0].clientY + touches[1].clientY) / 2 - rect.top,
+    });
 
     const onMoveTap = (cx, cy) => {
         if (!state.profileComplete || shipFlying) return;
@@ -3283,13 +3322,53 @@ function initMiningTap() {
 
     vp.addEventListener('touchstart', e => {
         if (e.target.closest('.mine-object')) return;
-        const t = e.changedTouches[0] || e.touches[0];
-        if (!t) return;
+        if (e.touches.length === 2) {
+            const rect = vp.getBoundingClientRect();
+            const focal = touchCenter(e.touches, rect);
+            pinchState = {
+                dist: touchDistance(e.touches),
+                zoom: mapZoom,
+                camX: camera.x,
+                camY: camera.y,
+                focal,
+            };
+            touchStart = null;
+            cameraFollowShip = false;
+            e.preventDefault();
+            return;
+        }
+        if (e.touches.length !== 1) return;
+        const t = e.touches[0];
         touchStart = { x: t.clientX, y: t.clientY, time: Date.now() };
-    }, { passive: true });
+    }, { passive: false });
+
+    vp.addEventListener('touchmove', e => {
+        if (!pinchState || e.touches.length < 2) return;
+        e.preventDefault();
+        const rect = vp.getBoundingClientRect();
+        const dist = touchDistance(e.touches);
+        if (dist < 6 || pinchState.dist < 6) return;
+        const focal = touchCenter(e.touches, rect);
+        const newZoom = Math.max(MAP_ZOOM_MIN, Math.min(MAP_ZOOM_MAX, pinchState.zoom * (dist / pinchState.dist)));
+        const worldX = pinchState.camX + pinchState.focal.x / pinchState.zoom;
+        const worldY = pinchState.camY + pinchState.focal.y / pinchState.zoom;
+        mapZoom = newZoom;
+        const c = clampCamera(worldX - focal.x / mapZoom, worldY - focal.y / mapZoom);
+        camera.x = c.x;
+        camera.y = c.y;
+        applyWorldTransform();
+        pinchUsed = true;
+    }, { passive: false });
 
     vp.addEventListener('touchend', e => {
         if (e.target.closest('.mine-object')) return;
+        if (pinchState && e.touches.length < 2) {
+            pinchState = null;
+            lastTouch = Date.now();
+            setTimeout(() => { pinchUsed = false; }, 450);
+            return;
+        }
+        if (pinchUsed || e.touches.length > 0) return;
         const t = e.changedTouches[0];
         if (!t || !touchStart) return;
         if (Date.now() - touchStart.time > 600) { touchStart = null; return; }
@@ -3301,7 +3380,10 @@ function initMiningTap() {
         touchStart = null;
     }, { passive: false });
 
-    vp.addEventListener('touchcancel', () => { touchStart = null; });
+    vp.addEventListener('touchcancel', () => {
+        touchStart = null;
+        pinchState = null;
+    });
 
     vp.addEventListener('click', e => {
         if (e.target.closest('.mine-object')) return;
@@ -3492,6 +3574,8 @@ async function resetGame() {
     shipRotation = 0;
     shipTarget = null;
     camera = { x: 0, y: 0 };
+    mapZoom = 1;
+    cameraFollowShip = true;
     if (shipAnimFrame) cancelAnimationFrame(shipAnimFrame);
     shipAnimFrame = null;
     shipFlying = false;
