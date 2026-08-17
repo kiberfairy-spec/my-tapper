@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.32.2</title>
+    <title>Space Dream v2.33.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -1267,6 +1267,107 @@
             background: rgba(0, 12, 28, 0.55);
             border: 1px solid rgba(0, 232, 255, 0.18);
         }
+        .upgrade-section-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin: 10px 0 4px;
+        }
+        .upgrade-section-title {
+            margin: 0;
+            font-size: 6px;
+        }
+        .hangar-help-btn {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 1px solid rgba(0, 232, 255, 0.45);
+            background: rgba(0, 16, 32, 0.85);
+            color: var(--neon-cyan);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            flex-shrink: 0;
+            line-height: 1;
+            padding: 0;
+            box-shadow: 0 0 8px rgba(0, 232, 255, 0.2);
+        }
+        .hangar-help-btn:active { transform: scale(0.92); }
+        .upgrade-next-bonus {
+            font-size: 7px;
+            color: #6ee8aa;
+            font-weight: 400;
+        }
+        .hangar-faction-hint {
+            font-size: 6px;
+            opacity: 0.75;
+            margin-top: 4px;
+            letter-spacing: 0.04em;
+        }
+        .help-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 200000;
+            background: rgba(0, 0, 0, 0.78);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            box-sizing: border-box;
+        }
+        .help-overlay.hidden { display: none; }
+        .help-panel {
+            width: min(100%, 340px);
+            max-height: 85vh;
+            overflow-y: auto;
+            background: linear-gradient(165deg, #0c1830 0%, #060c18 100%);
+            border: 1px solid rgba(0, 232, 255, 0.38);
+            border-radius: 6px;
+            padding: 16px 18px 14px;
+            box-shadow: 0 0 28px rgba(0, 232, 255, 0.12);
+            position: relative;
+        }
+        .help-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            color: var(--neon-cyan);
+            margin-bottom: 10px;
+            padding-right: 24px;
+        }
+        .help-body {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 9px;
+            font-weight: 400;
+            line-height: 1.55;
+            color: #b0d4e8;
+            letter-spacing: 0.02em;
+        }
+        .help-body p { margin: 0 0 8px; }
+        .help-body ul {
+            margin: 0 0 8px;
+            padding-left: 14px;
+        }
+        .help-body li { margin-bottom: 4px; }
+        .help-body strong { color: #e8f8ff; font-weight: 600; }
+        .help-close {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 22px;
+            height: 22px;
+            border: 1px solid rgba(255, 100, 100, 0.4);
+            border-radius: 4px;
+            background: rgba(40, 8, 8, 0.6);
+            color: #ff8888;
+            font-size: 11px;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
         @keyframes mineLootFade {
             0% { opacity: 0; transform: translate(-50%, -40%) scale(0.9); }
             12% { opacity: 1; transform: translate(-50%, -55%) scale(1); }
@@ -1508,6 +1609,10 @@
         <div class="wtitle">АНГАР</div>
         <div id="hangar-ship" style="text-align:center;margin:8px 0"></div>
         <div id="hangar-res" style="font-size:5px;text-align:center;margin-bottom:8px"></div>
+        <div class="upgrade-section-head">
+            <span class="wtitle upgrade-section-title">УЛУЧШЕНИЯ</span>
+            <button type="button" class="hangar-help-btn" id="btn-hangar-help" title="Как работает прокачка">?</button>
+        </div>
         <div id="upgrade-list"></div>
         <div class="wtitle" style="margin-top:10px;font-size:6px">АРТЕФАКТЫ</div>
         <div class="row" id="artifact-list"></div>
@@ -1545,6 +1650,14 @@
     </div>
 </div>
 
+<div class="help-overlay hidden" id="help-upgrade-overlay">
+    <div class="help-panel">
+        <button type="button" class="help-close" id="btn-help-upgrade-close" aria-label="Закрыть">✕</button>
+        <div class="help-title">СИСТЕМА ПРОКАЧКИ</div>
+        <div class="help-body" id="help-upgrade-body"></div>
+    </div>
+</div>
+
 <!-- Нижняя навигация — консоль корабля -->
 <div class="bottom-nav hidden" id="bottom-nav">
     <div class="cockpit-console">
@@ -1574,7 +1687,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.32.2';
+const VERSION = '2.33.0';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.28;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -1718,9 +1831,59 @@ function hideLoadScreen() {
 }
 
 const FACTION_STAT_BASE = 30;
-const UPGRADE_STAT_BONUS = 5;
 const UPGRADE_SPREAD_MAX = 5;
 const COMBAT_UPGRADE_KEYS = ['hp', 'damage', 'shield', 'speed'];
+
+// Базовый прирост за уровень (ступени: ранняя / средняя / поздняя прокачка)
+function getBaseBonusForLevel(level) {
+    if (level <= 10) return 5;
+    if (level <= 20) return 4;
+    return 3;
+}
+
+// Множители роста по фракции — «сильные» статы растут быстрее
+const FACTION_UPGRADE_MULT = {
+    tank:   { hp: 1.35, shield: 1.35, damage: 0.65, speed: 0.65 },
+    dps:    { hp: 0.75, shield: 0.75, damage: 1.25, speed: 1.25 },
+    sniper: { hp: 0.85, shield: 0.85, damage: 1.45, speed: 0.55 },
+};
+
+const FACTION_UPGRADE_HINT = {
+    tank: 'Конфедерация: быстрее растут HP и щит',
+    dps: 'Повстанцы: быстрее растут урон и скорость атаки',
+    sniper: 'Гильдия: быстрее растёт урон',
+};
+
+function getFactionUpgradeMult(upgradeKey, factionId = state.factionId) {
+    const mults = FACTION_UPGRADE_MULT[factionId];
+    if (!mults) return 1;
+    return mults[upgradeKey] ?? 1;
+}
+
+function calcUpgradeStatBonus(upgradeKey, levels, factionId = state.factionId) {
+    let total = 0;
+    for (let lvl = 1; lvl <= levels; lvl++) {
+        total += getBaseBonusForLevel(lvl) * getFactionUpgradeMult(upgradeKey, factionId);
+    }
+    return Math.round(total);
+}
+
+function getNextUpgradeDelta(upgradeKey, factionId = state.factionId) {
+    const nextLvl = (state.upgrades[upgradeKey] || 0) + 1;
+    if (!COMBAT_UPGRADE_KEYS.includes(upgradeKey)) return 0;
+    return Math.round(getBaseBonusForLevel(nextLvl) * getFactionUpgradeMult(upgradeKey, factionId));
+}
+
+function getUpgradeBonusLabel(key) {
+    if (COMBAT_UPGRADE_KEYS.includes(key)) {
+        const delta = getNextUpgradeDelta(key);
+        return delta ? `<span class="upgrade-next-bonus">(+${delta} за ап)</span>` : '';
+    }
+    if (key === 'luck') return '<span class="upgrade-next-bonus">(+12% лута)</span>';
+    if (key === 'fuelTank') return '<span class="upgrade-next-bonus">(+10 ⛽)</span>';
+    return '';
+}
+
 const FACTION_STAT_LABELS = [
     { key: 'hp', label: 'HP' },
     { key: 'shield', label: 'Щ' },
@@ -1873,11 +2036,12 @@ function getUpgradeSpreadHint() {
 function getShipCombatStats() {
     const base = getFactionBaseStats();
     const u = state.upgrades;
+    const fid = state.factionId;
     const stats = {
-        hp: base.hp + (u.hp || 0) * UPGRADE_STAT_BONUS,
-        shield: base.shield + u.shield * UPGRADE_STAT_BONUS,
-        damage: base.damage + u.damage * UPGRADE_STAT_BONUS,
-        attackSpeed: base.attackSpeed + u.speed * UPGRADE_STAT_BONUS,
+        hp: base.hp + calcUpgradeStatBonus('hp', u.hp || 0, fid),
+        shield: base.shield + calcUpgradeStatBonus('shield', u.shield || 0, fid),
+        damage: base.damage + calcUpgradeStatBonus('damage', u.damage || 0, fid),
+        attackSpeed: base.attackSpeed + calcUpgradeStatBonus('speed', u.speed || 0, fid),
     };
     const art = ARTIFACTS.find(a => a.id === state.artifact.id);
     if (art && state.artifact.level > 0) {
@@ -4064,10 +4228,38 @@ function upgradeCost(key) {
 
 function renderHangarPartsHtml() {
     return UPGRADES.map(u => {
-        const d = PART_DEFS[u.key];
         const n = getPartCount(u.key);
         return `<span class="hangar-part part-${u.key}">${partIconHtml(u.key)}${n}</span>`;
     }).join('');
+}
+
+function getUpgradeHelpHtml() {
+    const faction = FACTIONS.find(f => f.id === state.factionId);
+    const factionHint = FACTION_UPGRADE_HINT[state.factionId] || '';
+    const fname = faction?.name || 'ваша фракция';
+    return `
+        <p><strong>Как качать:</strong> на вкладке «Добыча» собирайте детали и ресурсы. В ангаре тратье золото 🪙 и нужные детали на улучшения.</p>
+        <p><strong>Боевые статы</strong> (❤️ ⚔️ 🛡️ ⚡) — для PvP и будущего режима волн. <strong>Удача 🍀</strong> и <strong>топливный бак 🔋</strong> — только для добычи.</p>
+        <p><strong>Фракция «${fname}»:</strong> ${factionHint}. Следующий ап показывает, сколько реально добавится вашему кораблю.</p>
+        <p><strong>Ступени роста:</strong></p>
+        <ul>
+            <li>уровни 1–10: база +5 за ап (× множитель фракции)</li>
+            <li>уровни 11–20: +4 за ап</li>
+            <li>уровни 21–30: +3 за ап</li>
+        </ul>
+        <p><strong>Правило баланса:</strong> разрыв между боевыми статами не больше ${UPGRADE_SPREAD_MAX} уровней. Нельзя прокачать только один параметр — подтягивайте отстающие.</p>
+        <p>При равных вложениях все фракции примерно равны по силе, но играют по-разному: танк живёт дольше, повстанцы стреляют чаще, гильдия бьёт сильнее.</p>
+    `;
+}
+
+function openUpgradeHelp() {
+    const body = $('help-upgrade-body');
+    if (body) body.innerHTML = getUpgradeHelpHtml();
+    $('help-upgrade-overlay')?.classList.remove('hidden');
+}
+
+function closeUpgradeHelp() {
+    $('help-upgrade-overlay')?.classList.add('hidden');
 }
 
 function renderHangar() {
@@ -4077,7 +4269,9 @@ function renderHangar() {
     $('hangar-ship').appendChild(drawCurrentShip(5));
     $('hangar-ship').insertAdjacentHTML('beforeend', renderStatBarsHtml(getShipCombatStats()));
     $('hangar-ship').insertAdjacentHTML('beforeend',
-        `<div class="hangar-balance-hint ${spreadHint.cls}">${spreadHint.text}</div>`);
+        `<div class="hangar-balance-hint ${spreadHint.cls}">${spreadHint.text}</div>` +
+        (FACTION_UPGRADE_HINT[state.factionId]
+            ? `<div class="hangar-faction-hint">${FACTION_UPGRADE_HINT[state.factionId]}</div>` : ''));
     $('hangar-res').innerHTML =
         `🪙${Math.floor(r.credits)} ⛽${Math.floor(r.fuel)}/${state.maxFuel} 💎${r.spice}` +
         `<div class="hangar-parts">${renderHangarPartsHtml()}</div>`;
@@ -4089,11 +4283,11 @@ function renderHangar() {
         const spreadOk = canUpgradeCombatStat(u.key);
         const haveParts = getPartCount(u.key);
         const can = lvl < u.max && r.credits >= cost.credits && haveParts >= cost.parts && spreadOk;
-        const bonus = COMBAT_UPGRADE_KEYS.includes(u.key) ? ` +${UPGRADE_STAT_BONUS}` : '';
+        const bonus = getUpgradeBonusLabel(u.key);
         const blocked = COMBAT_UPGRADE_KEYS.includes(u.key) && !spreadOk
             ? `<span class="upgrade-blocked">Разрыв > ${UPGRADE_SPREAD_MAX}</span>` : '';
         const scopeHint = u.key === 'luck'
-            ? '↑ шанс и кол-во лута'
+            ? '↑ кол-во лута на добыче'
             : u.key === 'fuelTank' ? '↑ ёмкость топлива' : '';
         return `<div class="upgrade-row">
             <div class="upgrade-head">
@@ -4318,6 +4512,15 @@ function bindEvents() {
     $('btn-ship-back').onclick = () => {
         showWindow('faction');
     };
+
+    $('btn-hangar-help')?.addEventListener('click', e => {
+        e.stopPropagation();
+        openUpgradeHelp();
+    });
+    $('btn-help-upgrade-close')?.addEventListener('click', closeUpgradeHelp);
+    $('help-upgrade-overlay')?.addEventListener('click', e => {
+        if (e.target?.id === 'help-upgrade-overlay') closeUpgradeHelp();
+    });
 
     $('btn-reset').onclick = async () => {
         if (!confirm('Сбросить прогресс и выбрать фракцию заново?')) return;
