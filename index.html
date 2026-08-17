@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.33.3</title>
+    <title>Space Dream v2.33.4</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -594,36 +594,30 @@
         .cockpit-console-header {
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
             margin-bottom: 6px;
             padding: 0 4px;
             position: relative;
             z-index: 1;
         }
+        .cockpit-corner-rivets {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 2;
+        }
         .cockpit-rivet {
+            position: absolute;
             width: 7px;
             height: 7px;
             border-radius: 50%;
             background: radial-gradient(circle at 35% 30%, #9aa8bc, #3a4658 55%, #1a2030);
             box-shadow: inset 0 -1px 2px rgba(0, 0, 0, 0.65), 0 1px 0 rgba(255, 255, 255, 0.18);
-            flex-shrink: 0;
         }
-        .cockpit-rivets-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 10px;
-            position: relative;
-            z-index: 1;
-            pointer-events: none;
-        }
-        .cockpit-rivets-top {
-            margin-bottom: 5px;
-        }
-        .cockpit-rivets-bottom {
-            margin-top: 5px;
-            padding-bottom: 2px;
-        }
+        .cockpit-rivet-tl { top: 7px; left: 10px; }
+        .cockpit-rivet-tr { top: 7px; right: 10px; }
+        .cockpit-rivet-bl { bottom: 7px; left: 10px; }
+        .cockpit-rivet-br { bottom: 7px; right: 10px; }
         .cockpit-console-title {
             font-size: 7px;
             font-weight: 600;
@@ -653,21 +647,6 @@
             margin-top: 5px;
             position: relative;
             z-index: 1;
-        }
-        .cockpit-footer-rivets {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            padding: 0 2px;
-            gap: 8px;
-        }
-        .cockpit-footer-center {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            flex: 1;
         }
         .cockpit-led {
             width: 5px;
@@ -1752,17 +1731,14 @@
 <!-- Нижняя навигация — консоль корабля -->
 <div class="bottom-nav hidden" id="bottom-nav">
     <div class="cockpit-console">
-        <div class="cockpit-rivets-row cockpit-rivets-top" aria-hidden="true">
-            <span class="cockpit-rivet"></span>
-            <span class="cockpit-rivet"></span>
-            <span class="cockpit-rivet"></span>
-            <span class="cockpit-rivet"></span>
-            <span class="cockpit-rivet"></span>
+        <div class="cockpit-corner-rivets" aria-hidden="true">
+            <span class="cockpit-rivet cockpit-rivet-tl"></span>
+            <span class="cockpit-rivet cockpit-rivet-tr"></span>
+            <span class="cockpit-rivet cockpit-rivet-bl"></span>
+            <span class="cockpit-rivet cockpit-rivet-br"></span>
         </div>
         <div class="cockpit-console-header">
-            <span class="cockpit-rivet"></span>
             <span class="cockpit-console-title">◈ NAV · CONSOLE</span>
-            <span class="cockpit-rivet"></span>
         </div>
         <div class="cockpit-console-deck">
             <button class="nav-btn active" data-tab="mining">🌌<br>ДОБЫЧА</button>
@@ -1772,22 +1748,9 @@
             <button class="nav-btn nav-btn-reset" id="btn-reset">🔄<br>СБРОС</button>
         </div>
         <div class="cockpit-console-footer">
-            <div class="cockpit-footer-rivets">
-                <span class="cockpit-rivet"></span>
-                <div class="cockpit-footer-center">
-                    <span class="cockpit-led on"></span>
-                    <span class="cockpit-led warn"></span>
-                    <span class="cockpit-led ok"></span>
-                </div>
-                <span class="cockpit-rivet"></span>
-            </div>
-        </div>
-        <div class="cockpit-rivets-row cockpit-rivets-bottom" aria-hidden="true">
-            <span class="cockpit-rivet"></span>
-            <span class="cockpit-rivet"></span>
-            <span class="cockpit-rivet"></span>
-            <span class="cockpit-rivet"></span>
-            <span class="cockpit-rivet"></span>
+            <span class="cockpit-led on"></span>
+            <span class="cockpit-led warn"></span>
+            <span class="cockpit-led ok"></span>
         </div>
     </div>
 </div>
@@ -1798,7 +1761,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.33.3';
+const VERSION = '2.33.4';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.28;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
