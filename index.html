@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.30.1</title>
+    <title>Space Dream v2.30.2</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -92,8 +92,8 @@
             min-height: 40px;
             pointer-events: auto;
             background: linear-gradient(180deg, rgba(8, 14, 42, 0.98) 0%, rgba(2, 4, 16, 0.96) 100%);
-            border-bottom: 1px solid rgba(0, 232, 255, 0.35);
-            box-shadow: 0 4px 20px rgba(0, 232, 255, 0.08), inset 0 -1px 0 rgba(255, 43, 214, 0.12);
+            border-bottom: 3px solid rgba(0, 232, 255, 0.55);
+            box-shadow: 0 4px 20px rgba(0, 232, 255, 0.12), inset 0 -2px 0 rgba(255, 43, 214, 0.15);
             overflow: visible;
         }
         .top-hud-scanline {
@@ -119,17 +119,6 @@
             max-width: 36%;
             min-width: 0;
             padding-bottom: 1px;
-            position: relative;
-        }
-        .top-player::after {
-            content: '';
-            position: absolute;
-            right: -3px;
-            top: 50%;
-            width: 6px;
-            height: 1px;
-            background: linear-gradient(90deg, #4a5568, rgba(0, 232, 255, 0.4));
-            box-shadow: 0 0 4px rgba(0, 232, 255, 0.2);
         }
         .top-player .avatar {
             width: 26px;
@@ -355,16 +344,6 @@
             16% { opacity: 0.9; filter: brightness(1); }
         }
 
-        /* Нижняя граница HUD-бара */
-        .top-divider {
-            height: 0;
-            border: none;
-            border-top: 1px solid rgba(0, 232, 255, 0.45);
-            margin: 2px 0 0;
-            box-shadow: 0 0 8px var(--neon-glow-c), 0 0 16px var(--neon-glow-m);
-            background: transparent;
-            pointer-events: none;
-        }
 
         /* ── Единое игровое поле ── */
         .mining-screen {
@@ -1231,7 +1210,6 @@
             </div>
         </div>
     </div>
-    <hr class="top-divider">
     </div>
 </div>
 
@@ -1350,7 +1328,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.30.1';
+const VERSION = '2.30.2';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.28;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
