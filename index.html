@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.31.0</title>
+    <title>Space Dream v2.32.1</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -1211,6 +1211,62 @@
             white-space: nowrap; pointer-events: none;
             animation: mineLootFade 2.5s ease-out forwards;
         }
+        .mine-loot .loot-sep { opacity: 0.45; margin: 0 3px; }
+        .part-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            vertical-align: middle;
+        }
+        .part-ico {
+            font-size: 10px;
+            line-height: 1;
+            filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.85));
+        }
+        .part-hp .part-ico { color: #ff5577; text-shadow: 0 0 6px rgba(255, 70, 100, 0.7); }
+        .part-damage .part-ico { color: #ff9944; text-shadow: 0 0 6px rgba(255, 140, 50, 0.7); }
+        .part-shield .part-ico { color: #55aaff; text-shadow: 0 0 6px rgba(80, 160, 255, 0.7); }
+        .part-speed .part-ico { color: #44ffdd; text-shadow: 0 0 6px rgba(60, 255, 220, 0.65); }
+        .part-luck .part-ico { color: #66ff66; text-shadow: 0 0 6px rgba(80, 255, 80, 0.65); }
+        .part-fuelTank .part-ico { color: #ffcc33; text-shadow: 0 0 6px rgba(255, 200, 40, 0.7); }
+        .upgrade-row .upgrade-head {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+        .upgrade-row .upgrade-title {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .upgrade-row .upgrade-scope {
+            font-size: 6px;
+            font-weight: 400;
+            letter-spacing: 0.06em;
+            opacity: 0.65;
+        }
+        .upgrade-row .upgrade-parts {
+            font-size: 7px;
+            opacity: 0.8;
+        }
+        .hangar-parts {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 4px 8px;
+            font-size: 6px;
+            margin-bottom: 8px;
+        }
+        .hangar-part {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            padding: 2px 4px;
+            border-radius: 3px;
+            background: rgba(0, 12, 28, 0.55);
+            border: 1px solid rgba(0, 232, 255, 0.18);
+        }
         @keyframes mineLootFade {
             0% { opacity: 0; transform: translate(-50%, -40%) scale(0.9); }
             12% { opacity: 1; transform: translate(-50%, -55%) scale(1); }
@@ -1394,8 +1450,8 @@
             <div class="res-node neon-green">
                 <span class="hud-wire"></span>
                 <div class="res-pill resource-neon neon-green">
-                    <span class="res-icon">🧩</span>
-                    <span class="res-val" id="ui-shards">0</span>
+                    <span class="res-icon">🔩</span>
+                    <span class="res-val" id="ui-parts">0</span>
                 </div>
             </div>
         </div>
@@ -1518,7 +1574,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.31.0';
+const VERSION = '2.32.1';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.28;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -1738,6 +1794,71 @@ function canUpgradeCombatStat(key) {
 function getCombatUpgradeBlockHint(key) {
     if (canUpgradeCombatStat(key)) return '';
     return `Поднимите отстающие статы — разрыв больше ${UPGRADE_SPREAD_MAX}`;
+}
+
+function migrateResources(r) {
+    const out = { ...defaultState().resources, ...(r || {}) };
+    if (r?.weaponParts) out.damageParts = (out.damageParts || 0) + r.weaponParts;
+    if (r?.shards) {
+        const n = Math.max(1, Math.floor(r.shards / 2));
+        out.hpParts = (out.hpParts || 0) + n;
+        out.shieldParts = (out.shieldParts || 0) + Math.max(0, r.shards - n);
+    }
+    delete out.weaponParts;
+    delete out.shards;
+    return out;
+}
+
+function getLuckMultiplier() {
+    return 1 + (state.upgrades.luck || 0) * LUCK_BONUS_PER_LVL;
+}
+
+function applyLuckAmount(base) {
+    return Math.max(1, Math.round(base * getLuckMultiplier()));
+}
+
+function randInt(min, max) {
+    return min + Math.floor(Math.random() * (max - min + 1));
+}
+
+function pickMineLootEntry() {
+    const roll = Math.random() * 100;
+    let acc = 0;
+    for (const entry of MINE_LOOT_TABLE) {
+        acc += entry.pct;
+        if (roll < acc) return entry;
+    }
+    return MINE_LOOT_TABLE[MINE_LOOT_TABLE.length - 1];
+}
+
+function addUpgradePart(key, amount = 1) {
+    const def = PART_DEFS[key];
+    if (!def || amount <= 0) return;
+    state.resources[def.resKey] = (state.resources[def.resKey] || 0) + amount;
+}
+
+function getPartCount(key) {
+    const def = PART_DEFS[key];
+    return def ? (state.resources[def.resKey] || 0) : 0;
+}
+
+function getTotalParts() {
+    return Object.values(PART_DEFS).reduce((sum, d) => sum + (state.resources[d.resKey] || 0), 0);
+}
+
+function partIconHtml(key) {
+    const d = PART_DEFS[key];
+    if (!d) return '';
+    return `<span class="part-chip part-${key}" title="${d.label} · ${d.scope}"><span class="part-ico">${d.icon}</span></span>`;
+}
+
+function formatMineLoot(source, items) {
+    if (!items.length) return `${source}: ничего`;
+    const body = items.map(it => {
+        if (it.type === 'part') return `+${it.amount} ${partIconHtml(it.key)}`;
+        return `+${it.amount} ${it.icon}`;
+    }).join('<span class="loot-sep">·</span>');
+    return `${source}: ${body}`;
 }
 
 function getUpgradeSpreadHint() {
@@ -2418,6 +2539,32 @@ const ARTIFACTS = [
     { id:'engine', name:'Двигатель Вихря',      effect:'speed',  per:5 },
 ];
 
+// Детали для прокачки в ангаре (иконки показываются при добыче и в UI)
+const PART_DEFS = {
+    hp:       { key: 'hp',       resKey: 'hpParts',       icon: '❤️',  label: 'ХП',           scope: 'PvP' },
+    damage:   { key: 'damage',   resKey: 'damageParts',   icon: '⚔️',  label: 'Урон',         scope: 'PvP' },
+    shield:   { key: 'shield',   resKey: 'shieldParts',   icon: '🛡️',  label: 'Защита',       scope: 'PvP' },
+    speed:    { key: 'speed',    resKey: 'speedParts',    icon: '⚡',   label: 'СК. атаки',    scope: 'PvP' },
+    luck:     { key: 'luck',     resKey: 'luckParts',     icon: '🍀',   label: 'Удача',        scope: 'Добыча' },
+    fuelTank: { key: 'fuelTank', resKey: 'fuelTankParts', icon: '🔋',   label: 'Топл. бак',    scope: 'Добыча' },
+};
+const COMBAT_PART_KEYS = ['hp', 'damage', 'shield', 'speed'];
+const MINING_PART_KEYS = ['luck', 'fuelTank'];
+const LUCK_BONUS_PER_LVL = 0.12;
+
+// Таблица лута при уничтожении объекта на вкладке «Добыча» (сумма = 100%)
+const MINE_LOOT_TABLE = [
+    { pct: 45, id: 'nothing' },
+    { pct: 20, id: 'credits', min: 10, max: 100, icon: '🪙' },
+    { pct: 10, id: 'fuel', min: 5, max: 15, icon: '⛽' },
+    { pct: 6, id: 'shield', min: 2, max: 6, partKey: 'shield' },
+    { pct: 6, id: 'damage', min: 2, max: 6, partKey: 'damage' },
+    { pct: 6, id: 'speed', min: 2, max: 6, partKey: 'speed' },
+    { pct: 2, id: 'spice', min: 1, max: 10, icon: '💎' },
+    { pct: 5, id: 'luck', min: 2, max: 6, partKey: 'luck' },
+];
+const MINE_SOURCE_LABELS = { meteor: 'Метеорит', wreck: 'Обломки', pirate: 'Пират' };
+
 const UPGRADES = [
     { key:'hp',       label:'ХП',             max:30 },
     { key:'damage',   label:'УРОН',           max:30 },
@@ -2435,7 +2582,11 @@ const defaultState = () => ({
     shipIndex: null,
     profileComplete: false,
     level: 1, exp: 0, vip: 0, pvpScore: 0,
-    resources: { credits:0, fuel:100, spice:0, shards:0, shieldParts:0, weaponParts:0, speedParts:0 },
+    resources: {
+        credits: 0, fuel: 100, spice: 0,
+        hpParts: 0, damageParts: 0, shieldParts: 0, speedParts: 0,
+        luckParts: 0, fuelTankParts: 0,
+    },
     maxFuel: 100,
     upgrades: { hp:0, damage:0, shield:0, speed:0, luck:0, fuelTank:0 },
     artifact: { id:null, level:0 },
@@ -2539,6 +2690,7 @@ const Storage = {
         const cloud = await this.loadCloud();
         state = this.pickBestSave(local, cloud);
         state.upgrades = { ...defaultState().upgrades, ...(state.upgrades || {}) };
+        state.resources = migrateResources(state.resources);
         if (state.factionId != null) {
             const list = SHIP_CATALOG[state.factionId] || SHIP_CATALOG.tank;
             if (state.shipIndex == null || state.shipIndex < 0) state.shipIndex = 0;
@@ -3189,7 +3341,7 @@ function updateHUD() {
     $('ui-spice').textContent = r.spice;
     $('ui-fuel').textContent = `${Math.floor(r.fuel)}/${state.maxFuel}`;
     $('ui-credits').textContent = Math.floor(r.credits);
-    $('ui-shards').textContent = r.shards;
+    $('ui-parts').textContent = getTotalParts();
     applyTelegramAvatar();
 }
 
@@ -3200,12 +3352,12 @@ function showLoot(text) {
     setTimeout(() => el.remove(), 2500);
 }
 
-function showMineLoot(text, wx, wy) {
+function showMineLoot(html, wx, wy) {
     const world = $('mining-world');
-    if (!world) { showLoot(text); return; }
+    if (!world) { showLoot(html.replace(/<[^>]+>/g, '')); return; }
     const el = document.createElement('div');
     el.className = 'mine-loot';
-    el.textContent = text;
+    el.innerHTML = html;
     el.style.left = wx + 'px';
     el.style.top = wy + 'px';
     world.appendChild(el);
@@ -3650,25 +3802,29 @@ function generateMineObjects() {
 }
 
 function rollLootForKind(kind) {
-    const r = state.resources;
-    if (kind === 'meteor') {
-        const credits = 15 + Math.floor(Math.random() * 35);
-        const shards = 1 + Math.floor(Math.random() * 2);
-        r.credits += credits;
-        r.shards += shards;
-        return `Метеорит: +${credits} 🪙 +${shards} 🧩`;
+    const entry = pickMineLootEntry();
+    const source = MINE_SOURCE_LABELS[kind] || 'Добыча';
+
+    if (entry.id === 'nothing') return formatMineLoot(source, []);
+
+    const amount = applyLuckAmount(randInt(entry.min, entry.max));
+    const items = [];
+
+    if (entry.partKey) {
+        addUpgradePart(entry.partKey, amount);
+        items.push({ type: 'part', key: entry.partKey, amount });
+    } else if (entry.id === 'credits') {
+        state.resources.credits += amount;
+        items.push({ type: 'res', icon: entry.icon, amount });
+    } else if (entry.id === 'fuel') {
+        state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + amount);
+        items.push({ type: 'res', icon: entry.icon, amount });
+    } else if (entry.id === 'spice') {
+        state.resources.spice += amount;
+        items.push({ type: 'res', icon: entry.icon, amount });
     }
-    if (kind === 'wreck') {
-        const fuel = 4 + Math.floor(Math.random() * 8);
-        r.fuel = Math.min(state.maxFuel, r.fuel + fuel);
-        r.weaponParts++;
-        return `Обломки: +${fuel} ⛽ +1 ⚔️`;
-    }
-    const spice = 1 + Math.floor(Math.random() * 3);
-    const credits = 20 + Math.floor(Math.random() * 30);
-    r.spice += spice;
-    r.credits += credits;
-    return `Пират: +${spice} 💎 +${credits} 🪙`;
+
+    return formatMineLoot(source, items);
 }
 
 function getPirateNose(obj, offset = 22) {
@@ -3897,8 +4053,20 @@ function initMiningTap() {
 // ─── Ангар ───────────────────────────────────────────────────
 function upgradeCost(key) {
     const lvl = state.upgrades[key];
-    if (key === 'fuelTank') return { credits: 100 * 2**lvl, parts: 0 };
-    return { credits: 50 * 2**lvl, parts: Math.ceil(5 * 1.5**lvl) };
+    const isMining = MINING_PART_KEYS.includes(key);
+    return {
+        credits: isMining ? 100 * 2 ** lvl : 50 * 2 ** lvl,
+        parts: Math.ceil((isMining ? 3 : 5) * (isMining ? 1.4 : 1.5) ** lvl),
+        partKey: key,
+    };
+}
+
+function renderHangarPartsHtml() {
+    return UPGRADES.map(u => {
+        const d = PART_DEFS[u.key];
+        const n = getPartCount(u.key);
+        return `<span class="hangar-part part-${u.key}">${partIconHtml(u.key)}${n}</span>`;
+    }).join('');
 }
 
 function renderHangar() {
@@ -3909,17 +4077,31 @@ function renderHangar() {
     $('hangar-ship').insertAdjacentHTML('beforeend', renderStatBarsHtml(getShipCombatStats()));
     $('hangar-ship').insertAdjacentHTML('beforeend',
         `<div class="hangar-balance-hint ${spreadHint.cls}">${spreadHint.text}</div>`);
-    $('hangar-res').textContent = `🪙${Math.floor(r.credits)} ⛽${Math.floor(r.fuel)}/${state.maxFuel} 🛡️${r.shieldParts} ⚔️${r.weaponParts} 💎${r.spice} 🧩${r.shards}`;
+    $('hangar-res').innerHTML =
+        `🪙${Math.floor(r.credits)} ⛽${Math.floor(r.fuel)}/${state.maxFuel} 💎${r.spice}` +
+        `<div class="hangar-parts">${renderHangarPartsHtml()}</div>`;
 
     $('upgrade-list').innerHTML = UPGRADES.map(u => {
+        const d = PART_DEFS[u.key];
         const lvl = state.upgrades[u.key] ?? 0;
         const cost = upgradeCost(u.key);
         const spreadOk = canUpgradeCombatStat(u.key);
-        const can = lvl < u.max && r.credits >= cost.credits && spreadOk;
+        const haveParts = getPartCount(u.key);
+        const can = lvl < u.max && r.credits >= cost.credits && haveParts >= cost.parts && spreadOk;
         const bonus = COMBAT_UPGRADE_KEYS.includes(u.key) ? ` +${UPGRADE_STAT_BONUS}` : '';
         const blocked = COMBAT_UPGRADE_KEYS.includes(u.key) && !spreadOk
             ? `<span class="upgrade-blocked">Разрыв > ${UPGRADE_SPREAD_MAX}</span>` : '';
-        return `<div class="upgrade-row"><span>${u.label} ${lvl}/${u.max}${bonus}${blocked}</span><button class="btn btn-sm" ${can?'':'disabled'} data-upg="${u.key}" title="${spreadOk ? '' : getCombatUpgradeBlockHint(u.key)}">${cost.credits}🪙</button></div>`;
+        const scopeHint = u.key === 'luck'
+            ? '↑ шанс и кол-во лута'
+            : u.key === 'fuelTank' ? '↑ ёмкость топлива' : '';
+        return `<div class="upgrade-row">
+            <div class="upgrade-head">
+                <span class="upgrade-title">${partIconHtml(u.key)}<span>${u.label} ${lvl}/${u.max}${bonus}${blocked}</span></span>
+                <span class="upgrade-scope">${d.scope}${scopeHint ? ' · ' + scopeHint : ''}</span>
+                <span class="upgrade-parts">детали: ${haveParts}</span>
+            </div>
+            <button class="btn btn-sm" ${can ? '' : 'disabled'} data-upg="${u.key}" title="${spreadOk ? '' : getCombatUpgradeBlockHint(u.key)}">${cost.credits}🪙 ${cost.parts}${partIconHtml(u.key)}</button>
+        </div>`;
     }).join('');
 
     $('upgrade-list').querySelectorAll('[data-upg]').forEach(btn => {
@@ -3927,11 +4109,17 @@ function renderHangar() {
             const key = btn.dataset.upg;
             const u = UPGRADES.find(x => x.key === key);
             const cost = upgradeCost(key);
+            const def = PART_DEFS[key];
             if (state.upgrades[key] >= u.max || state.resources.credits < cost.credits) return;
+            if (getPartCount(key) < cost.parts) return;
             if (!canUpgradeCombatStat(key)) return;
             state.resources.credits -= cost.credits;
+            state.resources[def.resKey] -= cost.parts;
             state.upgrades[key]++;
-            if (key === 'fuelTank') { state.maxFuel += 10; state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + 10); }
+            if (key === 'fuelTank') {
+                state.maxFuel += 10;
+                state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + 10);
+            }
             Storage.save(); updateHUD(); renderHangar();
         };
     });
