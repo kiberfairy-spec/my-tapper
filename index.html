@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.33.2</title>
+    <title>Space Dream v2.33.3</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -533,10 +533,10 @@
         .bottom-nav {
             position: fixed;
             bottom: var(--game-inset-bottom);
-            left: var(--game-inset-left);
-            right: var(--game-inset-right);
+            left: 0;
+            right: 0;
             z-index: 100;
-            padding: 0 8px 8px;
+            padding: 0;
             background: transparent;
             border: none;
             box-shadow: none;
@@ -546,11 +546,16 @@
         .cockpit-console {
             position: relative;
             pointer-events: auto;
-            padding: 8px 10px 12px;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 8px 12px 6px;
             background:
                 linear-gradient(180deg, rgba(30, 42, 68, 0.98) 0%, rgba(12, 18, 32, 0.99) 45%, rgba(6, 10, 20, 1) 100%);
             border: 2px solid rgba(70, 90, 120, 0.7);
-            border-radius: 18px;
+            border-bottom: none;
+            border-left: none;
+            border-right: none;
+            border-radius: 16px 16px 0 0;
             box-shadow:
                 0 -8px 32px rgba(0, 232, 255, 0.12),
                 0 10px 28px rgba(0, 0, 0, 0.55),
@@ -596,12 +601,28 @@
             z-index: 1;
         }
         .cockpit-rivet {
-            width: 6px;
-            height: 6px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
-            background: radial-gradient(circle at 35% 30%, #8a9ab0, #2a3448 60%, #1a2030);
-            box-shadow: inset 0 -1px 2px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255, 255, 255, 0.15);
+            background: radial-gradient(circle at 35% 30%, #9aa8bc, #3a4658 55%, #1a2030);
+            box-shadow: inset 0 -1px 2px rgba(0, 0, 0, 0.65), 0 1px 0 rgba(255, 255, 255, 0.18);
             flex-shrink: 0;
+        }
+        .cockpit-rivets-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px;
+            position: relative;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .cockpit-rivets-top {
+            margin-bottom: 5px;
+        }
+        .cockpit-rivets-bottom {
+            margin-top: 5px;
+            padding-bottom: 2px;
         }
         .cockpit-console-title {
             font-size: 7px;
@@ -632,6 +653,21 @@
             margin-top: 5px;
             position: relative;
             z-index: 1;
+        }
+        .cockpit-footer-rivets {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 0 2px;
+            gap: 8px;
+        }
+        .cockpit-footer-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex: 1;
         }
         .cockpit-led {
             width: 5px;
@@ -1716,6 +1752,13 @@
 <!-- Нижняя навигация — консоль корабля -->
 <div class="bottom-nav hidden" id="bottom-nav">
     <div class="cockpit-console">
+        <div class="cockpit-rivets-row cockpit-rivets-top" aria-hidden="true">
+            <span class="cockpit-rivet"></span>
+            <span class="cockpit-rivet"></span>
+            <span class="cockpit-rivet"></span>
+            <span class="cockpit-rivet"></span>
+            <span class="cockpit-rivet"></span>
+        </div>
         <div class="cockpit-console-header">
             <span class="cockpit-rivet"></span>
             <span class="cockpit-console-title">◈ NAV · CONSOLE</span>
@@ -1729,9 +1772,22 @@
             <button class="nav-btn nav-btn-reset" id="btn-reset">🔄<br>СБРОС</button>
         </div>
         <div class="cockpit-console-footer">
-            <span class="cockpit-led on"></span>
-            <span class="cockpit-led warn"></span>
-            <span class="cockpit-led ok"></span>
+            <div class="cockpit-footer-rivets">
+                <span class="cockpit-rivet"></span>
+                <div class="cockpit-footer-center">
+                    <span class="cockpit-led on"></span>
+                    <span class="cockpit-led warn"></span>
+                    <span class="cockpit-led ok"></span>
+                </div>
+                <span class="cockpit-rivet"></span>
+            </div>
+        </div>
+        <div class="cockpit-rivets-row cockpit-rivets-bottom" aria-hidden="true">
+            <span class="cockpit-rivet"></span>
+            <span class="cockpit-rivet"></span>
+            <span class="cockpit-rivet"></span>
+            <span class="cockpit-rivet"></span>
+            <span class="cockpit-rivet"></span>
         </div>
     </div>
 </div>
@@ -1742,7 +1798,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.33.2';
+const VERSION = '2.33.3';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.28;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
