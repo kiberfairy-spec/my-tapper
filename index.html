@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.30.7</title>
+    <title>Space Dream v2.31.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -1252,9 +1252,104 @@
             background: linear-gradient(90deg, #00aacc, var(--neon-cyan));
             box-shadow: 0 0 6px var(--neon-glow-c);
         }
+
+        /* Экран загрузки */
+        #load-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 100000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            background: radial-gradient(ellipse at 50% 28%, #0c1a32 0%, #03060c 72%);
+            transition: opacity 0.55s ease;
+        }
+        #load-screen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+        #load-screen .load-stars {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+        .load-logo {
+            position: relative;
+            z-index: 1;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: clamp(22px, 6vw, 34px);
+            font-weight: 600;
+            letter-spacing: 0.28em;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 18px var(--neon-glow-c), 0 0 40px rgba(0, 255, 255, 0.25);
+        }
+        .load-version {
+            position: relative;
+            z-index: 1;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            color: rgba(0, 255, 255, 0.55);
+            letter-spacing: 0.12em;
+        }
+        .load-bar-wrap {
+            position: relative;
+            z-index: 1;
+            width: min(78vw, 320px);
+            margin-top: 8px;
+        }
+        .load-bar-track {
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(0, 40, 60, 0.7);
+            border: 1px solid rgba(0, 255, 255, 0.25);
+            overflow: hidden;
+            box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.5);
+        }
+        .load-bar-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 2px;
+            background: linear-gradient(90deg, #0088aa, var(--neon-cyan), #66ffff);
+            box-shadow: 0 0 10px var(--neon-glow-c);
+            transition: width 0.15s ease-out;
+        }
+        .load-pct {
+            position: relative;
+            z-index: 1;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 18px;
+            font-weight: 500;
+            color: #a8f0ff;
+            letter-spacing: 0.08em;
+        }
+        .load-status {
+            position: relative;
+            z-index: 1;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 13px;
+            font-weight: 400;
+            color: rgba(160, 220, 255, 0.65);
+            letter-spacing: 0.06em;
+            min-height: 1.2em;
+        }
     </style>
 </head>
 <body>
+
+<div id="load-screen">
+    <div class="stars load-stars" id="load-stars"></div>
+    <div class="load-logo">SPACE DREAM</div>
+    <div class="load-version" id="load-version"></div>
+    <div class="load-bar-wrap">
+        <div class="load-bar-track">
+            <div class="load-bar-fill" id="load-bar-fill"></div>
+        </div>
+    </div>
+    <div class="load-pct" id="load-pct">0%</div>
+    <div class="load-status" id="load-status">Инициализация…</div>
+</div>
 
 <div class="stars" id="stars-global"></div>
 
@@ -1423,7 +1518,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.30.7';
+const VERSION = '2.31.0';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.28;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -1500,6 +1595,71 @@ const SHIP_IMG = {
     rebel1: 'ships/Повстанцы_1_1.png',
     rebel2: 'ships/Повстанцы_1_2.png',
 };
+
+const assetCache = new Map();
+
+function getAllAssetUrls() {
+    const urls = new Set();
+    Object.values(SHIP_IMG).forEach(u => urls.add(u));
+    Object.values(MINE_IMG).forEach(entry => {
+        if (Array.isArray(entry)) entry.forEach(u => urls.add(u));
+        else if (entry) urls.add(entry);
+    });
+    return [...urls];
+}
+
+function preloadImage(url) {
+    return new Promise(resolve => {
+        if (assetCache.has(url)) {
+            resolve(assetCache.get(url));
+            return;
+        }
+        const img = new Image();
+        img.onload = () => {
+            assetCache.set(url, img);
+            resolve(img);
+        };
+        img.onerror = () => resolve(null);
+        img.src = url;
+    });
+}
+
+async function preloadGameAssets(onProgress) {
+    const urls = getAllAssetUrls();
+    let done = 0;
+    const total = urls.length + 1;
+
+    const report = () => onProgress?.(done, total);
+
+    await Promise.all(urls.map(async url => {
+        await preloadImage(url);
+        done++;
+        report();
+    }));
+
+    if (document.fonts?.ready) {
+        try { await document.fonts.ready; } catch (_) {}
+    }
+    done++;
+    report();
+}
+
+function setLoadProgress(done, total, label) {
+    const pct = total ? Math.min(100, Math.round((done / total) * 100)) : 0;
+    const bar = $('load-bar-fill');
+    const pctEl = $('load-pct');
+    const status = $('load-status');
+    if (bar) bar.style.width = pct + '%';
+    if (pctEl) pctEl.textContent = pct + '%';
+    if (status && label) status.textContent = label;
+}
+
+function hideLoadScreen() {
+    const el = $('load-screen');
+    if (!el) return;
+    el.classList.add('fade-out');
+    setTimeout(() => el.remove(), 550);
+}
 
 const FACTION_STAT_BASE = 30;
 const UPGRADE_STAT_BONUS = 5;
@@ -1766,8 +1926,7 @@ function normalizeShipCanvas(srcCanvas, outW = SHIP_NORM_W, outH = SHIP_NORM_H) 
 }
 
 function buildFactionShipImage(src, factionId, sizeStyle, onReady) {
-    const loader = new Image();
-    loader.onload = () => {
+    const process = loader => {
         const tmp = document.createElement('canvas');
         tmp.width = loader.naturalWidth;
         tmp.height = loader.naturalHeight;
@@ -1796,6 +1955,14 @@ function buildFactionShipImage(src, factionId, sizeStyle, onReady) {
         cvs.style.imageRendering = hiRes ? 'auto' : 'pixelated';
         onReady(cvs);
     };
+
+    const cached = assetCache.get(src);
+    if (cached?.naturalWidth) {
+        process(cached);
+        return;
+    }
+    const loader = new Image();
+    loader.onload = () => process(loader);
     loader.src = src;
 }
 
@@ -2896,8 +3063,9 @@ function startPlanetFlashes() {
 function drawPlanet() {
     const wrap = document.getElementById('planet-wrap');
     wrap.innerHTML = '';
-    const img = new Image();
-    img.src = SHIP_IMG.planet;
+    const cached = assetCache.get(SHIP_IMG.planet);
+    const img = cached || new Image();
+    if (!cached) img.src = SHIP_IMG.planet;
 
     const build = () => {
         const imgW = PLANET_DISPLAY_W;
@@ -3097,8 +3265,7 @@ function switchTab(tab) {
 }
 
 function buildMineObjectImage(src, kind, onReady) {
-    const loader = new Image();
-    loader.onload = () => {
+    const process = loader => {
         const tmp = document.createElement('canvas');
         tmp.width = loader.naturalWidth;
         tmp.height = loader.naturalHeight;
@@ -3115,6 +3282,14 @@ function buildMineObjectImage(src, kind, onReady) {
         cvs.style.width = 'auto';
         onReady(cvs);
     };
+
+    const cached = assetCache.get(src);
+    if (cached?.naturalWidth) {
+        process(cached);
+        return;
+    }
+    const loader = new Image();
+    loader.onload = () => process(loader);
     loader.onerror = () => onReady(null);
     loader.src = src;
 }
@@ -4011,9 +4186,20 @@ async function boot() {
     initTelegram();
     applyGameInsets();
     syncPanelHeights();
+    $('load-version').textContent = 'v' + VERSION;
+    fillStars($('load-stars'), 140);
     fillStars($('stars-global'), 380);
+    setLoadProgress(0, 1, 'Загрузка ресурсов…');
+
+    const assetsPromise = preloadGameAssets((done, total) => {
+        setLoadProgress(done, total, done < total ? 'Загрузка текстур…' : 'Готово');
+    });
+    const storagePromise = Storage.load();
+    await Promise.all([assetsPromise, storagePromise]);
+
+    hideLoadScreen();
+
     initMiningTap();
-    await Storage.load();
     bindEvents();
     resumeOrStart();
     updateHUD();
