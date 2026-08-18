@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.41.0</title>
+    <title>Space Dream v2.42.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -1643,6 +1643,19 @@
             color: #b0d4e8;
             letter-spacing: 0.02em;
         }
+        .help-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 7px;
+            margin: 8px 0;
+        }
+        .help-table th, .help-table td {
+            border: 1px solid rgba(0, 232, 255, 0.2);
+            padding: 3px 5px;
+            text-align: left;
+            vertical-align: top;
+        }
+        .help-table th { color: var(--gold); }
         .help-body p { margin: 0 0 8px; }
         .help-body ul {
             margin: 0 0 8px;
@@ -1883,6 +1896,62 @@
         @keyframes fadeLoot { 0% { opacity:0; transform:translateY(8px); } 15%,80% { opacity:1; transform:translateY(0); } 100% { opacity:0; transform:translateY(-8px); } }
 
         /* PvP */
+        #win-pvp { position: relative; }
+        .pvp-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+        .pvp-header .wtitle { flex: 1; margin: 0; }
+        .pvp-lb-btn { font-size: 7px; line-height: 1; }
+        .pvp-daily-bar {
+            font-size: 5px;
+            text-align: center;
+            color: var(--neon-cyan);
+            margin-bottom: 6px;
+            line-height: 1.5;
+        }
+        .pvp-daily-bar .pvp-attacks { color: #ffaa55; }
+        .pvp-daily-bar .pvp-rank-hint { color: var(--gold); }
+        .pvp-lb-dropdown {
+            position: absolute;
+            top: 28px;
+            right: 6px;
+            z-index: 40;
+            width: min(92%, 220px);
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(4, 12, 28, 0.97);
+            border: 1px solid rgba(0, 232, 255, 0.45);
+            border-radius: 4px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.55);
+            font-size: 4px;
+            padding: 4px 0;
+        }
+        .pvp-lb-dropdown.hidden { display: none; }
+        .pvp-lb-title {
+            padding: 4px 8px;
+            color: var(--gold);
+            font-size: 5px;
+            border-bottom: 1px solid rgba(0, 232, 255, 0.2);
+        }
+        .pvp-lb-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 4px;
+            padding: 3px 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .pvp-lb-row.me { background: rgba(0, 232, 255, 0.1); color: var(--neon-cyan); }
+        .pvp-lb-row .lb-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .pvp-lb-sep {
+            padding: 3px 8px;
+            color: #668;
+            font-size: 3px;
+            border-top: 1px dashed rgba(255, 255, 255, 0.12);
+        }
+        .pvp-reward-tier { font-size: 4px; color: #8898aa; margin: 2px 0; }
         .pvp-grid { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
         .pvp-side { flex: 1; text-align: center; font-size: 8px; font-weight: 500; }
         .bar {
@@ -2133,15 +2202,21 @@
         <div class="hangar-swipe-hint" id="hangar-swipe-hint">← свайп · улучшения / перки →</div>
     </div>
     <div class="window hidden" id="win-pvp">
-        <div class="wtitle">КОСМОБИТВА</div>
+        <div class="pvp-header">
+            <div class="wtitle">КОСМОБИТВА</div>
+            <button type="button" class="hangar-help-btn" id="btn-pvp-help" title="Правила PvP и награды">?</button>
+            <button type="button" class="hangar-help-btn pvp-lb-btn" id="btn-pvp-leaderboard" title="Суточный ТОП-50">🏆</button>
+        </div>
+        <div class="pvp-lb-dropdown hidden" id="pvp-lb-dropdown"></div>
+        <div class="pvp-daily-bar" id="pvp-daily-bar"></div>
         <div class="pvp-grid">
             <div class="pvp-side"><div id="pvp-my-ship"></div><div id="pvp-my-bars"></div></div>
             <div style="font-size:12px;color:#aa3333">VS</div>
             <div class="pvp-side"><div id="pvp-en-ship"></div><div id="pvp-en-bars"></div></div>
         </div>
+        <div class="pvp-reward-tier" id="pvp-reward-preview"></div>
         <div style="text-align:center;font-size:6px;margin:6px 0" id="pvp-status">Нажмите НАЙТИ БОЙ</div>
         <button class="btn" id="btn-pvp">НАЙТИ БОЙ</button>
-        <div id="leaderboard" style="font-size:4px;margin-top:8px;max-height:80px;overflow-y:auto"></div>
     </div>
     <div class="window hidden" id="win-minigames">
         <div class="wtitle">МИНИ-ИГРЫ</div>
@@ -2196,6 +2271,14 @@
     </div>
 </div>
 
+<div class="help-overlay hidden" id="help-pvp-overlay">
+    <div class="help-panel">
+        <button type="button" class="help-close" id="btn-help-pvp-close" aria-label="Закрыть">✕</button>
+        <div class="help-title">КОСМОБИТВА · PvP</div>
+        <div class="help-body" id="help-pvp-body"></div>
+    </div>
+</div>
+
 <div class="help-overlay hidden" id="stats-overlay">
     <div class="help-panel stats-panel">
         <button type="button" class="help-close" id="btn-stats-close" aria-label="Закрыть">✕</button>
@@ -2237,7 +2320,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.41.0';
+const VERSION = '2.42.0';
 
 // 8-бит иконки ресурсов (космос · металл · пиксель)
 const RES_GFX_SVG = {
@@ -3752,7 +3835,45 @@ const MINE_LOOT_TABLE = [
     { pct: 2, id: 'artifactParts', min: 1, max: 2 },
 ];
 const PIRATE_ARTIFACT_BONUS_CHANCE = 0.28;
-const PVP_ARTIFACT_WIN_CHANCE = 0.18;
+
+// ─── PvP: суточный рейтинг и награды ─────────────────────────
+const PVP_ATTACKS_PER_DAY = 5;
+const PVP_MAX_REPEAT_OPPONENT = 2;
+const PVP_SCORE_WIN = 15;
+const PVP_SCORE_LOSE = 7;
+const PVP_SCORE_DRAW = 5;
+const PVP_BATTLE_DURATION_MS = 12000;
+const PVP_DRAW_HP_PCT_DIFF = 3;
+const PVP_DAILY_RANK_MAX = 500;
+const PVP_LB_DISPLAY = 50;
+
+// ТОП 1–5: уникальный приз каждого места (элитный контейнер)
+const PVP_REWARD_TOP5 = {
+    1: { credits: 280, spice: 4, artifactParts: 2, combatParts: 5, luckParts: 2, container: 'elite' },
+    2: { credits: 255, spice: 3, artifactParts: 1, combatParts: 5, luckParts: 1, coreChance: 0.55, container: 'elite' },
+    3: { credits: 230, spice: 3, artifactParts: 1, combatParts: 4, luckParts: 1, coreChance: 0.45, container: 'elite' },
+    4: { credits: 205, spice: 2, artifactParts: 1, combatParts: 4, fuel: 10, coreChance: 0.35, container: 'elite' },
+    5: { credits: 180, spice: 2, artifactParts: 1, combatParts: 3, fuel: 12, coreChance: 0.25, container: 'elite' },
+};
+
+// Группы мест: внутри группы приз плавно уменьшается к нижней границе
+const PVP_REWARD_GROUPS = [
+    { from: 6, to: 10, start: { credits: 160, spice: 2, fuel: 20, combatParts: 3, coreChance: 0.28, container: 'battle' },
+      end: { credits: 130, spice: 1, fuel: 14, combatParts: 2, coreChance: 0.12, container: 'battle' } },
+    { from: 11, to: 25, start: { credits: 125, spice: 1, fuel: 12, combatParts: 2, luckParts: 1, coreChance: 0.15, container: 'battle' },
+      end: { credits: 85, spice: 1, fuel: 8, combatParts: 1, luckParts: 0, coreChance: 0.05, container: 'battle' } },
+    { from: 26, to: 50, start: { credits: 78, fuel: 10, combatParts: 2, spiceChance: 0.15 },
+      end: { credits: 52, fuel: 6, combatParts: 1, spiceChance: 0.05 } },
+    { from: 51, to: 100, start: { credits: 50, fuel: 5, combatParts: 1, combatChance: 0.25 },
+      end: { credits: 28, fuel: 2, combatParts: 0, combatChance: 0.08 } },
+    { from: 101, to: 200, start: { credits: 26, fuel: 2 },
+      end: { credits: 14, fuel: 1 } },
+    { from: 201, to: 300, start: { credits: 13 },
+      end: { credits: 8 } },
+    { from: 301, to: 500, start: { credits: 7 },
+      end: { credits: 4 } },
+];
+
 const MINE_SOURCE_LABELS = { meteor: 'Метеорит', wreck: 'Обломки', pirate: 'Пират' };
 
 const CHECKIN_TOTAL_DAYS = 30;
@@ -3840,6 +3961,13 @@ const defaultState = () => ({
     bp: { paid:false, day:1, lastClaim:null, claimedToday:false },
     boosts: [],
     leaderboard: [],
+    pvpDaily: {
+        dayKey: null,
+        score: 0,
+        attacksUsed: 0,
+        opponents: {},
+        lastRank: null,
+    },
     freeRefuelUsed: false,
     playerStats: {
         playTimeMs: 0,
@@ -4100,6 +4228,7 @@ const Storage = {
         migratePerksFromLegacy();
         if ((state.upgrades.luck || 0) > LUCK_MAX_LEVEL) state.upgrades.luck = LUCK_MAX_LEVEL;
         refreshCheckinState();
+        ensurePvpDaily();
         if (state.factionId != null) {
             const list = SHIP_CATALOG[state.factionId] || SHIP_CATALOG.tank;
             if (state.shipIndex == null || state.shipIndex < 0) state.shipIndex = 0;
@@ -5594,7 +5723,7 @@ function getPerkHelpHtml() {
         <ul>
             <li><strong>Добыча</strong> — ${MINE_LOOT_TABLE.find(e => e.id === 'artifactParts').pct}% шанс (как 💎), 1–2 шт.</li>
             <li><strong>Пираты</strong> — +28% шанс доп. ядра (даже если «ничего»)</li>
-            <li><strong>PvP</strong> — ${Math.round(PVP_ARTIFACT_WIN_CHANCE * 100)}% шанс +1 за победу</li>
+            <li><strong>PvP</strong> — суточные награды по месту в рейтинге (см. вкладку ⚔️)</li>
             <li><strong>Чекин</strong> — дни 18, 30 и выбор «Техно» (день 14)</li>
         </ul>
         <p><strong>PvP</strong> (уже работают):</p>
@@ -5871,16 +6000,306 @@ function renderHangar() {
     setHangarPanel(hangarPanelIndex, false);
 }
 
+// ─── PvP: суточный рейтинг ──────────────────────────────────
+function defaultPvpDaily() {
+    return defaultState().pvpDaily;
+}
+
+function ensurePvpDaily() {
+    state.pvpDaily = { ...defaultPvpDaily(), ...(state.pvpDaily || {}) };
+    if (!state.pvpDaily.opponents || typeof state.pvpDaily.opponents !== 'object') {
+        state.pvpDaily.opponents = {};
+    }
+    refreshPvpDailyState();
+}
+
+function refreshPvpDailyState() {
+    ensurePvpDaily();
+    const d = state.pvpDaily;
+    const today = getTodayKey();
+    if (d.dayKey !== today) {
+        d.dayKey = today;
+        d.score = 0;
+        d.attacksUsed = 0;
+        d.opponents = {};
+        d.lastRank = null;
+    }
+}
+
+function clampPvpDailyScore(score) {
+    return Math.max(0, score);
+}
+
+function addPvpDailyScore(delta) {
+    refreshPvpDailyState();
+    state.pvpDaily.score = clampPvpDailyScore(state.pvpDaily.score + delta);
+}
+
+function pvpAttacksLeft() {
+    refreshPvpDailyState();
+    return Math.max(0, PVP_ATTACKS_PER_DAY - state.pvpDaily.attacksUsed);
+}
+
+function canAttackOpponent(opponentId) {
+    refreshPvpDailyState();
+    return (state.pvpDaily.opponents[opponentId] || 0) < PVP_MAX_REPEAT_OPPONENT;
+}
+
+function recordPvpAttack(opponentId) {
+    refreshPvpDailyState();
+    state.pvpDaily.attacksUsed += 1;
+    state.pvpDaily.opponents[opponentId] = (state.pvpDaily.opponents[opponentId] || 0) + 1;
+}
+
+function lerpNum(a, b, t) {
+    return a + (b - a) * t;
+}
+
+function lerpRewardFields(start, end, t) {
+    const keys = new Set([...Object.keys(start || {}), ...Object.keys(end || {})]);
+    const out = {};
+    keys.forEach(k => {
+        if (k === 'container') {
+            out.container = start.container || end.container || null;
+            return;
+        }
+        const a = start[k] ?? 0;
+        const b = end[k] ?? 0;
+        if (typeof a === 'number' && typeof b === 'number') {
+            if (k.includes('Chance') || k === 'coreChance') {
+                out[k] = Math.round(lerpNum(a, b, t) * 1000) / 1000;
+            } else {
+                out[k] = Math.round(lerpNum(a, b, t));
+            }
+        }
+    });
+    return out;
+}
+
+function getPvpDailyRewardTemplate(rank) {
+    if (!rank || rank < 1 || rank > PVP_DAILY_RANK_MAX) return null;
+    if (PVP_REWARD_TOP5[rank]) return { ...PVP_REWARD_TOP5[rank] };
+    const group = PVP_REWARD_GROUPS.find(g => rank >= g.from && rank <= g.to);
+    if (!group) return null;
+    const span = group.to - group.from;
+    const t = span <= 0 ? 0 : (rank - group.from) / span;
+    return lerpRewardFields(group.start, group.end, t);
+}
+
+function rollCombatParts(count) {
+    const keys = COMBAT_UPGRADE_KEYS;
+    const parts = {};
+    for (let i = 0; i < count; i++) {
+        const k = keys[Math.floor(Math.random() * keys.length)];
+        parts[k] = (parts[k] || 0) + 1;
+    }
+    return parts;
+}
+
+function resolvePvpDailyReward(rank) {
+    const tpl = getPvpDailyRewardTemplate(rank);
+    if (!tpl) return null;
+    const reward = {
+        credits: tpl.credits || 0,
+        fuel: tpl.fuel || 0,
+        spice: tpl.spice || 0,
+        artifactParts: tpl.artifactParts || 0,
+        parts: {},
+        container: tpl.container || null,
+    };
+    if (tpl.combatParts) Object.assign(reward.parts, rollCombatParts(tpl.combatParts));
+    if (tpl.luckParts) reward.parts.luck = (reward.parts.luck || 0) + tpl.luckParts;
+    if (tpl.coreChance && Math.random() < tpl.coreChance) reward.artifactParts += 1;
+    if (tpl.spiceChance && Math.random() < tpl.spiceChance) reward.spice += 1;
+    if (tpl.combatChance && Math.random() < tpl.combatChance) {
+        Object.assign(reward.parts, rollCombatParts(1));
+    }
+    return reward;
+}
+
+function formatPvpRewardText(reward, short = false) {
+    if (!reward) return '—';
+    const parts = [];
+    if (reward.container === 'elite') parts.push('📦 элит');
+    else if (reward.container === 'battle') parts.push('📦 бой');
+    if (reward.credits) parts.push(resAmtHtml('credits', reward.credits));
+    if (reward.spice) parts.push(resAmtHtml('spice', reward.spice));
+    if (reward.fuel) parts.push(resAmtHtml('fuel', reward.fuel));
+    if (reward.artifactParts) parts.push(resAmtHtml('artifact', reward.artifactParts));
+    if (reward.coreChance && !short) parts.push(`🔮 +${Math.round(reward.coreChance * 100)}%`);
+    if (reward.spiceChance && !short) parts.push(`💎 ${Math.round(reward.spiceChance * 100)}%`);
+    if (reward.combatChance && !short) parts.push(`дет. ${Math.round(reward.combatChance * 100)}%`);
+    if (reward.combatParts) parts.push(`${reward.combatParts} дет.`);
+    if (reward.luckParts) parts.push(partAmtHtml('luck', reward.luckParts));
+    if (reward.parts && Object.keys(reward.parts).length) {
+        Object.entries(reward.parts).forEach(([k, n]) => parts.push(partAmtHtml(k, n)));
+    }
+    return parts.join(' ') || '—';
+}
+
+function applyPvpReward(reward) {
+    if (!reward) return;
+    const r = state.resources;
+    if (reward.credits) { r.credits += reward.credits; trackEarned('credits', reward.credits); }
+    if (reward.fuel) {
+        const added = Math.min(reward.fuel, Math.max(0, state.maxFuel - r.fuel));
+        r.fuel = Math.min(state.maxFuel, r.fuel + reward.fuel);
+        if (added) trackEarned('fuel', added);
+    }
+    if (reward.spice) { r.spice += reward.spice; trackEarned('spice', reward.spice); }
+    if (reward.artifactParts) addArtifactParts(reward.artifactParts);
+    if (reward.parts) {
+        Object.entries(reward.parts).forEach(([key, n]) => {
+            const def = PART_DEFS[key];
+            if (def?.resKey) {
+                r[def.resKey] = (r[def.resKey] || 0) + n;
+                trackEarned(def.resKey, n);
+            }
+        });
+    }
+}
+
+function estimatePvpRankFromScore(score, list) {
+    if (!list.length) return score > 0 ? 1 : null;
+    const sorted = [...list].sort((a, b) => b.dailyScore - a.dailyScore);
+    const idx = sorted.findIndex(p => p.dailyScore <= score && p.isMe);
+    if (idx >= 0) return idx + 1;
+    const worse = sorted.filter(p => p.dailyScore < score).length;
+    return Math.min(PVP_DAILY_RANK_MAX, worse + 1);
+}
+
+function buildPvpLeaderboardList() {
+    refreshPvpDailyState();
+    const me = {
+        name: state.playerName || 'Вы',
+        dailyScore: state.pvpDaily.score,
+        isMe: true,
+    };
+    const seeds = [
+        { name: 'NeoStrike', dailyScore: 68 },
+        { name: 'VoidHunter', dailyScore: 61 },
+        { name: 'StarLord_X', dailyScore: 55 },
+        { name: 'Pilot_7', dailyScore: 52 },
+        { name: 'CrimsonFleet', dailyScore: 48 },
+        { name: 'GhostRider', dailyScore: 44 },
+        { name: 'NovaBlade', dailyScore: 41 },
+        { name: 'IronOrbit', dailyScore: 38 },
+        { name: 'DarkMatter', dailyScore: 35 },
+        { name: 'SolarFlare', dailyScore: 33 },
+        { name: 'WarpDrive', dailyScore: 31 },
+        { name: 'CosmoWolf', dailyScore: 29 },
+        { name: 'ZeroGravity', dailyScore: 27 },
+        { name: 'PlasmaFox', dailyScore: 25 },
+        { name: 'MeteorRain', dailyScore: 23 },
+    ];
+    const list = [...seeds];
+    if (!list.some(p => p.isMe)) list.push(me);
+    else {
+        const i = list.findIndex(p => p.isMe);
+        list[i] = me;
+    }
+    list.sort((a, b) => b.dailyScore - a.dailyScore);
+    list.forEach((p, i) => { p.rank = i + 1; });
+    return list;
+}
+
+function getMyPvpRank(list) {
+    const me = list.find(p => p.isMe);
+    return me ? me.rank : null;
+}
+
+function getPvpRewardHelpHtml() {
+    const rows = [1, 2, 3, 4, 5].map(r =>
+        `<tr><td>#${r}</td><td>${formatPvpRewardText(getPvpDailyRewardTemplate(r))}</td></tr>`
+    ).join('');
+    const groups = PVP_REWARD_GROUPS.map(g => {
+        const a = getPvpDailyRewardTemplate(g.from);
+        const b = getPvpDailyRewardTemplate(g.to);
+        return `<tr><td>#${g.from}–${g.to}</td><td>${formatPvpRewardText(a, true)} → ${formatPvpRewardText(b, true)}</td></tr>`;
+    }).join('');
+    return `
+        <p><strong>Суточный рейтинг</strong> (сброс 00:00 MSK). Награды выдаёт сервер по итогам дня.</p>
+        <p><strong>Бои:</strong> ${PVP_ATTACKS_PER_DAY} атак/сутки · повтор с тем же игроком ≤ ${PVP_MAX_REPEAT_OPPONENT} · бой ${PVP_BATTLE_DURATION_MS / 1000} сек.</p>
+        <p><strong>Очки:</strong> победа +${PVP_SCORE_WIN} · поражение −${PVP_SCORE_LOSE} · ничья +${PVP_SCORE_DRAW} обоим.</p>
+        <p>Учитываются все статы ангара, удача и 2 экипированных PvP-перка.</p>
+        <table class="help-table"><thead><tr><th>Место</th><th>Приз</th></tr></thead>
+        <tbody>${rows}${groups}</tbody></table>
+        <p style="font-size:5px;color:#889">Места 1–5 — уникальный приз. Внутри каждой группы приз плавно уменьшается к нижней границе.</p>
+    `;
+}
+
+function openPvpHelp() {
+    $('help-pvp-body').innerHTML = getPvpRewardHelpHtml();
+    $('help-pvp-overlay')?.classList.remove('hidden');
+}
+
+function closePvpHelp() {
+    $('help-pvp-overlay')?.classList.add('hidden');
+}
+
+function togglePvpLeaderboard() {
+    const el = $('pvp-lb-dropdown');
+    if (!el) return;
+    if (!el.classList.contains('hidden')) {
+        el.classList.add('hidden');
+        return;
+    }
+    renderPvpLeaderboardDropdown();
+    el.classList.remove('hidden');
+}
+
+function renderPvpLeaderboardDropdown() {
+    const list = buildPvpLeaderboardList();
+    const top = list.slice(0, PVP_LB_DISPLAY);
+    const myRank = getMyPvpRank(list);
+    const inTop = myRank && myRank <= PVP_LB_DISPLAY;
+    let html = `<div class="pvp-lb-title">СУТОЧНЫЙ ТОП-${PVP_LB_DISPLAY}</div>`;
+    html += top.map(p =>
+        `<div class="pvp-lb-row${p.isMe ? ' me' : ''}"><span>#${p.rank} ${p.name}</span><span>⭐ ${p.dailyScore}</span></div>`
+    ).join('');
+    if (myRank && !inTop) {
+        const me = list.find(p => p.isMe);
+        html += `<div class="pvp-lb-sep">ваше место</div>`;
+        html += `<div class="pvp-lb-row me"><span>#${myRank} ${me.name}</span><span>⭐ ${me.dailyScore}</span></div>`;
+    }
+    $('pvp-lb-dropdown').innerHTML = html;
+}
+
+function renderPvpDailyBar() {
+    refreshPvpDailyState();
+    const left = pvpAttacksLeft();
+    const score = state.pvpDaily.score;
+    const used = state.pvpDaily.attacksUsed;
+    const list = buildPvpLeaderboardList();
+    const rank = used > 0 ? getMyPvpRank(list) : null;
+    $('pvp-daily-bar').innerHTML =
+        `Сегодня: ⭐ <strong>${score}</strong> очк.` +
+        (rank ? ` · место <strong>#${rank}</strong>` : '') +
+        ` · <span class="pvp-attacks">⚔️ ${left}/${PVP_ATTACKS_PER_DAY}</span>`;
+    const preview = rank ? getPvpDailyRewardTemplate(rank) : null;
+    $('pvp-reward-preview').innerHTML = preview
+        ? `Приз за место #${rank}: ${formatPvpRewardText(preview, true)}`
+        : (used > 0 ? 'Продолжайте бои, чтобы подняться в рейтинге' : 'Сделайте бой, чтобы попасть в суточный рейтинг');
+    const btn = $('btn-pvp');
+    if (btn) {
+        btn.disabled = left <= 0;
+        btn.textContent = left <= 0 ? 'ЛИМИТ 5/5' : 'НАЙТИ БОЙ';
+    }
+}
+
 // ─── PvP (упрощённый) ───────────────────────────────────────
 function renderPvP() {
-    $('pvp-my-ship').innerHTML = ''; $('pvp-en-ship').innerHTML = '';
+    $('pvp-lb-dropdown')?.classList.add('hidden');
+    $('pvp-my-ship').innerHTML = '';
+    $('pvp-en-ship').innerHTML = '';
     $('pvp-my-ship').appendChild(drawCurrentShip(3));
-    const en = document.createElement('span'); en.textContent = '👾'; en.style.fontSize='22px';
+    const en = document.createElement('span');
+    en.textContent = '👾';
+    en.style.fontSize = '22px';
     $('pvp-en-ship').appendChild(en);
     $('pvp-my-bars').innerHTML = '<div class="bar"><div class="bar-fill bar-shield" style="width:100%"></div></div><div class="bar"><div class="bar-fill bar-hp" style="width:100%"></div></div>';
     $('pvp-en-bars').innerHTML = '<div class="bar"><div class="bar-fill bar-shield" style="width:100%"></div></div><div class="bar"><div class="bar-fill bar-hp" style="width:100%"></div></div>';
-    $('leaderboard').innerHTML = '<div style="color:var(--gold)">ТОП 10</div>' +
-        state.leaderboard.slice(0,10).map((p,i)=>`<div>#${i+1} ${p.name}: ${p.score}</div>`).join('');
+    renderPvpDailyBar();
 }
 
 function calcPvPPower(stats, luck, perkFx = {}) {
@@ -5908,6 +6327,22 @@ function calcPvPPower(stats, luck, perkFx = {}) {
 }
 
 function startPvP() {
+    refreshPvpDailyState();
+    if (pvpAttacksLeft() <= 0) {
+        $('pvp-status').textContent = 'Лимит атак на сегодня исчерпан (5/5)';
+        renderPvpDailyBar();
+        return;
+    }
+
+    const seeds = buildPvpLeaderboardList().filter(p => !p.isMe);
+    const opponent = seeds[Math.floor(Math.random() * seeds.length)] || { name: 'Игрок', id: 'unknown' };
+    const opponentId = opponent.id || opponent.name;
+
+    if (!canAttackOpponent(opponentId)) {
+        $('pvp-status').textContent = `С ${opponent.name} уже 2 боя сегодня — ищите другого`;
+        return;
+    }
+
     const stats = getShipCombatStats();
     const luck = getLuckPvpBonuses();
     const perkFx = getEquippedPvpPerkFx();
@@ -5924,29 +6359,36 @@ function startPvP() {
         my.procs.push(`Фаза +${perkFx.phase}%`);
     }
 
-    const result = my.power >= enemy.power ? 'win' : 'lose';
+    const diff = Math.abs(my.power - enemy.power);
+    const avg = (my.power + enemy.power) / 2 || 1;
+    let result = 'lose';
+    if (diff / avg * 100 < PVP_DRAW_HP_PCT_DIFF) result = 'draw';
+    else if (my.power >= enemy.power) result = 'win';
+
     ensurePlayerStats();
-    if (result === 'win') state.playerStats.pvpWins += 1;
-    else state.playerStats.pvpLosses += 1;
+    recordPvpAttack(opponentId);
     const procText = my.procs.length ? ' · ' + my.procs.join(', ') : '';
+
     if (result === 'win') {
-        state.pvpScore += 15;
-        let lootMsg = '+15 PvP';
-        if (Math.random() < PVP_ARTIFACT_WIN_CHANCE) {
-            addArtifactParts(1);
-            lootMsg += ' +1 ядро';
-        }
-        $('pvp-status').textContent = `ПОБЕДА! ${lootMsg}${procText}`;
-        showLoot(lootMsg);
+        addPvpDailyScore(PVP_SCORE_WIN);
+        state.pvpScore += PVP_SCORE_WIN;
+        state.playerStats.pvpWins += 1;
+        $('pvp-status').textContent = `ПОБЕДА vs ${opponent.name}! +${PVP_SCORE_WIN} очк.${procText}`;
+        showLoot(`+${PVP_SCORE_WIN} сут. очков`);
+    } else if (result === 'draw') {
+        addPvpDailyScore(PVP_SCORE_DRAW);
+        state.pvpScore += PVP_SCORE_DRAW;
+        $('pvp-status').textContent = `НИЧЬЯ vs ${opponent.name}. +${PVP_SCORE_DRAW} очк. обоим${procText}`;
+        showLoot(`+${PVP_SCORE_DRAW} сут. очков`);
     } else {
-        state.pvpScore = Math.max(0, state.pvpScore - 10);
-        $('pvp-status').textContent = `ПОРАЖЕНИЕ... -10${procText}`;
+        addPvpDailyScore(-PVP_SCORE_LOSE);
+        state.pvpScore = Math.max(0, state.pvpScore - PVP_SCORE_LOSE);
+        state.playerStats.pvpLosses += 1;
+        $('pvp-status').textContent = `ПОРАЖЕНИЕ vs ${opponent.name}... −${PVP_SCORE_LOSE} очк.${procText}`;
     }
-    const idx = state.leaderboard.findIndex(p => p.name === state.playerName);
-    if (idx >= 0) state.leaderboard[idx].score = state.pvpScore;
-    else state.leaderboard.push({ name: state.playerName, score: state.pvpScore });
-    state.leaderboard.sort((a,b) => b.score - a.score);
-    Storage.save(); renderPvP();
+
+    Storage.save();
+    renderPvP();
 }
 
 // ─── Онбординг ───────────────────────────────────────────────
@@ -6167,6 +6609,23 @@ function bindEvents() {
     });
 
     $('btn-pvp').onclick = startPvP;
+
+    $('btn-pvp-help')?.addEventListener('click', e => {
+        e.stopPropagation();
+        openPvpHelp();
+    });
+    $('btn-help-pvp-close')?.addEventListener('click', closePvpHelp);
+    $('help-pvp-overlay')?.addEventListener('click', e => {
+        if (e.target?.id === 'help-pvp-overlay') closePvpHelp();
+    });
+    $('btn-pvp-leaderboard')?.addEventListener('click', e => {
+        e.stopPropagation();
+        togglePvpLeaderboard();
+    });
+    document.addEventListener('click', () => {
+        $('pvp-lb-dropdown')?.classList.add('hidden');
+    });
+    $('win-pvp')?.addEventListener('click', e => e.stopPropagation());
 
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') {
