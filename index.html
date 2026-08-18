@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.43.0</title>
+    <title>Space Dream v2.43.1</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -971,6 +971,11 @@
             pointer-events: none;
         }
         .overlay.active { display: flex; }
+        .overlay.overlay-pvp {
+            align-items: stretch;
+            justify-content: center;
+            padding: 4px 0;
+        }
         .overlay > .window { pointer-events: all; }
         .overlay::before {
             content: '';
@@ -1897,7 +1902,24 @@
         @keyframes fadeLoot { 0% { opacity:0; transform:translateY(8px); } 15%,80% { opacity:1; transform:translateY(0); } 100% { opacity:0; transform:translateY(-8px); } }
 
         /* PvP */
-        #win-pvp { position: relative; }
+        #win-pvp {
+            position: relative;
+            width: 96%;
+            max-width: 440px;
+            max-height: none;
+            height: 100%;
+            padding: 10px 10px 8px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+        #win-pvp .pvp-header { flex-shrink: 0; }
+        #win-pvp .pvp-daily-bar { flex-shrink: 0; font-size: 6px; }
+        #win-pvp .pvp-reward-tier { flex-shrink: 0; font-size: 5px; line-height: 1.4; }
+        #win-pvp .pvp-log { flex-shrink: 0; font-size: 5px; min-height: 16px; }
+        #win-pvp .pvp-status-line { flex-shrink: 0; font-size: 7px; }
+        #win-pvp .pvp-actions { flex-shrink: 0; }
         .pvp-header {
             display: flex;
             align-items: center;
@@ -1957,8 +1979,10 @@
         .container-icon.container-elite svg { filter: drop-shadow(0 0 4px rgba(255, 212, 0, 0.35)); }
         .pvp-arena {
             position: relative;
-            height: 168px;
-            margin: 6px 0;
+            flex: 1 1 auto;
+            min-height: 240px;
+            height: auto;
+            margin: 4px 0;
             border: 1px solid rgba(0, 232, 255, 0.28);
             border-radius: 4px;
             overflow: hidden;
@@ -1998,20 +2022,20 @@
         .pvp-half {
             position: absolute;
             left: 0; right: 0;
-            height: 42%;
+            height: 40%;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 2px 6px;
+            padding: 4px 8px;
             box-sizing: border-box;
         }
-        .pvp-half-enemy { top: 0; flex-direction: column; justify-content: flex-end; }
-        .pvp-half-player { bottom: 0; flex-direction: column; justify-content: flex-start; }
+        .pvp-half-enemy { top: 0; flex-direction: column; justify-content: flex-end; padding-bottom: 2px; }
+        .pvp-half-player { bottom: 0; flex-direction: column; justify-content: flex-start; padding-top: 2px; }
         .pvp-zone-divider {
             position: absolute;
             left: 0; right: 0;
-            top: 42%;
-            height: 16%;
+            top: 40%;
+            height: 20%;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -2031,7 +2055,7 @@
         .pvp-timer {
             position: relative;
             z-index: 7;
-            font-size: 8px;
+            font-size: 10px;
             font-weight: 600;
             color: #ff6655;
             text-shadow: 0 0 8px rgba(255, 80, 60, 0.6);
@@ -2041,15 +2065,17 @@
         @keyframes pvpTimerBlink { 50% { opacity: 0.5; } }
         .pvp-combatant {
             width: 100%;
+            height: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: space-evenly;
             gap: 2px;
             z-index: 2;
         }
         .pvp-half-enemy .pvp-combatant { flex-direction: column-reverse; }
         .pvp-name {
-            font-size: 5px;
+            font-size: 6px;
             color: #a0c8e0;
             max-width: 100%;
             overflow: hidden;
@@ -2058,12 +2084,12 @@
         }
         .pvp-perks-row {
             display: flex;
-            gap: 3px;
+            gap: 4px;
             align-items: center;
-            min-height: 14px;
+            min-height: 16px;
         }
         .pvp-perk-slot {
-            width: 14px; height: 14px;
+            width: 16px; height: 16px;
             border: 1px solid rgba(255, 120, 60, 0.35);
             border-radius: 2px;
             display: flex;
@@ -2079,8 +2105,16 @@
         }
         .pvp-ship-wrap {
             line-height: 0;
-            filter: drop-shadow(0 0 6px rgba(0, 232, 255, 0.35));
+            filter: drop-shadow(0 0 8px rgba(0, 232, 255, 0.45));
             animation: pvpShipBob 2.8s ease-in-out infinite;
+            flex-shrink: 0;
+        }
+        .pvp-ship-wrap canvas {
+            display: block;
+            max-height: 80px;
+            width: auto !important;
+            height: auto !important;
+            image-rendering: pixelated;
         }
         .pvp-half-enemy .pvp-ship-wrap {
             animation: pvpShipBobEn 2.8s ease-in-out infinite;
@@ -2098,13 +2132,13 @@
             0%, 100% { transform: scaleY(-1) translateY(0); }
             50% { transform: scaleY(-1) translateY(-3px); }
         }
-        .pvp-bars { width: 100%; max-width: 140px; }
+        .pvp-bars { width: 100%; max-width: 180px; }
         .pvp-bar-row {
             display: flex;
             align-items: center;
-            gap: 3px;
-            margin: 1px 0;
-            font-size: 4px;
+            gap: 4px;
+            margin: 2px 0;
+            font-size: 5px;
         }
         .pvp-bar-row.hidden { display: none; }
         .pvp-bar-label { width: 8px; color: #8898aa; flex-shrink: 0; }
@@ -2114,7 +2148,7 @@
         }
         .pvp-bar-track {
             flex: 1;
-            height: 7px;
+            height: 8px;
             background: rgba(0, 8, 24, 0.8);
             border: 1px solid rgba(0, 232, 255, 0.25);
             border-radius: 2px;
@@ -2548,7 +2582,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.43.0';
+const VERSION = '2.43.1';
 
 // 8-бит иконки ресурсов (космос · металл · пиксель)
 const RES_GFX_SVG = {
@@ -2737,6 +2771,8 @@ const PLANET_SPIN_RAD_S = 0.018;
 const PLANET_SPIN_BOOST = 1.2;
 const SAVE_KEY = 'space_dream_save';
 const DEV_FREE_FUEL = true; // временно: без ограничений топлива для тестов
+const DEV_FREE_PVP = true;  // временно: без лимита атак PvP
+const PVP_SHIP_PIXEL = 5;
 const SHIP_MOVE_SPEED = 98;
 const SHIP_ROT_LERP = 0.30;
 const FUEL_PER_FLIGHT = 10;
@@ -5206,6 +5242,7 @@ function switchTab(tab) {
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
 
     if (tab === 'mining') {
+        $('overlay').classList.remove('overlay-pvp');
         $('mining-screen').classList.add('active');
         hideOverlay();
         syncPanelHeights();
@@ -5226,6 +5263,7 @@ function switchTab(tab) {
         stopPiratePatrol();
         $('mining-screen').classList.remove('active');
         $('overlay').classList.add('active');
+        $('overlay').classList.toggle('overlay-pvp', tab === 'pvp');
         if (tab === 'hangar') { showWindow('hangar'); renderHangar(); }
         if (tab === 'pvp')     { showWindow('pvp'); renderPvP(); }
         if (tab === 'minigames') showWindow('minigames');
@@ -6313,16 +6351,19 @@ function addPvpDailyScore(delta) {
 }
 
 function pvpAttacksLeft() {
+    if (DEV_FREE_PVP) return 999;
     refreshPvpDailyState();
     return Math.max(0, PVP_ATTACKS_PER_DAY - state.pvpDaily.attacksUsed);
 }
 
 function canAttackOpponent(opponentId) {
+    if (DEV_FREE_PVP) return true;
     refreshPvpDailyState();
     return (state.pvpDaily.opponents[opponentId] || 0) < PVP_MAX_REPEAT_OPPONENT;
 }
 
 function recordPvpAttack(opponentId) {
+    if (DEV_FREE_PVP) return;
     refreshPvpDailyState();
     state.pvpDaily.attacksUsed += 1;
     state.pvpDaily.opponents[opponentId] = (state.pvpDaily.opponents[opponentId] || 0) + 1;
@@ -6550,18 +6591,19 @@ function renderPvpDailyBar() {
     const used = state.pvpDaily.attacksUsed;
     const list = buildPvpLeaderboardList();
     const rank = used > 0 ? getMyPvpRank(list) : null;
+    const atkLabel = DEV_FREE_PVP ? '⚔️ ∞' : `⚔️ ${left}/${PVP_ATTACKS_PER_DAY}`;
     $('pvp-daily-bar').innerHTML =
         `Сегодня: ⭐ <strong>${score}</strong> очк.` +
         (rank ? ` · место <strong>#${rank}</strong>` : '') +
-        ` · <span class="pvp-attacks">⚔️ ${left}/${PVP_ATTACKS_PER_DAY}</span>`;
+        ` · <span class="pvp-attacks">${atkLabel}</span>`;
     const preview = rank ? getPvpDailyRewardTemplate(rank) : null;
     $('pvp-reward-preview').innerHTML = preview
         ? `Приз за место #${rank}: ${formatPvpRewardText(preview, true)}`
         : (used > 0 ? 'Продолжайте бои, чтобы подняться в рейтинге' : 'Сделайте бой, чтобы попасть в суточный рейтинг');
     const btn = $('btn-pvp');
     if (btn) {
-        btn.disabled = left <= 0;
-        btn.textContent = left <= 0 ? 'ЛИМИТ 5/5' : 'НАЙТИ БОЙ';
+        btn.disabled = !DEV_FREE_PVP && left <= 0;
+        btn.textContent = (!DEV_FREE_PVP && left <= 0) ? 'ЛИМИТ 5/5' : (pvpBattleRunning ? 'ИДЁТ БОЙ…' : 'НАЙТИ БОЙ');
     }
 }
 
@@ -6608,7 +6650,7 @@ function mountPvpPlayerShip() {
     if (!el) return;
     el.innerHTML = '';
     el.classList.remove('pvp-shoot');
-    if (state.profileComplete) el.appendChild(drawCurrentShip(3));
+    if (state.profileComplete) el.appendChild(drawCurrentShip(PVP_SHIP_PIXEL));
 }
 
 function mountPvpEnemyShip(factionId) {
@@ -6618,7 +6660,7 @@ function mountPvpEnemyShip(factionId) {
     el.classList.remove('pvp-shoot');
     const fid = factionId || 'dps';
     const ship = (SHIP_CATALOG[fid] || SHIP_CATALOG.tank)[0];
-    el.appendChild(renderShipGraphic(ship, fid, 3));
+    el.appendChild(renderShipGraphic(ship, fid, PVP_SHIP_PIXEL));
 }
 
 function cloneFighter(stats, luck, perkFx) {
@@ -6795,8 +6837,8 @@ function finishPvpBattleResult(result, opponent, procText) {
     renderPvpDailyBar();
     const btn = $('btn-pvp');
     if (btn) {
-        btn.disabled = pvpAttacksLeft() <= 0;
-        btn.textContent = pvpAttacksLeft() <= 0 ? 'ЛИМИТ 5/5' : 'ЕЩЁ БОЙ';
+        btn.disabled = pvpBattleRunning;
+        btn.textContent = (!DEV_FREE_PVP && pvpAttacksLeft() <= 0) ? 'ЛИМИТ 5/5' : 'ЕЩЁ БОЙ';
     }
 }
 
@@ -6910,7 +6952,7 @@ function calcPvPPower(stats, luck, perkFx = {}) {
 function startPvP() {
     if (pvpBattleRunning) return;
     refreshPvpDailyState();
-    if (pvpAttacksLeft() <= 0) {
+    if (!DEV_FREE_PVP && pvpAttacksLeft() <= 0) {
         $('pvp-status').textContent = 'Лимит атак на сегодня исчерпан (5/5)';
         renderPvpDailyBar();
         return;
