@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.35.0</title>
+    <title>Space Dream v2.35.1</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -1419,6 +1419,20 @@
         }
         .help-body li { margin-bottom: 4px; }
         .help-body strong { color: #e8f8ff; font-weight: 600; }
+        .help-formula {
+            margin: 8px 0 0;
+            padding: 8px 10px;
+            border-radius: 6px;
+            background: rgba(0, 24, 40, 0.55);
+            font-size: 0.82rem;
+            line-height: 1.45;
+            color: #b8dce8;
+        }
+        .help-formula code {
+            color: #ffe8a0;
+            font-family: Consolas, 'Courier New', monospace;
+            font-size: 0.8rem;
+        }
         .help-close {
             position: absolute;
             top: 8px;
@@ -1928,7 +1942,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.35.0';
+const VERSION = '2.35.1';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.28;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -4597,6 +4611,34 @@ function renderHangarPartsHtml() {
     }).join('');
 }
 
+function getUpgradeFormulaHelpBlock() {
+    const fid = state.factionId;
+    const m = FACTION_UPGRADE_MULT[fid] || { hp: 1, shield: 1, damage: 1, speed: 1 };
+    const labels = { hp: 'HP', damage: 'У', shield: 'Щ', speed: 'СК' };
+    const nextParts = COMBAT_UPGRADE_KEYS.map(key => {
+        const lvl = (state.upgrades[key] || 0) + 1;
+        const base = getBaseBonusForLevel(lvl);
+        const mult = m[key] ?? 1;
+        const delta = getNextUpgradeDelta(key, fid);
+        if (!delta) return null;
+        return `${labels[key]}: ${base}×${mult}→+${delta}`;
+    }).filter(Boolean);
+    const nextLine = nextParts.length ? `<br>сейчас след. ап: ${nextParts.join(' · ')}` : '';
+    return `
+        <div class="help-formula">
+            <strong>Формула боевых статов</strong><br>
+            <code>итог = база фракции + Σ(ступень × множитель)</code> за каждый ур.<br>
+            ступень: ур. 1–10 → +5, 11–20 → +4, 21+ → +3<br>
+            множители: HP×${m.hp} · Щ×${m.shield} · У×${m.damage} · СК×${m.speed}${nextLine}<br><br>
+            <strong>Стоимость</strong><br>
+            боевые: <code>🪙 50×2<sup>ур</sup></code>, детали <code>⌈5×1,5<sup>ур</sup>⌉</code><br>
+            удача: фикс. таблица 🪙+💎+🍀 · «ничего» <code>39% − 1%×ур</code>, PvP <code>+1%×ур</code><br>
+            бак: <code>🪙 100×2<sup>ур</sup></code>, <code>⌈3×1,4<sup>ур</sup>⌉</code> дет., +10⛽/ур.<br><br>
+            <strong>Баланс:</strong> ап боевого стата, если <code>новый ур. ≤ мин. ур. остальных + ${UPGRADE_SPREAD_MAX}</code>
+        </div>
+    `;
+}
+
 function getUpgradeHelpHtml() {
     const faction = FACTIONS.find(f => f.id === state.factionId);
     const fname = faction?.name || 'ваша фракция';
@@ -4611,8 +4653,8 @@ function getUpgradeHelpHtml() {
             <li><strong>🍀 Удача</strong> (10 ур., 🪙+💎+🍀): −1% «ничего»/ур. на добыче; в PvP +1%/ур. к криту, 2× выстрелу и перезарядке щита (сейчас ${pvp.crit}%).</li>
             <li><strong>🔋 Бак</strong> — +10 ⛽ ёмкости на добыче.</li>
         </ul>
+        ${getUpgradeFormulaHelpBlock()}
         <p><strong>Фракция «${fname}»:</strong> ${FACTION_UPGRADE_HINT[state.factionId] || 'свои множители роста'}.</p>
-        <p><strong>Баланс:</strong> боевые статы — разрыв не больше ${UPGRADE_SPREAD_MAX} ур.</p>
     `;
 }
 
