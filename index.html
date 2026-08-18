@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.40.0</title>
+    <title>Space Dream v2.41.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -2237,7 +2237,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.40.0';
+const VERSION = '2.41.0';
 
 // 8-бит иконки ресурсов (космос · металл · пиксель)
 const RES_GFX_SVG = {
@@ -2665,6 +2665,7 @@ function getLuckScopeHint() {
 }
 
 function formatUpgradeCostLabel(cost, key) {
+    if (!cost) return 'МАКС';
     let s = `${cost.credits}${resIconHtml('credits', 'res-gfx-inline')}`;
     if (cost.spice) s += ` ${cost.spice}${resIconHtml('spice', 'res-gfx-inline')}`;
     s += ` ${cost.parts}${partIconHtml(key)}`;
@@ -3689,6 +3690,40 @@ const LUCK_MAX_LEVEL = 10;
 const LUCK_NOTHING_REDUCTION_PER_LVL = 1;
 const LUCK_PVP_BONUS_PER_LVL = 1;
 const MINE_LOOT_NOTHING_BASE = 37;
+
+// Боевые статы: фикс. таблица (вариант A) — без доната 30 ур. за месяц недостижим
+const COMBAT_UPGRADE_COSTS = [
+    { credits: 50, parts: 5 },
+    { credits: 75, parts: 7 },
+    { credits: 110, parts: 10 },
+    { credits: 160, parts: 14 },
+    { credits: 230, parts: 19 },
+    { credits: 330, parts: 25 },
+    { credits: 480, parts: 32 },
+    { credits: 700, parts: 40 },
+    { credits: 1000, parts: 50 },
+    { credits: 1450, parts: 62 },
+    { credits: 2100, parts: 75 },
+    { credits: 3000, parts: 90 },
+    { credits: 4300, parts: 105 },
+    { credits: 6200, parts: 125 },
+    { credits: 8500, parts: 145, spice: 2 },
+    { credits: 11500, parts: 165, spice: 3 },
+    { credits: 15500, parts: 190, spice: 4 },
+    { credits: 20500, parts: 215, spice: 6 },
+    { credits: 27000, parts: 245, spice: 8 },
+    { credits: 35000, parts: 280, spice: 10 },
+    { credits: 45000, parts: 315, spice: 13 },
+    { credits: 58000, parts: 355, spice: 16 },
+    { credits: 74000, parts: 400, spice: 20 },
+    { credits: 94000, parts: 450, spice: 25 },
+    { credits: 120000, parts: 500, spice: 30 },
+    { credits: 152000, parts: 555, spice: 38 },
+    { credits: 192000, parts: 615, spice: 48 },
+    { credits: 242000, parts: 680, spice: 60 },
+    { credits: 305000, parts: 750, spice: 75 },
+    { credits: 385000, parts: 825, spice: 95 },
+];
 
 const LUCK_UPGRADE_COSTS = [
     { credits: 400, spice: 5, parts: 8 },
@@ -5452,7 +5487,7 @@ function initMiningTap() {
 
 // ─── Ангар ───────────────────────────────────────────────────
 function upgradeCost(key) {
-    const lvl = state.upgrades[key];
+    const lvl = state.upgrades[key] ?? 0;
     if (key === 'luck') {
         const tier = LUCK_UPGRADE_COSTS[Math.min(lvl, LUCK_UPGRADE_COSTS.length - 1)];
         return { credits: tier.credits, spice: tier.spice, parts: tier.parts, partKey: key };
@@ -5464,11 +5499,17 @@ function upgradeCost(key) {
             partKey: key,
         };
     }
-    return {
-        credits: 50 * 2 ** lvl,
-        parts: Math.ceil(5 * 1.5 ** lvl),
-        partKey: key,
-    };
+    if (COMBAT_UPGRADE_KEYS.includes(key)) {
+        const tier = COMBAT_UPGRADE_COSTS[lvl];
+        if (!tier) return null;
+        return {
+            credits: tier.credits,
+            parts: tier.parts,
+            spice: tier.spice || 0,
+            partKey: key,
+        };
+    }
+    return null;
 }
 
 function renderHangarPartsHtml() {
@@ -5498,8 +5539,9 @@ function getUpgradeFormulaHelpBlock() {
             ступень: ур. 1–10 → +5, 11–20 → +4, 21+ → +3<br>
             множители: HP×${m.hp} · Щ×${m.shield} · У×${m.damage} · СК×${m.speed}${nextLine}<br><br>
             <strong>Стоимость</strong><br>
-            боевые: <code>${resIconHtml('credits', 'res-gfx-inline')} 50×2<sup>ур</sup></code>, детали <code>⌈5×1,5<sup>ур</sup>⌉</code><br>
-            удача: фикс. таблица ${resIconHtml('credits', 'res-gfx-inline')}+${resIconHtml('spice', 'res-gfx-inline')}+${partIconHtml('luck', 'part-gfx-inline')} · «ничего» <code>${MINE_LOOT_NOTHING_BASE}% − 1%×ур</code>, PvP <code>+1%×ур</code><br>
+            боевые: фикс. таблица ур. 1–30 · ${resIconHtml('credits', 'res-gfx-inline')}+детали · ${resIconHtml('spice', 'res-gfx-inline')} с <strong>15-го</strong> ур.<br>
+            пример: ур.1 — 50🪙+5 · ур.10 — 1 450🪙+62 · ур.15 — 8 500🪙+145+2💎 · ур.30 — 385 000🪙+825+95💎<br>
+            удача: фикс. таблица ${resIconHtml('credits', 'res-gfx-inline')}+${resIconHtml('spice', 'res-gfx-inline')}+${partIconHtml('luck', 'part-gfx-inline')} · «ничего» <code>${MINE_LOOT_NOTHING_BASE}% − 1%×ур</code><br>
             бак: <code>${resIconHtml('credits', 'res-gfx-inline')} 100×2<sup>ур</sup></code>, <code>⌈3×1,4<sup>ур</sup>⌉</code> дет., +10${resIconHtml('fuel', 'res-gfx-inline')}/ур.<br><br>
             <strong>Баланс:</strong> ап боевого стата, если <code>новый ур. ≤ мин. ур. остальных + ${UPGRADE_SPREAD_MAX}</code>
         </div>
@@ -5780,8 +5822,8 @@ function renderHangar() {
         const cost = upgradeCost(u.key);
         const spreadOk = canUpgradeCombatStat(u.key);
         const haveParts = getPartCount(u.key);
-        const spiceOk = !cost.spice || r.spice >= cost.spice;
-        const can = lvl < u.max && r.credits >= cost.credits && haveParts >= cost.parts && spiceOk && spreadOk;
+        const spiceOk = !cost?.spice || r.spice >= cost.spice;
+        const can = cost && lvl < u.max && r.credits >= cost.credits && haveParts >= cost.parts && spiceOk && spreadOk;
         const bonus = getUpgradeBonusLabel(u.key);
         const blocked = COMBAT_UPGRADE_KEYS.includes(u.key) && !spreadOk
             ? `<span class="upgrade-blocked">Разрыв > ${UPGRADE_SPREAD_MAX}</span>` : '';
@@ -5808,7 +5850,7 @@ function renderHangar() {
             const u = UPGRADES.find(x => x.key === key);
             const cost = upgradeCost(key);
             const def = PART_DEFS[key];
-            if (state.upgrades[key] >= u.max || state.resources.credits < cost.credits) return;
+            if (!cost || state.upgrades[key] >= u.max || state.resources.credits < cost.credits) return;
             if (getPartCount(key) < cost.parts) return;
             if (cost.spice && state.resources.spice < cost.spice) return;
             if (!canUpgradeCombatStat(key)) return;
