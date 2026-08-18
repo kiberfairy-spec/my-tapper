@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.42.1</title>
+    <title>Space Dream v2.43.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -289,7 +289,7 @@
             justify-content: flex-end;
             flex: 1;
             min-width: 0;
-            max-width: 56px;
+            max-width: 46px;
             z-index: 1;
         }
         .res-node-fuel {
@@ -422,6 +422,7 @@
             text-shadow: 0 0 8px rgba(160, 100, 255, 0.65);
         }
         .neon-purple { --neon-color: #b878ff; --neon-glow: rgba(184, 120, 255, 0.85); }
+        .neon-silver { --neon-color: #c8d4e0; --neon-glow: rgba(200, 212, 224, 0.75); }
         .res-val {
             font-size: 8px;
             font-weight: 700;
@@ -1952,8 +1953,208 @@
             border-top: 1px dashed rgba(255, 255, 255, 0.12);
         }
         .pvp-reward-tier { font-size: 4px; color: #8898aa; margin: 2px 0; }
-        .pvp-grid { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
-        .pvp-side { flex: 1; text-align: center; font-size: 8px; font-weight: 500; }
+        .container-icon svg { filter: drop-shadow(0 0 3px rgba(200, 212, 224, 0.45)); }
+        .container-icon.container-elite svg { filter: drop-shadow(0 0 4px rgba(255, 212, 0, 0.35)); }
+        .pvp-arena {
+            position: relative;
+            height: 168px;
+            margin: 6px 0;
+            border: 1px solid rgba(0, 232, 255, 0.28);
+            border-radius: 4px;
+            overflow: hidden;
+            background: linear-gradient(180deg, #080818 0%, #0a1028 45%, #060818 55%, #080818 100%);
+            box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.65);
+        }
+        .pvp-arena.pvp-shake { animation: pvpShake 0.18s ease; }
+        @keyframes pvpShake {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(-2px, 1px); }
+            75% { transform: translate(2px, -1px); }
+        }
+        .pvp-stars {
+            position: absolute;
+            left: 0; right: 0;
+            height: 28%;
+            pointer-events: none;
+            opacity: 0.35;
+            background-repeat: repeat;
+            background-size: 120px 60px;
+        }
+        .pvp-stars-top {
+            top: 0;
+            background-image: radial-gradient(1px 1px at 20% 30%, #fff, transparent),
+                radial-gradient(1px 1px at 60% 70%, #aaf, transparent),
+                radial-gradient(1px 1px at 80% 20%, #fff, transparent);
+            animation: pvpStarDriftDown 8s linear infinite;
+        }
+        .pvp-stars-bottom {
+            bottom: 0;
+            background-image: radial-gradient(1px 1px at 30% 40%, #fff, transparent),
+                radial-gradient(1px 1px at 70% 60%, #aaf, transparent);
+            animation: pvpStarDriftUp 8s linear infinite;
+        }
+        @keyframes pvpStarDriftDown { from { background-position: 0 0; } to { background-position: 0 40px; } }
+        @keyframes pvpStarDriftUp { from { background-position: 0 0; } to { background-position: 0 -40px; } }
+        .pvp-half {
+            position: absolute;
+            left: 0; right: 0;
+            height: 42%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 6px;
+            box-sizing: border-box;
+        }
+        .pvp-half-enemy { top: 0; flex-direction: column; justify-content: flex-end; }
+        .pvp-half-player { bottom: 0; flex-direction: column; justify-content: flex-start; }
+        .pvp-zone-divider {
+            position: absolute;
+            left: 0; right: 0;
+            top: 42%;
+            height: 16%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-top: 1px solid rgba(255, 80, 60, 0.35);
+            border-bottom: 1px solid rgba(255, 80, 60, 0.35);
+            background: linear-gradient(90deg, transparent, rgba(255, 60, 40, 0.08), transparent);
+            z-index: 5;
+        }
+        .pvp-fx-layer {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 6;
+        }
+        .pvp-timer {
+            position: relative;
+            z-index: 7;
+            font-size: 8px;
+            font-weight: 600;
+            color: #ff6655;
+            text-shadow: 0 0 8px rgba(255, 80, 60, 0.6);
+            letter-spacing: 0.08em;
+        }
+        .pvp-timer.urgent { color: #ff2222; animation: pvpTimerBlink 0.5s infinite; }
+        @keyframes pvpTimerBlink { 50% { opacity: 0.5; } }
+        .pvp-combatant {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            z-index: 2;
+        }
+        .pvp-half-enemy .pvp-combatant { flex-direction: column-reverse; }
+        .pvp-name {
+            font-size: 5px;
+            color: #a0c8e0;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .pvp-perks-row {
+            display: flex;
+            gap: 3px;
+            align-items: center;
+            min-height: 14px;
+        }
+        .pvp-perk-slot {
+            width: 14px; height: 14px;
+            border: 1px solid rgba(255, 120, 60, 0.35);
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.35);
+        }
+        .pvp-perk-slot.empty { opacity: 0.35; border-style: dashed; }
+        .pvp-perk-slot.proc { animation: pvpPerkProc 0.45s ease; }
+        @keyframes pvpPerkProc {
+            0%, 100% { box-shadow: none; }
+            50% { box-shadow: 0 0 8px rgba(255, 140, 60, 0.85); }
+        }
+        .pvp-ship-wrap {
+            line-height: 0;
+            filter: drop-shadow(0 0 6px rgba(0, 232, 255, 0.35));
+            animation: pvpShipBob 2.8s ease-in-out infinite;
+        }
+        .pvp-half-enemy .pvp-ship-wrap {
+            animation: pvpShipBobEn 2.8s ease-in-out infinite;
+            animation-delay: -1.4s;
+        }
+        .pvp-ship-wrap.pvp-shoot { animation: pvpShipRecoil 0.22s ease; }
+        .pvp-half-enemy .pvp-ship-wrap.pvp-shoot { animation: pvpShipRecoilEn 0.22s ease; }
+        @keyframes pvpShipRecoil { 0% { transform: translateY(2px); } 100% { transform: translateY(0); } }
+        @keyframes pvpShipRecoilEn { 0% { transform: scaleY(-1) translateY(2px); } 100% { transform: scaleY(-1) translateY(0); } }
+        @keyframes pvpShipBob {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+        @keyframes pvpShipBobEn {
+            0%, 100% { transform: scaleY(-1) translateY(0); }
+            50% { transform: scaleY(-1) translateY(-3px); }
+        }
+        .pvp-bars { width: 100%; max-width: 140px; }
+        .pvp-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            margin: 1px 0;
+            font-size: 4px;
+        }
+        .pvp-bar-row.hidden { display: none; }
+        .pvp-bar-label { width: 8px; color: #8898aa; flex-shrink: 0; }
+        .pvp-bar-row.shield-broken .pvp-bar-fill { animation: pvpShieldBreak 0.5s forwards; }
+        @keyframes pvpShieldBreak {
+            to { opacity: 0; transform: scaleX(0); filter: blur(2px); }
+        }
+        .pvp-bar-track {
+            flex: 1;
+            height: 7px;
+            background: rgba(0, 8, 24, 0.8);
+            border: 1px solid rgba(0, 232, 255, 0.25);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .pvp-bar-fill { height: 100%; transition: width 0.18s linear; border-radius: 1px; }
+        .pvp-bar-fill.shield {
+            background: linear-gradient(90deg, #2266cc, #55bbff);
+            box-shadow: 0 0 5px rgba(68, 170, 255, 0.45);
+        }
+        .pvp-bar-fill.hp {
+            background: linear-gradient(90deg, #0088aa, var(--neon-cyan));
+            box-shadow: 0 0 5px var(--neon-glow-c);
+        }
+        .pvp-bar-fill.hp.low {
+            background: linear-gradient(90deg, #aa2222, #ff4444);
+            box-shadow: 0 0 5px rgba(255, 68, 68, 0.5);
+        }
+        .pvp-bar-val { width: 22px; text-align: right; color: #8898aa; flex-shrink: 0; }
+        .pvp-log {
+            font-size: 4px;
+            color: #8898aa;
+            min-height: 18px;
+            max-height: 24px;
+            overflow: hidden;
+            text-align: center;
+            line-height: 1.35;
+            margin: 2px 0 4px;
+        }
+        .pvp-log .crit { color: #ffd400; }
+        .pvp-log .shield-hit { color: #55bbff; }
+        .pvp-log .hp-hit { color: #ff6655; }
+        .pvp-status-line {
+            text-align: center;
+            font-size: 6px;
+            margin: 4px 0;
+            min-height: 10px;
+        }
+        .pvp-actions { text-align: center; }
+        .pvp-actions .btn:disabled { opacity: 0.45; }
         .bar {
             height: 10px;
             background: rgba(0, 8, 24, 0.7);
@@ -2118,6 +2319,13 @@
                     <span class="res-val" id="ui-artifacts">0</span>
                 </div>
             </div>
+            <div class="res-node neon-silver res-node-container">
+                <span class="hud-wire"></span>
+                <div class="res-pill resource-neon neon-silver" title="Контейнеры">
+                    <span class="res-icon" data-res="container"></span>
+                    <span class="res-val" id="ui-containers">0</span>
+                </div>
+            </div>
         </div>
     </div>
     </div>
@@ -2209,14 +2417,34 @@
         </div>
         <div class="pvp-lb-dropdown hidden" id="pvp-lb-dropdown"></div>
         <div class="pvp-daily-bar" id="pvp-daily-bar"></div>
-        <div class="pvp-grid">
-            <div class="pvp-side"><div id="pvp-my-ship"></div><div id="pvp-my-bars"></div></div>
-            <div style="font-size:12px;color:#aa3333">VS</div>
-            <div class="pvp-side"><div id="pvp-en-ship"></div><div id="pvp-en-bars"></div></div>
+        <div class="pvp-arena" id="pvp-arena">
+            <div class="pvp-stars pvp-stars-top"></div>
+            <div class="pvp-stars pvp-stars-bottom"></div>
+            <div class="pvp-half pvp-half-enemy">
+                <div class="pvp-combatant" id="pvp-en-combatant">
+                    <div class="pvp-ship-wrap" id="pvp-en-ship"></div>
+                    <div class="pvp-bars" id="pvp-en-bars"></div>
+                    <div class="pvp-perks-row" id="pvp-en-perks"></div>
+                    <div class="pvp-name" id="pvp-en-name">—</div>
+                </div>
+            </div>
+            <div class="pvp-zone-divider">
+                <svg class="pvp-fx-layer" id="pvp-fx-layer"></svg>
+                <span class="pvp-timer" id="pvp-timer">0:12</span>
+            </div>
+            <div class="pvp-half pvp-half-player">
+                <div class="pvp-combatant" id="pvp-my-combatant">
+                    <div class="pvp-name" id="pvp-my-name">Вы</div>
+                    <div class="pvp-perks-row" id="pvp-my-perks"></div>
+                    <div class="pvp-bars" id="pvp-my-bars"></div>
+                    <div class="pvp-ship-wrap" id="pvp-my-ship"></div>
+                </div>
+            </div>
         </div>
+        <div class="pvp-log" id="pvp-log"></div>
         <div class="pvp-reward-tier" id="pvp-reward-preview"></div>
-        <div style="text-align:center;font-size:6px;margin:6px 0" id="pvp-status">Нажмите НАЙТИ БОЙ</div>
-        <button class="btn" id="btn-pvp">НАЙТИ БОЙ</button>
+        <div class="pvp-status-line" id="pvp-status">Нажмите НАЙТИ БОЙ</div>
+        <div class="pvp-actions"><button class="btn" id="btn-pvp">НАЙТИ БОЙ</button></div>
     </div>
     <div class="window hidden" id="win-minigames">
         <div class="wtitle">МИНИ-ИГРЫ</div>
@@ -2320,7 +2548,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.42.1';
+const VERSION = '2.43.0';
 
 // 8-бит иконки ресурсов (космос · металл · пиксель)
 const RES_GFX_SVG = {
@@ -2364,6 +2592,40 @@ const RES_GFX_SVG = {
         <rect x="4" y="4" width="4" height="4" fill="#8860cc"/>
         <rect x="5" y="5" width="2" height="2" fill="#c8a0ff"/>
         <rect x="5" y="1" width="2" height="1" fill="#8898a8"/>
+    </svg>`,
+    container: `<svg viewBox="0 0 14 14" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="5" width="12" height="8" fill="#5a6878"/>
+        <rect x="2" y="6" width="10" height="6" fill="#9aa8b8"/>
+        <rect x="2" y="6" width="5" height="3" fill="#dce8f4" opacity="0.55"/>
+        <rect x="3" y="2" width="8" height="4" fill="#788898"/>
+        <rect x="4" y="1" width="6" height="2" fill="#b0c0d0"/>
+        <rect x="2" y="7" width="1" height="1" fill="#404850"/>
+        <rect x="11" y="7" width="1" height="1" fill="#404850"/>
+        <rect x="2" y="10" width="1" height="1" fill="#404850"/>
+        <rect x="11" y="10" width="1" height="1" fill="#404850"/>
+        <rect x="1" y="5" width="12" height="1" fill="#c8d4e0"/>
+    </svg>`,
+    containerElite: `<svg viewBox="0 0 14 14" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="5" width="12" height="8" fill="#5a6878"/>
+        <rect x="2" y="6" width="10" height="6" fill="#9aa8b8"/>
+        <rect x="2" y="6" width="5" height="3" fill="#dce8f4" opacity="0.55"/>
+        <rect x="3" y="2" width="8" height="4" fill="#788898"/>
+        <rect x="4" y="1" width="6" height="2" fill="#b0c0d0"/>
+        <rect x="2" y="8" width="10" height="1" fill="#ffd400"/>
+        <rect x="2" y="7" width="1" height="1" fill="#404850"/>
+        <rect x="11" y="7" width="1" height="1" fill="#404850"/>
+        <rect x="1" y="5" width="12" height="1" fill="#c8d4e0"/>
+    </svg>`,
+    containerBattle: `<svg viewBox="0 0 14 14" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="5" width="12" height="8" fill="#5a6878"/>
+        <rect x="2" y="6" width="10" height="6" fill="#9aa8b8"/>
+        <rect x="2" y="6" width="5" height="3" fill="#dce8f4" opacity="0.55"/>
+        <rect x="3" y="2" width="8" height="4" fill="#788898"/>
+        <rect x="4" y="1" width="6" height="2" fill="#b0c0d0"/>
+        <rect x="6" y="3" width="2" height="1" fill="#44aaff"/>
+        <rect x="2" y="7" width="1" height="1" fill="#404850"/>
+        <rect x="11" y="7" width="1" height="1" fill="#404850"/>
+        <rect x="1" y="5" width="12" height="1" fill="#c8d4e0"/>
     </svg>`,
 };
 
@@ -2430,6 +2692,21 @@ function resAmtHtml(type, amount) {
 
 function resLabelHtml(type, label) {
     return `${resIconHtml(type, 'res-gfx-inline')} ${label}`;
+}
+
+function containerIconHtml(kind = 'silver', cls = 'res-gfx-inline') {
+    const key = kind === 'elite' ? 'containerElite' : kind === 'battle' ? 'containerBattle' : 'container';
+    return `<span class="${cls} container-icon container-${kind}">${RES_GFX_SVG[key]}</span>`;
+}
+
+function getContainerCount() {
+    return state.resources.containers || 0;
+}
+
+function addContainers(n, track = true) {
+    if (!n || n <= 0) return;
+    state.resources.containers = (state.resources.containers || 0) + n;
+    if (track) trackEarned('containers', n);
 }
 
 function initResourceIcons() {
@@ -3950,7 +4227,7 @@ const defaultState = () => ({
     profileComplete: false,
     level: 1, exp: 0, vip: 0, pvpScore: 0,
     resources: {
-        credits: 0, fuel: 100, spice: 0, artifactParts: 0,
+        credits: 0, fuel: 100, spice: 0, artifactParts: 0, containers: 0,
         hpParts: 0, damageParts: 0, shieldParts: 0, speedParts: 0,
         luckParts: 0, fuelTankParts: 0,
     },
@@ -3972,7 +4249,7 @@ const defaultState = () => ({
     playerStats: {
         playTimeMs: 0,
         earned: {
-            credits: 0, fuel: 0, spice: 0, artifactParts: 0,
+            credits: 0, fuel: 0, spice: 0, artifactParts: 0, containers: 0,
             hpParts: 0, damageParts: 0, shieldParts: 0, speedParts: 0,
             luckParts: 0, fuelTankParts: 0,
         },
@@ -4880,6 +5157,7 @@ function updateHUD() {
     $('ui-fuel').textContent = `${Math.floor(r.fuel)}/${state.maxFuel}`;
     $('ui-credits').textContent = Math.floor(r.credits);
     $('ui-artifacts').textContent = getArtifactParts();
+    $('ui-containers').textContent = getContainerCount();
     applyTelegramAvatar();
 }
 
@@ -6119,8 +6397,8 @@ function resolvePvpDailyReward(rank) {
 function formatPvpRewardText(reward, short = false) {
     if (!reward) return '—';
     const parts = [];
-    if (reward.container === 'elite') parts.push('📦 элит');
-    else if (reward.container === 'battle') parts.push('📦 бой');
+    if (reward.container === 'elite') parts.push(containerIconHtml('elite') + ' элит');
+    else if (reward.container === 'battle') parts.push(containerIconHtml('battle') + ' бой');
     if (reward.credits) parts.push(resAmtHtml('credits', reward.credits));
     if (reward.spice) parts.push(resAmtHtml('spice', reward.spice));
     if (reward.fuel) parts.push(resAmtHtml('fuel', reward.fuel));
@@ -6139,6 +6417,7 @@ function formatPvpRewardText(reward, short = false) {
 function applyPvpReward(reward) {
     if (!reward) return;
     const r = state.resources;
+    if (reward.container) addContainers(1);
     if (reward.credits) { r.credits += reward.credits; trackEarned('credits', reward.credits); }
     if (reward.fuel) {
         const added = Math.min(reward.fuel, Math.max(0, state.maxFuel - r.fuel));
@@ -6286,18 +6565,321 @@ function renderPvpDailyBar() {
     }
 }
 
+// ─── PvP: арена и бой (вариант A) ────────────────────────────
+let pvpBattleRunning = false;
+
+function renderPvpBarRow(label, cls, pct, cur, max, broken = false) {
+    const low = label === 'HP' && pct <= 30 && pct > 0;
+    const brokenCls = broken ? ' shield-broken' : '';
+    const hide = label === 'Щ' && broken;
+    return `<div class="pvp-bar-row${brokenCls}${hide ? ' hidden' : ''}" data-bar="${label}">
+        <span class="pvp-bar-label">${label}</span>
+        <div class="pvp-bar-track"><div class="pvp-bar-fill ${cls}${low ? ' low' : ''}" style="width:${pct}%"></div></div>
+        <span class="pvp-bar-val">${Math.max(0, Math.ceil(cur))}</span>
+    </div>`;
+}
+
+function renderPvpBars(side, fighter) {
+    const el = $(side === 'player' ? 'pvp-my-bars' : 'pvp-en-bars');
+    if (!el || !fighter) return;
+    const shPct = fighter.maxShield > 0 ? Math.max(0, fighter.shield / fighter.maxShield * 100) : 0;
+    const hpPct = fighter.maxHp > 0 ? Math.max(0, fighter.hp / fighter.maxHp * 100) : 0;
+    el.innerHTML =
+        renderPvpBarRow('Щ', 'shield', shPct, fighter.shield, fighter.maxShield, fighter.shieldBroken) +
+        renderPvpBarRow('HP', 'hp', hpPct, fighter.hp, fighter.maxHp);
+}
+
+function renderPvpPerksRow(elId, equipped) {
+    const el = $(elId);
+    if (!el) return;
+    ensurePerks();
+    const ids = equipped || state.perks.equipped;
+    el.innerHTML = [0, 1].map(i => {
+        const id = ids[i];
+        if (!id || getPerkLevel(id) < 1) {
+            return '<span class="pvp-perk-slot empty" title="Пусто">—</span>';
+        }
+        return `<span class="pvp-perk-slot filled" data-perk="${id}" title="${PERKS.find(p => p.id === id)?.name || id}">${perkThumbHtml(id, true)}</span>`;
+    }).join('');
+}
+
+function mountPvpPlayerShip() {
+    const el = $('pvp-my-ship');
+    if (!el) return;
+    el.innerHTML = '';
+    el.classList.remove('pvp-shoot');
+    if (state.profileComplete) el.appendChild(drawCurrentShip(3));
+}
+
+function mountPvpEnemyShip(factionId) {
+    const el = $('pvp-en-ship');
+    if (!el) return;
+    el.innerHTML = '';
+    el.classList.remove('pvp-shoot');
+    const fid = factionId || 'dps';
+    const ship = (SHIP_CATALOG[fid] || SHIP_CATALOG.tank)[0];
+    el.appendChild(renderShipGraphic(ship, fid, 3));
+}
+
+function cloneFighter(stats, luck, perkFx) {
+    const maxHp = Math.max(1, Math.round(stats.hp));
+    const maxShield = Math.max(0, Math.round(stats.shield));
+    return {
+        hp: maxHp,
+        maxHp,
+        shield: maxShield,
+        maxShield,
+        damage: Math.max(1, stats.damage),
+        attackSpeed: Math.max(1, stats.attackSpeed),
+        luck: luck || { crit: 0, doubleShot: 0, shieldRecharge: 0 },
+        perkFx: perkFx || {},
+        charge: 0,
+        firstShot: true,
+        shieldBroken: false,
+        rechargeCd: 0,
+    };
+}
+
+function applyDamage(defender, rawDmg, events, attackerName) {
+    let dmg = rawDmg;
+    if (defender.shield > 0) {
+        const absorbed = Math.min(defender.shield, dmg);
+        defender.shield -= absorbed;
+        dmg -= absorbed;
+        if (absorbed > 0) {
+            events.push({ type: 'shield', text: `${attackerName}: щит −${Math.round(absorbed)}`, cls: 'shield-hit' });
+        }
+        if (defender.shield <= 0 && !defender.shieldBroken) {
+            defender.shieldBroken = true;
+            events.push({ type: 'break', text: 'Щит пробит!', cls: 'hp-hit' });
+        }
+    }
+    if (dmg > 0) {
+        defender.hp = Math.max(0, defender.hp - dmg);
+        events.push({ type: 'hp', text: `${attackerName}: −${Math.round(dmg)} HP`, cls: 'hp-hit' });
+    }
+}
+
+function fighterAttack(attacker, defender, events, attackerName) {
+    let dmg = attacker.damage * (0.92 + Math.random() * 0.16);
+    const procs = [];
+    if (attacker.firstShot && attacker.perkFx.quantum) {
+        dmg *= 1 + attacker.perkFx.quantum / 100;
+        procs.push('залп');
+        attacker.firstShot = false;
+    } else {
+        attacker.firstShot = false;
+    }
+    if (Math.random() * 100 < attacker.luck.crit) {
+        dmg *= 1.5;
+        procs.push('крит');
+    }
+    if (Math.random() * 100 < attacker.luck.doubleShot) {
+        applyDamage(defender, dmg, events, attackerName + (procs.length ? ' 2×' : ''));
+        procs.push('2×');
+    }
+    applyDamage(defender, dmg, events, attackerName + (procs.includes('крит') ? ' ★' : ''));
+    if (procs.includes('залп')) {
+        events.push({ type: 'proc', text: 'Квантовый залп!', cls: 'crit' });
+    }
+    if (attacker.rechargeCd <= 0 && Math.random() * 100 < attacker.luck.shieldRecharge && attacker.maxShield > 0) {
+        const gain = attacker.maxShield * 0.15;
+        attacker.shield = Math.min(attacker.maxShield, attacker.shield + gain);
+        if (attacker.shield > 0) attacker.shieldBroken = false;
+        attacker.rechargeCd = 12;
+        events.push({ type: 'proc', text: `${attackerName}: щит +${Math.round(gain)}`, cls: 'shield-hit' });
+    }
+}
+
+function simulatePvpBattle(playerStats, enemyStats, playerLuck, playerPerks, enemyLuck, enemyPerks) {
+    const player = cloneFighter(playerStats, playerLuck, playerPerks);
+    const enemy = cloneFighter(enemyStats, enemyLuck, enemyPerks);
+    if (player.perkFx.jammer && enemy.maxShield > 0) {
+        const cut = enemy.maxShield * (player.perkFx.jammer / 100);
+        enemy.maxShield = Math.max(0, enemy.maxShield - cut);
+        enemy.shield = Math.min(enemy.shield, enemy.maxShield);
+    }
+    const ticks = [];
+    const TICK_N = Math.round(PVP_BATTLE_DURATION_MS / 250);
+    for (let i = 0; i < TICK_N; i++) {
+        const events = [];
+        [player, enemy].forEach(f => { if (f.rechargeCd > 0) f.rechargeCd -= 1; });
+        const order = player.attackSpeed >= enemy.attackSpeed ? [[player, enemy, 'Вы'], [enemy, player, 'Враг']] : [[enemy, player, 'Враг'], [player, enemy, 'Вы']];
+        order.forEach(([atk, def, name]) => {
+            if (atk.hp <= 0 || def.hp <= 0) return;
+            atk.charge += atk.attackSpeed * (250 / PVP_BATTLE_DURATION_MS) * 100;
+            while (atk.charge >= 100 && def.hp > 0) {
+                atk.charge -= 100;
+                fighterAttack(atk, def, events, name);
+                if (player.perkFx.phase && name === 'Враг' && events.some(e => e.type === 'proc' || e.cls === 'crit')) {
+                    const gain = player.maxShield * (player.perkFx.phase / 100);
+                    player.shield = Math.min(player.maxShield, player.shield + gain);
+                    events.push({ type: 'proc', text: `Фаза +${Math.round(gain)} щита`, cls: 'shield-hit' });
+                }
+            }
+        });
+        ticks.push({
+            t: i,
+            player: { hp: player.hp, shield: player.shield, maxHp: player.maxHp, maxShield: player.maxShield, shieldBroken: player.shieldBroken },
+            enemy: { hp: enemy.hp, shield: enemy.shield, maxHp: enemy.maxHp, maxShield: enemy.maxShield, shieldBroken: enemy.shieldBroken },
+            events,
+            shots: events.some(e => e.type === 'hp' || e.type === 'shield'),
+        });
+        if (player.hp <= 0 || enemy.hp <= 0) break;
+    }
+    const pPct = player.hp / player.maxHp;
+    const ePct = enemy.hp / enemy.maxHp;
+    let result = 'lose';
+    if (player.hp <= 0 && enemy.hp <= 0) result = 'draw';
+    else if (enemy.hp <= 0) result = 'win';
+    else if (player.hp <= 0) result = 'lose';
+    else if (Math.abs(pPct - ePct) * 100 < PVP_DRAW_HP_PCT_DIFF) result = 'draw';
+    else if (pPct > ePct) result = 'win';
+    return { ticks, result, player, enemy };
+}
+
+function getPvpFxLayerSize() {
+    const box = $('pvp-zone-divider')?.getBoundingClientRect();
+    return { w: Math.max(10, box?.width || 200), h: Math.max(10, box?.height || 40) };
+}
+
+function firePvpLaser(fromPlayer) {
+    const layer = $('pvp-fx-layer');
+    if (!layer) return;
+    const { w, h } = getPvpFxLayerSize();
+    layer.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    layer.innerHTML = '';
+    const y1 = fromPlayer ? h * 0.85 : h * 0.15;
+    const y2 = fromPlayer ? h * 0.15 : h * 0.85;
+    const x = w * (0.42 + Math.random() * 0.16);
+    appendLaserBeam(layer, x, y1, x + (Math.random() * 10 - 5), y2, fromPlayer ? 'blue' : 'red');
+    const wrap = fromPlayer ? $('pvp-my-ship') : $('pvp-en-ship');
+    wrap?.classList.add('pvp-shoot');
+    setTimeout(() => wrap?.classList.remove('pvp-shoot'), 220);
+    setTimeout(() => { if (layer) layer.innerHTML = ''; }, 280);
+}
+
+function pushPvpLog(events) {
+    const log = $('pvp-log');
+    if (!log || !events?.length) return;
+    const lines = events.slice(-2).map(e => `<span class="${e.cls || ''}">${e.text}</span>`);
+    log.innerHTML = lines.join(' · ');
+}
+
+function formatPvpTimer(secLeft) {
+    const s = Math.max(0, Math.ceil(secLeft));
+    return `0:${String(s).padStart(2, '0')}`;
+}
+
+function finishPvpBattleResult(result, opponent, procText) {
+    ensurePlayerStats();
+    if (result === 'win') {
+        addPvpDailyScore(PVP_SCORE_WIN);
+        state.pvpScore += PVP_SCORE_WIN;
+        state.playerStats.pvpWins += 1;
+        $('pvp-status').textContent = `ПОБЕДА vs ${opponent.name}! +${PVP_SCORE_WIN} очк.${procText}`;
+        showLoot(`+${PVP_SCORE_WIN} сут. очков`);
+    } else if (result === 'draw') {
+        addPvpDailyScore(PVP_SCORE_DRAW);
+        state.pvpScore += PVP_SCORE_DRAW;
+        $('pvp-status').textContent = `НИЧЬЯ vs ${opponent.name}. +${PVP_SCORE_DRAW} очк.${procText}`;
+        showLoot(`+${PVP_SCORE_DRAW} сут. очков`);
+    } else {
+        addPvpDailyScore(-PVP_SCORE_LOSE);
+        state.pvpScore = Math.max(0, state.pvpScore - PVP_SCORE_LOSE);
+        state.playerStats.pvpLosses += 1;
+        $('pvp-status').textContent = `ПОРАЖЕНИЕ vs ${opponent.name}... −${PVP_SCORE_LOSE} очк.${procText}`;
+    }
+    Storage.save();
+    pvpBattleRunning = false;
+    renderPvpDailyBar();
+    const btn = $('btn-pvp');
+    if (btn) {
+        btn.disabled = pvpAttacksLeft() <= 0;
+        btn.textContent = pvpAttacksLeft() <= 0 ? 'ЛИМИТ 5/5' : 'ЕЩЁ БОЙ';
+    }
+}
+
+function runPvpBattleAnimation(battle, opponent, onDone) {
+    const ticks = battle.ticks;
+    if (!ticks.length) { onDone(battle.result); return; }
+    let idx = 0;
+    const tickMs = 250;
+    const totalSec = PVP_BATTLE_DURATION_MS / 1000;
+    const timerEl = $('pvp-timer');
+    const arena = $('pvp-arena');
+    const started = Date.now();
+
+    const step = () => {
+        if (idx >= ticks.length) {
+            onDone(battle.result);
+            return;
+        }
+        const tick = ticks[idx];
+        renderPvpBars('player', tick.player);
+        renderPvpBars('enemy', tick.enemy);
+        if (tick.shots) {
+            const fromPlayer = tick.events.some(e => e.text.startsWith('Вы'));
+            firePvpLaser(fromPlayer);
+            if (!fromPlayer && tick.events.some(e => e.text.startsWith('Враг'))) firePvpLaser(false);
+            arena?.classList.add('pvp-shake');
+            setTimeout(() => arena?.classList.remove('pvp-shake'), 180);
+        }
+        pushPvpLog(tick.events);
+        const left = totalSec - (Date.now() - started) / 1000;
+        if (timerEl) {
+            timerEl.textContent = formatPvpTimer(left);
+            timerEl.classList.toggle('urgent', left <= 3);
+        }
+        idx += 1;
+        setTimeout(step, tickMs);
+    };
+    step();
+}
+
+function scaleEnemyStats(base) {
+    const m = 0.88 + Math.random() * 0.24;
+    return {
+        hp: Math.max(10, Math.round(base.hp * m)),
+        shield: Math.max(0, Math.round(base.shield * m)),
+        damage: Math.max(5, Math.round(base.damage * m)),
+        attackSpeed: Math.max(5, Math.round(base.attackSpeed * m)),
+    };
+}
+
+function pickPvpOpponent() {
+    const seeds = buildPvpLeaderboardList().filter(p => !p.isMe);
+    const factions = ['tank', 'dps', 'sniper'];
+    for (let i = 0; i < 12; i++) {
+        const s = seeds[Math.floor(Math.random() * seeds.length)] || { name: 'Игрок' };
+        const id = s.id || s.name;
+        if (canAttackOpponent(id)) {
+            return {
+                id,
+                name: s.name,
+                factionId: factions[Math.floor(Math.random() * factions.length)],
+            };
+        }
+    }
+    return null;
+}
+
 // ─── PvP (упрощённый) ───────────────────────────────────────
 function renderPvP() {
+    if (pvpBattleRunning) return;
     $('pvp-lb-dropdown')?.classList.add('hidden');
-    $('pvp-my-ship').innerHTML = '';
-    $('pvp-en-ship').innerHTML = '';
-    $('pvp-my-ship').appendChild(drawCurrentShip(3));
-    const en = document.createElement('span');
-    en.textContent = '👾';
-    en.style.fontSize = '22px';
-    $('pvp-en-ship').appendChild(en);
-    $('pvp-my-bars').innerHTML = '<div class="bar"><div class="bar-fill bar-shield" style="width:100%"></div></div><div class="bar"><div class="bar-fill bar-hp" style="width:100%"></div></div>';
-    $('pvp-en-bars').innerHTML = '<div class="bar"><div class="bar-fill bar-shield" style="width:100%"></div></div><div class="bar"><div class="bar-fill bar-hp" style="width:100%"></div></div>';
+    $('pvp-my-name').textContent = state.playerName || 'Вы';
+    mountPvpPlayerShip();
+    mountPvpEnemyShip('dps');
+    $('pvp-en-name').textContent = 'Соперник';
+    renderPvpPerksRow('pvp-my-perks');
+    renderPvpPerksRow('pvp-en-perks', [null, null]);
+    const stats = state.profileComplete ? getShipCombatStats() : { hp: 100, shield: 80, damage: 30, attackSpeed: 30 };
+    renderPvpBars('player', cloneFighter(stats, getLuckPvpBonuses(), getEquippedPvpPerkFx()));
+    renderPvpBars('enemy', cloneFighter({ hp: 90, shield: 70, damage: 28, attackSpeed: 28 }, { crit: 3, doubleShot: 3, shieldRecharge: 3 }, {}));
+    $('pvp-log').innerHTML = '';
+    $('pvp-timer').textContent = formatPvpTimer(PVP_BATTLE_DURATION_MS / 1000);
+    $('pvp-timer').classList.remove('urgent');
     renderPvpDailyBar();
 }
 
@@ -6326,6 +6908,7 @@ function calcPvPPower(stats, luck, perkFx = {}) {
 }
 
 function startPvP() {
+    if (pvpBattleRunning) return;
     refreshPvpDailyState();
     if (pvpAttacksLeft() <= 0) {
         $('pvp-status').textContent = 'Лимит атак на сегодня исчерпан (5/5)';
@@ -6333,61 +6916,39 @@ function startPvP() {
         return;
     }
 
-    const seeds = buildPvpLeaderboardList().filter(p => !p.isMe);
-    const opponent = seeds[Math.floor(Math.random() * seeds.length)] || { name: 'Игрок', id: 'unknown' };
-    const opponentId = opponent.id || opponent.name;
-
-    if (!canAttackOpponent(opponentId)) {
-        $('pvp-status').textContent = `С ${opponent.name} уже 2 боя сегодня — ищите другого`;
+    const opponent = pickPvpOpponent();
+    if (!opponent) {
+        $('pvp-status').textContent = 'Нет доступных соперников (лимит 2 боя/день с каждым)';
         return;
     }
 
-    const stats = getShipCombatStats();
-    const luck = getLuckPvpBonuses();
-    const perkFx = getEquippedPvpPerkFx();
-    const my = calcPvPPower(stats, luck, perkFx);
+    pvpBattleRunning = true;
+    const btn = $('btn-pvp');
+    if (btn) { btn.disabled = true; btn.textContent = 'ИДЁТ БОЙ…'; }
+    $('pvp-status').textContent = `Поиск… ${opponent.name}`;
+    $('pvp-en-name').textContent = opponent.name;
+    mountPvpEnemyShip(opponent.factionId);
+    renderPvpPerksRow('pvp-en-perks', [null, null]);
 
-    let enemyStats = { hp: 80, shield: 70, damage: 28, attackSpeed: 28 };
-    if (perkFx.jammer) {
-        enemyStats = { ...enemyStats, shield: enemyStats.shield * (1 - perkFx.jammer / 100) };
-    }
-    const enemy = calcPvPPower(enemyStats, { crit: 3, doubleShot: 3, shieldRecharge: 3 }, {});
+    setTimeout(() => {
+        const playerStats = getShipCombatStats();
+        const playerLuck = getLuckPvpBonuses();
+        const playerPerks = getEquippedPvpPerkFx();
+        const enemyStats = scaleEnemyStats(playerStats);
+        const enemyLuck = { crit: 4, doubleShot: 4, shieldRecharge: 4 };
+        const enemyPerks = {};
 
-    if (perkFx.phase && enemy.procs.length > 0) {
-        my.power += stats.shield * (perkFx.phase / 100);
-        my.procs.push(`Фаза +${perkFx.phase}%`);
-    }
+        recordPvpAttack(opponent.id);
+        const battle = simulatePvpBattle(playerStats, enemyStats, playerLuck, playerPerks, enemyLuck, enemyPerks);
+        $('pvp-status').textContent = `Бой vs ${opponent.name}`;
 
-    const diff = Math.abs(my.power - enemy.power);
-    const avg = (my.power + enemy.power) / 2 || 1;
-    let result = 'lose';
-    if (diff / avg * 100 < PVP_DRAW_HP_PCT_DIFF) result = 'draw';
-    else if (my.power >= enemy.power) result = 'win';
-
-    ensurePlayerStats();
-    recordPvpAttack(opponentId);
-    const procText = my.procs.length ? ' · ' + my.procs.join(', ') : '';
-
-    if (result === 'win') {
-        addPvpDailyScore(PVP_SCORE_WIN);
-        state.pvpScore += PVP_SCORE_WIN;
-        state.playerStats.pvpWins += 1;
-        $('pvp-status').textContent = `ПОБЕДА vs ${opponent.name}! +${PVP_SCORE_WIN} очк.${procText}`;
-        showLoot(`+${PVP_SCORE_WIN} сут. очков`);
-    } else if (result === 'draw') {
-        addPvpDailyScore(PVP_SCORE_DRAW);
-        state.pvpScore += PVP_SCORE_DRAW;
-        $('pvp-status').textContent = `НИЧЬЯ vs ${opponent.name}. +${PVP_SCORE_DRAW} очк. обоим${procText}`;
-        showLoot(`+${PVP_SCORE_DRAW} сут. очков`);
-    } else {
-        addPvpDailyScore(-PVP_SCORE_LOSE);
-        state.pvpScore = Math.max(0, state.pvpScore - PVP_SCORE_LOSE);
-        state.playerStats.pvpLosses += 1;
-        $('pvp-status').textContent = `ПОРАЖЕНИЕ vs ${opponent.name}... −${PVP_SCORE_LOSE} очк.${procText}`;
-    }
-
-    Storage.save();
-    renderPvP();
+        runPvpBattleAnimation(battle, opponent, result => {
+            const procText = battle.ticks.flatMap(t => t.events).filter(e => e.type === 'proc').length
+                ? ' · перки сработали'
+                : '';
+            finishPvpBattleResult(result, opponent, procText);
+        });
+    }, 700);
 }
 
 // ─── Онбординг ───────────────────────────────────────────────
