@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.39.1</title>
+    <title>Space Dream v2.40.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -412,6 +412,16 @@
             color: #ffe880;
             text-shadow: 0 0 8px rgba(255, 212, 0, 0.75);
         }
+        .res-node-artifact .res-pill {
+            border-color: rgba(160, 100, 255, 0.55);
+            background: rgba(28, 12, 48, 0.55);
+            box-shadow: 0 0 8px rgba(160, 100, 255, 0.22);
+        }
+        .res-node-artifact .res-val {
+            color: #d8b0ff;
+            text-shadow: 0 0 8px rgba(160, 100, 255, 0.65);
+        }
+        .neon-purple { --neon-color: #b878ff; --neon-glow: rgba(184, 120, 255, 0.85); }
         .res-val {
             font-size: 8px;
             font-weight: 700;
@@ -2032,11 +2042,11 @@
                     <span class="res-val" id="ui-spice">0</span>
                 </div>
             </div>
-            <div class="res-node neon-green">
+            <div class="res-node neon-purple res-node-artifact">
                 <span class="hud-wire"></span>
-                <div class="res-pill resource-neon neon-green">
-                    <span class="res-icon" data-res="parts"></span>
-                    <span class="res-val" id="ui-parts">0</span>
+                <div class="res-pill resource-neon neon-purple" title="Ядра перков">
+                    <span class="res-icon" data-res="artifact"></span>
+                    <span class="res-val" id="ui-artifacts">0</span>
                 </div>
             </div>
         </div>
@@ -2227,7 +2237,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.39.1';
+const VERSION = '2.40.0';
 
 // 8-бит иконки ресурсов (космос · металл · пиксель)
 const RES_GFX_SVG = {
@@ -3678,7 +3688,7 @@ const MINING_PART_KEYS = ['luck', 'fuelTank'];
 const LUCK_MAX_LEVEL = 10;
 const LUCK_NOTHING_REDUCTION_PER_LVL = 1;
 const LUCK_PVP_BONUS_PER_LVL = 1;
-const MINE_LOOT_NOTHING_BASE = 36;
+const MINE_LOOT_NOTHING_BASE = 37;
 
 const LUCK_UPGRADE_COSTS = [
     { credits: 400, spice: 5, parts: 8 },
@@ -3695,7 +3705,7 @@ const LUCK_UPGRADE_COSTS = [
 
 // Базовая таблица лута (удача перераспределяет % «ничего» между остальными)
 const MINE_LOOT_TABLE = [
-    { pct: 36, id: 'nothing' },
+    { pct: 37, id: 'nothing' },
     { pct: 20, id: 'credits', min: 10, max: 100 },
     { pct: 10, id: 'fuel', min: 5, max: 15 },
     { pct: 6, id: 'hp', min: 2, max: 6, partKey: 'hp' },
@@ -3704,8 +3714,10 @@ const MINE_LOOT_TABLE = [
     { pct: 6, id: 'speed', min: 2, max: 6, partKey: 'speed' },
     { pct: 2, id: 'spice', min: 1, max: 10 },
     { pct: 5, id: 'luck', min: 2, max: 6, partKey: 'luck' },
-    { pct: 3, id: 'artifactParts', min: 1, max: 2 },
+    { pct: 2, id: 'artifactParts', min: 1, max: 2 },
 ];
+const PIRATE_ARTIFACT_BONUS_CHANCE = 0.28;
+const PVP_ARTIFACT_WIN_CHANCE = 0.18;
 const MINE_SOURCE_LABELS = { meteor: 'Метеорит', wreck: 'Обломки', pirate: 'Пират' };
 
 const CHECKIN_TOTAL_DAYS = 30;
@@ -3720,6 +3732,7 @@ const CHECKIN_CHOICES = {
     ],
     14: [
         { id: 'wealth', title: 'Богатство', reward: { credits: 150, spice: 8 } },
+        { id: 'tech', title: 'Техно', reward: { credits: 120, artifactParts: 4, spice: 3 } },
         { id: 'combat', title: 'Боевой', reward: { credits: 120, parts: { damage: 4, speed: 4 } } },
         { id: 'miner', title: 'Шахтёр', reward: { credits: 100, parts: { luck: 5, fuelTank: 5 } } },
     ],
@@ -3746,7 +3759,7 @@ const CHECKIN_REWARDS = {
     15: { credits: 70 },
     16: { fuel: 12 },
     17: { parts: { shield: 2 } },
-    18: { spice: 2 },
+    18: { spice: 2, artifactParts: 1 },
     19: { credits: 80 },
     20: { parts: { hp: 3, speed: 2 } },
     22: { credits: 90, fuel: 10 },
@@ -4702,7 +4715,7 @@ function updateHUD() {
     $('ui-spice').textContent = r.spice;
     $('ui-fuel').textContent = `${Math.floor(r.fuel)}/${state.maxFuel}`;
     $('ui-credits').textContent = Math.floor(r.credits);
-    $('ui-parts').textContent = getTotalParts();
+    $('ui-artifacts').textContent = getArtifactParts();
     applyTelegramAvatar();
 }
 
@@ -5162,11 +5175,23 @@ function generateMineObjects() {
     if (laser) world.appendChild(laser);
 }
 
+function addArtifactParts(amount, track = true) {
+    if (!amount || amount <= 0) return;
+    state.resources.artifactParts = (state.resources.artifactParts || 0) + amount;
+    if (track) trackEarned('artifactParts', amount);
+}
+
 function rollLootForKind(kind) {
     const entry = pickMineLootEntry();
     const source = MINE_SOURCE_LABELS[kind] || 'Добыча';
 
-    if (entry.id === 'nothing') return formatMineLoot(source, []);
+    if (entry.id === 'nothing') {
+        if (kind === 'pirate' && Math.random() < PIRATE_ARTIFACT_BONUS_CHANCE) {
+            addArtifactParts(1);
+            return formatMineLoot(source, [{ type: 'res', resType: 'artifact', amount: 1 }]);
+        }
+        return formatMineLoot(source, []);
+    }
 
     const amount = randInt(entry.min, entry.max);
     const items = [];
@@ -5188,9 +5213,13 @@ function rollLootForKind(kind) {
         trackEarned('spice', amount);
         items.push({ type: 'res', resType: entry.id, amount });
     } else if (entry.id === 'artifactParts') {
-        state.resources.artifactParts = (state.resources.artifactParts || 0) + amount;
-        trackEarned('artifactParts', amount);
+        addArtifactParts(amount);
         items.push({ type: 'res', resType: 'artifact', amount });
+    }
+
+    if (kind === 'pirate' && Math.random() < PIRATE_ARTIFACT_BONUS_CHANCE) {
+        addArtifactParts(1);
+        items.push({ type: 'res', resType: 'artifact', amount: 1 });
     }
 
     return formatMineLoot(source, items);
@@ -5518,7 +5547,14 @@ function getPerkHelpHtml() {
     return `
         <p><strong>6 перков</strong>, на корабль — <strong>2 слота</strong> (квадраты над носом). Качать можно все, активны только выбранные.</p>
         <p><strong>Прокачка:</strong> ${resIconHtml('artifact', 'res-gfx-inline')} + ${resIconHtml('spice', 'res-gfx-inline')} · до ${PERK_MAX_LEVEL} ур. · 1-й ап ≈ ${cost0.parts}+${cost0.spice}.</p>
-        <p><strong>На корабле:</strong> ${equipped.length ? equipped.join(', ') : 'нет'} · ядра — с добычи (~3%).</p>
+        <p><strong>На корабле:</strong> ${equipped.length ? equipped.join(', ') : 'нет'}</p>
+        <p><strong>Где фармить ядра ${resIconHtml('artifact', 'res-gfx-inline')}:</strong></p>
+        <ul>
+            <li><strong>Добыча</strong> — ${MINE_LOOT_TABLE.find(e => e.id === 'artifactParts').pct}% шанс (как 💎), 1–2 шт.</li>
+            <li><strong>Пираты</strong> — +28% шанс доп. ядра (даже если «ничего»)</li>
+            <li><strong>PvP</strong> — ${Math.round(PVP_ARTIFACT_WIN_CHANCE * 100)}% шанс +1 за победу</li>
+            <li><strong>Чекин</strong> — дни 18, 30 и выбор «Техно» (день 14)</li>
+        </ul>
         <p><strong>PvP</strong> (уже работают):</p>
         <ul>${PERKS.filter(p => p.scope === 'pvp').map(perkLine).join('')}</ul>
         <p><strong>Волны</strong> (скоро):</p>
@@ -5604,8 +5640,7 @@ function applyCheckinReward(reward) {
         trackEarned('spice', reward.spice);
     }
     if (reward.artifactParts) {
-        r.artifactParts = (r.artifactParts || 0) + reward.artifactParts;
-        trackEarned('artifactParts', reward.artifactParts);
+        addArtifactParts(reward.artifactParts);
     }
     if (reward.parts) {
         Object.entries(reward.parts).forEach(([key, n]) => addUpgradePart(key, n));
@@ -5854,8 +5889,13 @@ function startPvP() {
     const procText = my.procs.length ? ' · ' + my.procs.join(', ') : '';
     if (result === 'win') {
         state.pvpScore += 15;
-        $('pvp-status').textContent = `ПОБЕДА! +15${procText}`;
-        showLoot('+15 PvP');
+        let lootMsg = '+15 PvP';
+        if (Math.random() < PVP_ARTIFACT_WIN_CHANCE) {
+            addArtifactParts(1);
+            lootMsg += ' +1 ядро';
+        }
+        $('pvp-status').textContent = `ПОБЕДА! ${lootMsg}${procText}`;
+        showLoot(lootMsg);
     } else {
         state.pvpScore = Math.max(0, state.pvpScore - 10);
         $('pvp-status').textContent = `ПОРАЖЕНИЕ... -10${procText}`;
