@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.45.1</title>
+    <title>Space Dream v2.47.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -2699,7 +2699,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.45.1';
+const VERSION = '2.47.0';
 
 // 8-бит иконки ресурсов (космос · металл · пиксель)
 const RES_GFX_SVG = {
@@ -2887,12 +2887,31 @@ let planetSparkUntil = 0;
 const PLANET_SPIN_RAD_S = 0.018;
 const PLANET_SPIN_BOOST = 1.2;
 const SAVE_KEY = 'space_dream_save';
-const DEV_FREE_FUEL = true; // временно: без ограничений топлива для тестов
-const DEV_FREE_PVP = true;  // временно: без лимита атак PvP
+const DEV_FREE_FUEL = false;
+const DEV_FREE_PVP = true;  // временно: без лимита атак PvP для тестов
+const BASE_MAX_FUEL = 100;
+const FUEL_TANK_MAX_LEVEL = 10;
+const FUEL_TANK_BONUS = 10;
+const FUEL_REGEN_MS = 4 * 60 * 1000;
 const PVP_SHIP_PIXEL = 5;
 const SHIP_MOVE_SPEED = 98;
 const SHIP_ROT_LERP = 0.30;
 const FUEL_PER_FLIGHT = 10;
+
+function getMaxFuelFromUpgrades(upgrades) {
+    const lvl = Math.min(FUEL_TANK_MAX_LEVEL, Math.max(0, upgrades?.fuelTank || 0));
+    return BASE_MAX_FUEL + lvl * FUEL_TANK_BONUS;
+}
+
+function syncPlayerMaxFuel() {
+    state.maxFuel = getMaxFuelFromUpgrades(state.upgrades);
+    state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel ?? BASE_MAX_FUEL);
+}
+
+function syncBotMaxFuel(live) {
+    live.maxFuel = getMaxFuelFromUpgrades(live.upgrades);
+    live.resources.fuel = Math.min(live.maxFuel, live.resources.fuel ?? BASE_MAX_FUEL);
+}
 
 // Карта: планета в центре мира, поле шире экрана для свободного полёта
 const WORLD_PAD_MIN = 520;
@@ -4338,6 +4357,15 @@ const PVP_BOTS = [
       upgrades: { hp: 17, shield: 16, damage: 21, speed: 17, luck: 7 },
       perksEquipped: ['quantum', 'jammer'], perkLevels: { quantum: 4, jammer: 3 } },
 ];
+
+const BOT_MINE_WAVE_KINDS = ['meteor', 'meteor', 'meteor', 'wreck', 'wreck', 'wreck', 'pirate', 'pirate', 'pirate'];
+const BOT_FACTION_PVP_PERKS = {
+    tank: ['jammer', 'phase'],
+    dps: ['quantum', 'phase'],
+    sniper: ['quantum', 'jammer'],
+};
+
+let pvpBotSimRunning = false;
 const PVP_DAILY_RANK_MAX = 500;
 const PVP_LB_DISPLAY = 50;
 
@@ -4463,6 +4491,11 @@ const defaultState = () => ({
         lastRank: null,
         lastOpponentId: null,
         lastOpponentFaction: null,
+    },
+    pvpBotWorld: {
+        dayKey: null,
+        simulated: false,
+        bots: {},
     },
     freeRefuelUsed: false,
     playerStats: {
@@ -4725,6 +4758,9 @@ const Storage = {
         if ((state.upgrades.luck || 0) > LUCK_MAX_LEVEL) state.upgrades.luck = LUCK_MAX_LEVEL;
         refreshCheckinState();
         refreshPvpDailyState();
+        state.pvpDaily = { ...defaultState().pvpDaily, ...(state.pvpDaily || {}) };
+        state.pvpBotWorld = { ...defaultState().pvpBotWorld, ...(state.pvpBotWorld || {}) };
+        syncPlayerMaxFuel();
         if (state.factionId != null) {
             const list = SHIP_CATALOG[state.factionId] || SHIP_CATALOG.tank;
             if (state.shipIndex == null || state.shipIndex < 0) state.shipIndex = 0;
@@ -6181,14 +6217,14 @@ function getUpgradeHelpHtml() {
     const fname = faction?.name || 'ваша фракция';
     const pvp = getLuckPvpBonuses();
     return `
-        <p><strong>Добыча:</strong> уничтожайте объекты → ${resIconHtml('credits', 'res-gfx-inline')} ${resIconHtml('fuel', 'res-gfx-inline')} ${resIconHtml('spice', 'res-gfx-inline')} и детали для ангара.</p>
+        <p><strong>Добыча:</strong> уничтожайте объекты → ${resIconHtml('credits', 'res-gfx-inline')} ${resIconHtml('fuel', 'res-gfx-inline')} ${resIconHtml('spice', 'res-gfx-inline')} и детали для ангара. Полёт по карте бесплатный; <strong>−10 ${resIconHtml('fuel', 'res-gfx-inline')}</strong> за каждый объект. Реген: +1/${FUEL_REGEN_MS / 60000} мин.</p>
         <ul>
             <li><strong>${partIconHtml('hp', 'part-gfx-inline')} HP</strong> — запас прочности в PvP и волнах.</li>
             <li><strong>${partIconHtml('damage', 'part-gfx-inline')} Урон</strong> — сила каждой атаки.</li>
             <li><strong>${partIconHtml('shield', 'part-gfx-inline')} Защита</strong> — ёмкость щита, гасит урон первой.</li>
             <li><strong>${partIconHtml('speed', 'part-gfx-inline')} СК</strong> — скорость атаки, больше ударов за бой.</li>
             <li><strong>${partIconHtml('luck', 'part-gfx-inline')} Удача</strong> (10 ур., ${resIconHtml('credits', 'res-gfx-inline')}+${resIconHtml('spice', 'res-gfx-inline')}+${partIconHtml('luck', 'part-gfx-inline')}): −1% «ничего»/ур. на добыче; в PvP +1%/ур. к криту, 2× выстрелу и перезарядке щита (сейчас ${pvp.crit}%).</li>
-            <li><strong>${partIconHtml('fuelTank', 'part-gfx-inline')} Бак</strong> — +10 ${resIconHtml('fuel', 'res-gfx-inline')} ёмкости на добыче.</li>
+            <li><strong>${partIconHtml('fuelTank', 'part-gfx-inline')} Бак</strong> — +${FUEL_TANK_BONUS} ${resIconHtml('fuel', 'res-gfx-inline')} ёмкости (макс. ${BASE_MAX_FUEL + FUEL_TANK_MAX_LEVEL * FUEL_TANK_BONUS}).</li>
         </ul>
         ${getUpgradeFormulaHelpBlock()}
         <p><strong>Фракция «${fname}»:</strong> ${FACTION_UPGRADE_HINT[state.factionId] || 'свои множители роста'}.</p>
@@ -6487,8 +6523,8 @@ function renderHangar() {
             state.resources[def.resKey] -= cost.parts;
             state.upgrades[key]++;
             if (key === 'fuelTank') {
-                state.maxFuel += 10;
-                state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + 10);
+                syncPlayerMaxFuel();
+                state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + FUEL_TANK_BONUS);
             }
             Storage.save(); updateHUD(); renderHangar();
         };
@@ -6672,8 +6708,324 @@ function estimatePvpRankFromScore(score, list) {
     return Math.min(PVP_DAILY_RANK_MAX, worse + 1);
 }
 
+// ─── PvP: автономные боты (добыча · прокачка · PvP) ─────────
+function createBotLiveState(template) {
+    const tier = template.tier || 1;
+    const perkLevels = defaultPerkLevels();
+    Object.entries(template.perkLevels || {}).forEach(([id, lvl]) => { perkLevels[id] = lvl; });
+    const upgrades = {
+        hp: 0, damage: 0, shield: 0, speed: 0, luck: 0, fuelTank: 0,
+        ...(template.upgrades || {}),
+    };
+    const maxFuel = getMaxFuelFromUpgrades(upgrades);
+    return {
+        resources: {
+            credits: 120 + tier * 180,
+            fuel: maxFuel,
+            spice: Math.max(0, tier - 1) * 2,
+            artifactParts: tier * 2,
+            hpParts: 4 + tier * 4,
+            damageParts: 4 + tier * 4,
+            shieldParts: 4 + tier * 4,
+            speedParts: 4 + tier * 4,
+            luckParts: 3 + tier * 2,
+            fuelTankParts: 0,
+            containers: 0,
+        },
+        maxFuel,
+        upgrades,
+        perks: {
+            levels: perkLevels,
+            equipped: [...(template.perksEquipped || [null, null])],
+        },
+        pvpDaily: { score: 0, attacksUsed: 0, opponents: {} },
+        lastSimDayKey: null,
+        simLog: { minedObjects: 0, upgradesBought: 0, pvpFights: 0, pvpWins: 0 },
+    };
+}
+
+function getEffectiveMineLootTableForLuck(luckLvl) {
+    const shift = (luckLvl || 0) * LUCK_NOTHING_REDUCTION_PER_LVL;
+    const nothingNew = Math.max(0, MINE_LOOT_NOTHING_BASE - shift);
+    const redistributed = MINE_LOOT_NOTHING_BASE - nothingNew;
+    const others = MINE_LOOT_TABLE.filter(e => e.id !== 'nothing');
+    const othersSum = others.reduce((sum, e) => sum + e.pct, 0);
+    return MINE_LOOT_TABLE.map(entry => {
+        if (entry.id === 'nothing') return { ...entry, pct: nothingNew };
+        const bonus = othersSum > 0 ? redistributed * (entry.pct / othersSum) : 0;
+        return { ...entry, pct: entry.pct + bonus };
+    });
+}
+
+function botPickMineLoot(luckLvl) {
+    const table = getEffectiveMineLootTableForLuck(luckLvl);
+    const roll = Math.random() * 100;
+    let acc = 0;
+    for (const entry of table) {
+        acc += entry.pct;
+        if (roll < acc) return entry;
+    }
+    return table[table.length - 1];
+}
+
+function botApplyMineRoll(live, kind) {
+    const luckLvl = live.upgrades.luck || 0;
+    const entry = botPickMineLoot(luckLvl);
+    const r = live.resources;
+    if (entry.id === 'nothing') {
+        if (kind === 'pirate' && Math.random() < PIRATE_ARTIFACT_BONUS_CHANCE) {
+            r.artifactParts = (r.artifactParts || 0) + 1;
+        }
+        return;
+    }
+    const amount = randInt(entry.min, entry.max);
+    if (entry.partKey) {
+        const def = PART_DEFS[entry.partKey];
+        if (def?.resKey) r[def.resKey] = (r[def.resKey] || 0) + amount;
+    } else if (entry.id === 'credits') {
+        r.credits = (r.credits || 0) + amount;
+    } else if (entry.id === 'fuel') {
+        r.fuel = Math.min(live.maxFuel, (r.fuel || 0) + amount);
+    } else if (entry.id === 'spice') {
+        r.spice = (r.spice || 0) + amount;
+    } else if (entry.id === 'artifactParts') {
+        r.artifactParts = (r.artifactParts || 0) + amount;
+    }
+    if (kind === 'pirate' && Math.random() < PIRATE_ARTIFACT_BONUS_CHANCE) {
+        r.artifactParts = (r.artifactParts || 0) + 1;
+    }
+}
+
+function botUpgradeCost(key, live) {
+    const lvl = live.upgrades[key] ?? 0;
+    if (key === 'luck') {
+        const tier = LUCK_UPGRADE_COSTS[Math.min(lvl, LUCK_UPGRADE_COSTS.length - 1)];
+        return { credits: tier.credits, spice: tier.spice, parts: tier.parts, partKey: key };
+    }
+    if (key === 'fuelTank') {
+        return { credits: 100 * 2 ** lvl, parts: Math.ceil(3 * 1.4 ** lvl), partKey: key };
+    }
+    if (COMBAT_UPGRADE_KEYS.includes(key)) {
+        const tier = COMBAT_UPGRADE_COSTS[lvl];
+        if (!tier) return null;
+        return { credits: tier.credits, parts: tier.parts, spice: tier.spice || 0, partKey: key };
+    }
+    return null;
+}
+
+function botCanUpgradeCombat(key, live) {
+    if (!COMBAT_UPGRADE_KEYS.includes(key)) return true;
+    const u = live.upgrades;
+    const next = (u[key] || 0) + 1;
+    const minOther = Math.min(...COMBAT_UPGRADE_KEYS.filter(k => k !== key).map(k => u[k] || 0));
+    return next <= minOther + UPGRADE_SPREAD_MAX;
+}
+
+function botTryBuyUpgrade(key, live) {
+    const def = UPGRADES.find(u => u.key === key);
+    if (!def || (live.upgrades[key] || 0) >= def.max) return false;
+    if (COMBAT_UPGRADE_KEYS.includes(key) && !botCanUpgradeCombat(key, live)) return false;
+    const cost = botUpgradeCost(key, live);
+    if (!cost) return false;
+    const r = live.resources;
+    const partDef = PART_DEFS[cost.partKey || key];
+    const partRes = partDef?.resKey;
+    const haveParts = partRes ? (r[partRes] || 0) : 0;
+    if ((r.credits || 0) < cost.credits || haveParts < cost.parts || (cost.spice || 0) > (r.spice || 0)) {
+        return false;
+    }
+    r.credits -= cost.credits;
+    if (partRes) r[partRes] -= cost.parts;
+    if (cost.spice) r.spice -= cost.spice;
+    live.upgrades[key] = (live.upgrades[key] || 0) + 1;
+    if (key === 'fuelTank') {
+        syncBotMaxFuel(live);
+        live.resources.fuel = Math.min(live.maxFuel, (live.resources.fuel || 0) + FUEL_TANK_BONUS);
+    }
+    return true;
+}
+
+function botRunUpgradePass(live) {
+    let bought = true;
+    let guard = 0;
+    while (bought && guard++ < 80) {
+        bought = false;
+        const u = live.upgrades;
+        const combatSorted = COMBAT_UPGRADE_KEYS.slice().sort((a, b) => (u[a] || 0) - (u[b] || 0));
+        const order = [...combatSorted, 'luck', 'fuelTank'];
+        for (const key of order) {
+            if (botTryBuyUpgrade(key, live)) {
+                bought = true;
+                live.simLog.upgradesBought += 1;
+                break;
+            }
+        }
+    }
+}
+
+function botTryUpgradePerk(id, live) {
+    const p = PERKS.find(x => x.id === id);
+    if (!p || p.scope !== 'pvp') return false;
+    const lvl = live.perks.levels[id] || 0;
+    if (lvl >= PERK_MAX_LEVEL) return false;
+    const cost = PERK_UPGRADE_COSTS[lvl];
+    if (!cost) return false;
+    const r = live.resources;
+    if ((r.artifactParts || 0) < cost.parts || (r.spice || 0) < cost.spice) return false;
+    r.artifactParts -= cost.parts;
+    r.spice -= cost.spice;
+    live.perks.levels[id] = lvl + 1;
+    return true;
+}
+
+function botRunPerkPass(live, template) {
+    const prefer = BOT_FACTION_PVP_PERKS[template.factionId] || ['quantum', 'jammer'];
+    prefer.forEach(id => {
+        let guard = 0;
+        while (botTryUpgradePerk(id, live) && guard++ < PERK_MAX_LEVEL) {}
+    });
+    live.perks.equipped = prefer.map(id => ((live.perks.levels[id] || 0) >= 1 ? id : null));
+    while (live.perks.equipped.length < 2) live.perks.equipped.push(null);
+}
+
+function botGetLuckBonuses(live) {
+    const lvl = live.upgrades.luck || 0;
+    const bonus = lvl * LUCK_PVP_BONUS_PER_LVL;
+    return { crit: bonus, doubleShot: bonus, shieldRecharge: bonus };
+}
+
+function botGetPerkFx(live) {
+    const fx = {};
+    (live.perks.equipped || []).forEach(id => {
+        if (!id) return;
+        const lvl = live.perks.levels[id] || 0;
+        const p = PERKS.find(x => x.id === id);
+        if (!p || p.scope !== 'pvp' || lvl < 1) return;
+        fx[id] = p.values[Math.min(lvl, p.values.length) - 1];
+    });
+    return fx;
+}
+
+function botGetLoadoutFromLive(template, live) {
+    const stats = getShipCombatStatsFor(template.factionId, live.upgrades);
+    const luck = botGetLuckBonuses(live);
+    const perks = botGetPerkFx(live);
+    const power = calcPvpPowerRating(stats, luck, perks);
+    return { stats, luck, perks, power };
+}
+
+function botSimMineSession(live, template) {
+    const waves = 2 + template.tier;
+    for (let w = 0; w < waves; w++) {
+        for (const kind of BOT_MINE_WAVE_KINDS) {
+            if (!DEV_FREE_FUEL && (live.resources.fuel || 0) < FUEL_PER_FLIGHT) return;
+            if (!DEV_FREE_FUEL) live.resources.fuel -= FUEL_PER_FLIGHT;
+            botApplyMineRoll(live, kind);
+            live.simLog.minedObjects += 1;
+        }
+    }
+}
+
+function pickBotPvpTarget(attackerId, attackerLive, attackerPower) {
+    const tierAvg = getPvpBotTierAvgPower();
+    let bestTier = 1;
+    let bestDiff = Infinity;
+    for (let t = 1; t <= 5; t++) {
+        if (!tierAvg[t]) continue;
+        const diff = Math.abs(tierAvg[t] - attackerPower);
+        if (diff < bestDiff) { bestDiff = diff; bestTier = t; }
+    }
+    const pool = PVP_BOTS.filter(t => {
+        if (t.id === attackerId) return false;
+        const cnt = attackerLive.pvpDaily.opponents[t.id] || 0;
+        if (cnt >= PVP_MAX_REPEAT_OPPONENT) return false;
+        return Math.abs(t.tier - bestTier) <= 1;
+    });
+    if (!pool.length) {
+        return PVP_BOTS.find(t => t.id !== attackerId && (attackerLive.pvpDaily.opponents[t.id] || 0) < PVP_MAX_REPEAT_OPPONENT) || null;
+    }
+    return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function botRunPvpPass(live, template) {
+    while (live.pvpDaily.attacksUsed < PVP_ATTACKS_PER_DAY) {
+        const atk = botGetLoadoutFromLive(template, live);
+        const defTemplate = pickBotPvpTarget(template.id, live, atk.power);
+        if (!defTemplate) break;
+        const defLive = state.pvpBotWorld.bots[defTemplate.id];
+        if (!defLive) break;
+        const def = botGetLoadoutFromLive(defTemplate, defLive);
+        const battle = simulatePvpBattle(atk.stats, def.stats, atk.luck, atk.perks, def.luck, def.perks);
+        if (battle.result === 'win') {
+            live.pvpDaily.score += PVP_SCORE_WIN;
+            live.simLog.pvpWins += 1;
+        } else if (battle.result === 'draw') {
+            live.pvpDaily.score += PVP_SCORE_DRAW;
+        } else {
+            live.pvpDaily.score = Math.max(0, live.pvpDaily.score - PVP_SCORE_LOSE);
+        }
+        live.pvpDaily.attacksUsed += 1;
+        live.pvpDaily.opponents[defTemplate.id] = (live.pvpDaily.opponents[defTemplate.id] || 0) + 1;
+        live.simLog.pvpFights += 1;
+    }
+}
+
+function botStartNewDay(live) {
+    live.resources.fuel = Math.min(live.maxFuel, (live.resources.fuel || 0) + Math.floor(live.maxFuel * 0.6));
+    live.pvpDaily = { score: 0, attacksUsed: 0, opponents: {} };
+    live.simLog = { minedObjects: 0, upgradesBought: 0, pvpFights: 0, pvpWins: 0 };
+}
+
+function simulateBotDailyActivity(template) {
+    const live = state.pvpBotWorld.bots[template.id];
+    if (!live) return;
+    const today = getTodayKey();
+    if (live.lastSimDayKey === today) return;
+    botSimMineSession(live, template);
+    botRunUpgradePass(live);
+    botRunPerkPass(live, template);
+    live.lastSimDayKey = today;
+}
+
+function simulateAllBotsPvp() {
+    const order = [...PVP_BOTS].sort(() => Math.random() - 0.5);
+    order.forEach(t => botRunPvpPass(state.pvpBotWorld.bots[t.id], t));
+}
+
+function ensurePvpBotWorld() {
+    if (!state.pvpBotWorld) state.pvpBotWorld = { dayKey: null, simulated: false, bots: {} };
+    if (!state.pvpBotWorld.bots) state.pvpBotWorld.bots = {};
+    PVP_BOTS.forEach(t => {
+        if (!state.pvpBotWorld.bots[t.id]) {
+            state.pvpBotWorld.bots[t.id] = createBotLiveState(t);
+        } else {
+            syncBotMaxFuel(state.pvpBotWorld.bots[t.id]);
+        }
+    });
+    const today = getTodayKey();
+    if (pvpBotSimRunning) return;
+    if (state.pvpBotWorld.dayKey === today && state.pvpBotWorld.simulated) return;
+    pvpBotSimRunning = true;
+    try {
+        if (state.pvpBotWorld.dayKey !== today) {
+            PVP_BOTS.forEach(t => {
+                const live = state.pvpBotWorld.bots[t.id];
+                if (live.lastSimDayKey !== today) botStartNewDay(live);
+            });
+        }
+        PVP_BOTS.forEach(t => simulateBotDailyActivity(t));
+        simulateAllBotsPvp();
+        state.pvpBotWorld.dayKey = today;
+        state.pvpBotWorld.simulated = true;
+        Storage.save();
+    } finally {
+        pvpBotSimRunning = false;
+    }
+}
+
 function buildPvpLeaderboardList() {
     refreshPvpDailyState();
+    ensurePvpBotWorld();
     const me = {
         id: '__me__',
         name: state.playerName || 'Вы',
@@ -6682,13 +7034,13 @@ function buildPvpLeaderboardList() {
         isBot: false,
     };
     const bots = PVP_BOTS.map(bot => {
-        const loadout = getBotLoadout(bot);
+        const live = state.pvpBotWorld?.bots?.[bot.id];
         return {
             id: bot.id,
             name: bot.name,
             factionId: bot.factionId,
             tier: bot.tier,
-            dailyScore: bot.dailyScore ?? Math.round(loadout.power * 0.48),
+            dailyScore: live?.pvpDaily?.score ?? 0,
             isBot: true,
             isMe: false,
         };
@@ -6717,7 +7069,7 @@ function getPvpRewardHelpHtml() {
         <p><strong>Суточный рейтинг</strong> (сброс 00:00 MSK). Награды выдаёт сервер по итогам дня.</p>
         <p><strong>Бои:</strong> ${PVP_ATTACKS_PER_DAY} атак/сутки · повтор с тем же игроком ≤ ${PVP_MAX_REPEAT_OPPONENT} · бой ${PVP_BATTLE_DURATION_MS / 1000} сек.</p>
         <p><strong>Очки:</strong> победа +${PVP_SCORE_WIN} · поражение −${PVP_SCORE_LOSE} · ничья +${PVP_SCORE_DRAW} обоим.</p>
-        <p>Учитываются все статы ангара, удача и 2 экипированных PvP-перка. Соперники — <strong>15 ботов</strong> (5×3 фракции) с честными билдами; подбор по силе ±8%.</p>
+        <p>Учитываются все статы ангара, удача и 2 экипированных PvP-перка. <strong>15 ботов</strong> играют автономно: добыча → прокачка → PvP (симуляция раз в сутки).</p>
         <table class="help-table"><thead><tr><th>Место</th><th>Приз</th></tr></thead>
         <tbody>${rows}${groups}</tbody></table>
         <p style="font-size:5px;color:#889">Места 1–5 — уникальный приз. Внутри каждой группы приз плавно уменьшается к нижней границе.</p>
@@ -7108,30 +7460,15 @@ function calcPvpPowerRating(stats, luck = { crit: 0, doubleShot: 0, shieldRechar
     return Math.round(power);
 }
 
-function buildBotPerkFx(bot) {
-    const fx = {};
-    (bot.perksEquipped || []).forEach(id => {
-        if (!id) return;
-        const lvl = bot.perkLevels?.[id] || 0;
-        const p = PERKS.find(x => x.id === id);
-        if (!p || p.scope !== 'pvp' || lvl < 1) return;
-        fx[id] = p.values[Math.min(lvl, p.values.length) - 1];
-    });
-    return fx;
-}
-
-function buildBotLuck(bot) {
-    const luckLvl = Math.min(LUCK_MAX_LEVEL, bot.upgrades?.luck || 0);
-    const bonus = luckLvl * LUCK_PVP_BONUS_PER_LVL;
-    return { crit: bonus, doubleShot: bonus, shieldRecharge: bonus };
+function getBotLiveState(template) {
+    if (!pvpBotSimRunning) ensurePvpBotWorld();
+    return state.pvpBotWorld?.bots?.[template.id] || null;
 }
 
 function getBotLoadout(bot) {
-    const stats = getShipCombatStatsFor(bot.factionId, bot.upgrades);
-    const luck = buildBotLuck(bot);
-    const perks = buildBotPerkFx(bot);
-    const power = calcPvpPowerRating(stats, luck, perks);
-    return { stats, luck, perks, power };
+    const live = getBotLiveState(bot);
+    if (!live) return botGetLoadoutFromLive(bot, createBotLiveState(bot));
+    return botGetLoadoutFromLive(bot, live);
 }
 
 function getPvpBotById(id) {
@@ -7147,21 +7484,22 @@ function validatePvpBot(bot) {
     const issues = [];
     if (!bot?.id) issues.push('нет id');
     if (!['tank', 'dps', 'sniper'].includes(bot?.factionId)) issues.push('неверная фракция');
-    const u = bot.upgrades || {};
+    const live = state.pvpBotWorld?.bots?.[bot.id];
+    const u = live?.upgrades || bot.upgrades || {};
     const combat = COMBAT_UPGRADE_KEYS.map(k => u[k] || 0);
     if (combat.some(v => v < 0)) issues.push('отрицательные апгрейды');
     const spread = Math.max(...combat) - Math.min(...combat);
     if (spread > UPGRADE_SPREAD_MAX) issues.push(`разрыв ${spread} > ${UPGRADE_SPREAD_MAX}`);
     if ((u.luck || 0) > LUCK_MAX_LEVEL) issues.push(`удача ${u.luck} > ${LUCK_MAX_LEVEL}`);
     if ((u.luck || 0) < 0) issues.push('удача < 0');
-    const eq = bot.perksEquipped || [];
+    const eq = live?.perks?.equipped || bot.perksEquipped || [];
     if (eq.length > 2) issues.push('> 2 слотов перков');
     eq.forEach(id => {
         if (!id) return;
         const p = PERKS.find(x => x.id === id);
         if (!p) issues.push(`перк ${id} не найден`);
         else if (p.scope !== 'pvp') issues.push(`${id} не PvP-перк`);
-        const lvl = bot.perkLevels?.[id] || 0;
+        const lvl = live?.perks?.levels?.[id] ?? bot.perkLevels?.[id] ?? 0;
         if (lvl < 1 || lvl > p.values.length) issues.push(`${id}: ур.${lvl} вне 1–${p.values.length}`);
     });
     return issues;
@@ -7171,8 +7509,10 @@ function validatePvpBot(bot) {
 function auditPvpBots() {
     const rows = PVP_BOTS.map(bot => {
         const issues = validatePvpBot(bot);
+        const live = getBotLiveState(bot);
         const loadout = getBotLoadout(bot);
-        const u = bot.upgrades;
+        const u = live?.upgrades || bot.upgrades || {};
+        const log = live?.simLog || {};
         return {
             id: bot.id,
             name: bot.name,
@@ -7183,8 +7523,12 @@ function auditPvpBots() {
             dmg: loadout.stats.damage,
             spd: loadout.stats.attackSpeed,
             luck: u.luck || 0,
-            perks: (bot.perksEquipped || []).filter(Boolean).join('+') || '—',
+            perks: (live?.perks?.equipped || bot.perksEquipped || []).filter(Boolean).join('+') || '—',
             power: loadout.power,
+            pvpScore: live?.pvpDaily?.score ?? 0,
+            mined: log.minedObjects ?? 0,
+            ups: log.upgradesBought ?? 0,
+            pvp: log.pvpFights ?? 0,
             ok: issues.length === 0,
             issues,
         };
@@ -7272,6 +7616,7 @@ function pickPvpOpponent(playerPower) {
 // ─── PvP (упрощённый) ───────────────────────────────────────
 function renderPvP() {
     if (pvpBattleRunning) return;
+    ensurePvpBotWorld();
     setPvpFlightActive(false);
     $('pvp-lb-dropdown')?.classList.add('hidden');
     $('pvp-my-name').textContent = state.playerName || 'Вы';
@@ -7641,19 +7986,21 @@ async function boot() {
     initPlayTimeTracking();
     resumeOrStart();
     updateHUD();
+    ensurePvpBotWorld();
     if (DEV_FREE_PVP) {
         auditPvpBots();
         window.__pvpBots = auditPvpBots;
+        window.__pvpBotWorld = () => state.pvpBotWorld;
     }
 
-    // Восстановление топлива
+    // Восстановление топлива: +1 каждые 4 минуты до maxFuel
     setInterval(() => {
         if (state.resources.fuel < state.maxFuel) {
             state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + 1);
             updateHUD();
             Storage.save();
         }
-    }, 4 * 60 * 1000);
+    }, FUEL_REGEN_MS);
 }
 
 document.addEventListener('DOMContentLoaded', boot);
