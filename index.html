@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.37.0</title>
+    <title>Space Dream v2.38.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -1314,7 +1314,10 @@
         }
         .mine-loot .loot-sep { opacity: 0.45; margin: 0 3px; }
         .mine-loot .res-gfx svg { width: 10px; height: 10px; vertical-align: -2px; }
+        .mine-loot .part-gfx svg { width: 10px; height: 10px; vertical-align: -2px; }
         .hangar-res .res-gfx-inline { margin: 0 2px; }
+        .help-body .part-gfx-inline,
+        .help-formula .part-gfx-inline { vertical-align: -2px; margin-right: 2px; }
         .part-chip {
             display: inline-flex;
             align-items: center;
@@ -1322,16 +1325,28 @@
             vertical-align: middle;
         }
         .part-ico {
-            font-size: 10px;
-            line-height: 1;
-            filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.85));
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 0;
+            flex-shrink: 0;
         }
-        .part-hp .part-ico { color: #ff5577; text-shadow: 0 0 6px rgba(255, 70, 100, 0.7); }
-        .part-damage .part-ico { color: #ff9944; text-shadow: 0 0 6px rgba(255, 140, 50, 0.7); }
-        .part-shield .part-ico { color: #55aaff; text-shadow: 0 0 6px rgba(80, 160, 255, 0.7); }
-        .part-speed .part-ico { color: #44ffdd; text-shadow: 0 0 6px rgba(60, 255, 220, 0.65); }
-        .part-luck .part-ico { color: #66ff66; text-shadow: 0 0 6px rgba(80, 255, 80, 0.65); }
-        .part-fuelTank .part-ico { color: #ffcc33; text-shadow: 0 0 6px rgba(255, 200, 40, 0.7); }
+        .part-gfx svg {
+            display: block;
+            width: 11px;
+            height: 11px;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        .part-gfx-inline svg { width: 10px; height: 10px; }
+        .upgrade-row .part-gfx svg { width: 12px; height: 12px; }
+        .hangar-part .part-gfx svg { width: 12px; height: 12px; }
+        .part-hp .part-gfx svg { filter: drop-shadow(0 0 3px rgba(255, 70, 100, 0.65)); }
+        .part-damage .part-gfx svg { filter: drop-shadow(0 0 3px rgba(255, 140, 50, 0.65)); }
+        .part-shield .part-gfx svg { filter: drop-shadow(0 0 3px rgba(80, 160, 255, 0.65)); }
+        .part-speed .part-gfx svg { filter: drop-shadow(0 0 3px rgba(60, 255, 220, 0.6)); }
+        .part-luck .part-gfx svg { filter: drop-shadow(0 0 3px rgba(80, 255, 100, 0.6)); }
+        .part-fuelTank .part-gfx svg { filter: drop-shadow(0 0 3px rgba(255, 200, 40, 0.65)); }
         .upgrade-row .upgrade-head {
             display: flex;
             flex-direction: column;
@@ -1364,12 +1379,18 @@
         .hangar-part {
             display: inline-flex;
             align-items: center;
-            gap: 2px;
-            padding: 2px 4px;
+            gap: 3px;
+            padding: 3px 5px;
             border-radius: 3px;
             background: rgba(0, 12, 28, 0.55);
             border: 1px solid rgba(0, 232, 255, 0.18);
         }
+        .hangar-part.part-hp { border-color: rgba(255, 70, 100, 0.35); }
+        .hangar-part.part-damage { border-color: rgba(255, 140, 50, 0.35); }
+        .hangar-part.part-shield { border-color: rgba(80, 160, 255, 0.35); }
+        .hangar-part.part-speed { border-color: rgba(60, 255, 220, 0.3); }
+        .hangar-part.part-luck { border-color: rgba(80, 255, 100, 0.3); }
+        .hangar-part.part-fuelTank { border-color: rgba(255, 200, 40, 0.35); }
         .upgrade-section-head {
             display: flex;
             align-items: center;
@@ -2018,7 +2039,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.37.0';
+const VERSION = '2.38.0';
 
 // 8-бит иконки ресурсов (космос · металл · пиксель)
 const RES_GFX_SVG = {
@@ -2055,6 +2076,56 @@ const RES_GFX_SVG = {
         <rect x="5" y="8" width="2" height="2" fill="#384858"/>
         <rect x="4" y="10" width="4" height="1" fill="#788898"/>
         <rect x="5" y="9" width="2" height="1" fill="#a0b0c0"/>
+    </svg>`,
+};
+
+// 8-бит иконки деталей прокачки (металл · энергомодули)
+const PART_GFX_SVG = {
+    hp: `<svg viewBox="0 0 12 12" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="1" width="10" height="10" fill="#402028"/>
+        <rect x="2" y="2" width="8" height="8" fill="#583038"/>
+        <path d="M6 3 L8 5 L8 7 Q8 9 6 10 Q4 9 4 7 L4 5 Z" fill="#ff4466"/>
+        <rect x="5" y="4" width="2" height="1" fill="#ff99aa"/>
+        <rect x="1" y="1" width="10" height="1" fill="#687080"/>
+    </svg>`,
+    damage: `<svg viewBox="0 0 12 12" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="4" width="4" height="5" fill="#504030"/>
+        <rect x="7" y="4" width="4" height="5" fill="#504030"/>
+        <rect x="2" y="2" width="2" height="2" fill="#ff8833"/>
+        <rect x="8" y="2" width="2" height="2" fill="#ff8833"/>
+        <rect x="2" y="9" width="2" height="1" fill="#886050"/>
+        <rect x="8" y="9" width="2" height="1" fill="#886050"/>
+        <rect x="5" y="5" width="2" height="3" fill="#706050"/>
+    </svg>`,
+    shield: `<svg viewBox="0 0 12 12" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="6,1 10,3 10,8 6,11 2,8 2,3" fill="#284868"/>
+        <polygon points="6,2 9,4 9,7 6,9 3,7 3,4" fill="#4488cc"/>
+        <rect x="5" y="4" width="2" height="3" fill="#88ccff"/>
+        <polygon points="6,2 7,3 6,4 5,3" fill="#aaeeff"/>
+    </svg>`,
+    speed: `<svg viewBox="0 0 12 12" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="2" width="8" height="8" fill="#183838"/>
+        <polygon points="7,2 3,6 5,6 4,10 9,4 7,4" fill="#30ddcc"/>
+        <rect x="7" y="2" width="1" height="1" fill="#aaffee"/>
+    </svg>`,
+    luck: `<svg viewBox="0 0 12 12" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="2" width="8" height="8" fill="#1a3820"/>
+        <rect x="3" y="3" width="2" height="2" fill="#44cc55"/>
+        <rect x="7" y="3" width="2" height="2" fill="#44cc55"/>
+        <rect x="3" y="7" width="2" height="2" fill="#44cc55"/>
+        <rect x="7" y="7" width="2" height="2" fill="#44cc55"/>
+        <rect x="5" y="5" width="2" height="2" fill="#88ff88"/>
+        <rect x="5" y="1" width="2" height="1" fill="#889890"/>
+        <rect x="5" y="10" width="2" height="1" fill="#889890"/>
+    </svg>`,
+    fuelTank: `<svg viewBox="0 0 12 12" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="3" width="10" height="7" fill="#485868"/>
+        <rect x="2" y="4" width="8" height="5" fill="#1a2430"/>
+        <rect x="3" y="6" width="6" height="3" fill="#ffcc33"/>
+        <rect x="3" y="4" width="6" height="2" fill="#ffee88"/>
+        <rect x="4" y="2" width="4" height="1" fill="#8898a8"/>
+        <rect x="5" y="1" width="2" height="1" fill="#a8b8c8"/>
+        <rect x="1" y="3" width="10" height="1" fill="#687888"/>
     </svg>`,
 };
 
@@ -2442,10 +2513,22 @@ function getTotalParts() {
     return Object.values(PART_DEFS).reduce((sum, d) => sum + (state.resources[d.resKey] || 0), 0);
 }
 
-function partIconHtml(key) {
+function partIconHtml(key, extraClass = '') {
     const d = PART_DEFS[key];
     if (!d) return '';
-    return `<span class="part-chip part-${key}" title="${d.label} · ${d.scope}"><span class="part-ico">${d.icon}</span></span>`;
+    const svg = PART_GFX_SVG[key];
+    if (!svg) return '';
+    const chipCls = ['part-chip', `part-${key}`].join(' ');
+    const icoCls = ['part-ico', 'part-gfx', `part-gfx-${key}`, extraClass].filter(Boolean).join(' ');
+    return `<span class="${chipCls}" title="${d.label} · ${d.scope}"><span class="${icoCls}" aria-hidden="true">${svg}</span></span>`;
+}
+
+function partAmtHtml(key, amount) {
+    return `${amount}${partIconHtml(key, 'part-gfx-inline')}`;
+}
+
+function partLabelHtml(key, label) {
+    return `${partIconHtml(key, 'part-gfx-inline')} ${label}`;
 }
 
 function formatMineLoot(source, items) {
@@ -3138,12 +3221,12 @@ const ARTIFACTS = [
 
 // Детали для прокачки в ангаре (иконки показываются при добыче и в UI)
 const PART_DEFS = {
-    hp:       { key: 'hp',       resKey: 'hpParts',       icon: '❤️',  label: 'ХП',           scope: 'PvP' },
-    damage:   { key: 'damage',   resKey: 'damageParts',   icon: '⚔️',  label: 'Урон',         scope: 'PvP' },
-    shield:   { key: 'shield',   resKey: 'shieldParts',   icon: '🛡️',  label: 'Защита',       scope: 'PvP' },
-    speed:    { key: 'speed',    resKey: 'speedParts',    icon: '⚡',   label: 'СК. атаки',    scope: 'PvP' },
-    luck:     { key: 'luck',     resKey: 'luckParts',     icon: '🍀',   label: 'Удача',        scope: 'Добыча + PvP' },
-    fuelTank: { key: 'fuelTank', resKey: 'fuelTankParts', icon: '🔋',   label: 'Топл. бак',    scope: 'Добыча' },
+    hp:       { key: 'hp',       resKey: 'hpParts',       label: 'ХП',           scope: 'PvP' },
+    damage:   { key: 'damage',   resKey: 'damageParts',   label: 'Урон',         scope: 'PvP' },
+    shield:   { key: 'shield',   resKey: 'shieldParts',   label: 'Защита',       scope: 'PvP' },
+    speed:    { key: 'speed',    resKey: 'speedParts',    label: 'СК. атаки',    scope: 'PvP' },
+    luck:     { key: 'luck',     resKey: 'luckParts',     label: 'Удача',        scope: 'Добыча + PvP' },
+    fuelTank: { key: 'fuelTank', resKey: 'fuelTankParts', label: 'Топл. бак',    scope: 'Добыча' },
 };
 const COMBAT_PART_KEYS = ['hp', 'damage', 'shield', 'speed'];
 const MINING_PART_KEYS = ['luck', 'fuelTank'];
@@ -3356,8 +3439,8 @@ function getPlayerStatsHtml() {
         ? FACTION_STAT_LABELS.map(({ key, label }) =>
             renderStatsRow(label, stats[key] ?? '—')
         ).join('') +
-          renderStatsRow('🍀 «ничего»', `${getLuckNothingPct()}%`) +
-          renderStatsRow('🍀 PvP-проки', `крит ${pvpLuck.crit}% · 2× ${pvpLuck.doubleShot}% · щит ${pvpLuck.shieldRecharge}%`) +
+          renderStatsRow(`${partIconHtml('luck', 'part-gfx-inline')} «ничего»`, `${getLuckNothingPct()}%`) +
+          renderStatsRow(`${partIconHtml('luck', 'part-gfx-inline')} PvP-проки`, `крит ${pvpLuck.crit}% · 2× ${pvpLuck.doubleShot}% · щит ${pvpLuck.shieldRecharge}%`) +
           renderStatsRow(`${resIconHtml('fuel', 'res-gfx-inline')} Ёмкость бака`, `${state.maxFuel}`)
         : renderStatsRow('—', 'Создайте профиль');
 
@@ -3371,7 +3454,7 @@ function getPlayerStatsHtml() {
         renderStatsRow(`${resIconHtml('fuel', 'res-gfx-inline')} Топливо`, Math.floor(earned.fuel)),
         renderStatsRow(`${resIconHtml('spice', 'res-gfx-inline')} Спайс`, Math.floor(earned.spice)),
         ...Object.values(PART_DEFS).map(d =>
-            renderStatsRow(`${d.icon} ${d.label}`, earned[d.resKey] || 0)
+            renderStatsRow(`${partIconHtml(d.key, 'part-gfx-inline')} ${d.label}`, earned[d.resKey] || 0)
         ),
     ].join('');
 
@@ -4928,7 +5011,7 @@ function getUpgradeFormulaHelpBlock() {
             множители: HP×${m.hp} · Щ×${m.shield} · У×${m.damage} · СК×${m.speed}${nextLine}<br><br>
             <strong>Стоимость</strong><br>
             боевые: <code>${resIconHtml('credits', 'res-gfx-inline')} 50×2<sup>ур</sup></code>, детали <code>⌈5×1,5<sup>ур</sup>⌉</code><br>
-            удача: фикс. таблица ${resIconHtml('credits', 'res-gfx-inline')}+${resIconHtml('spice', 'res-gfx-inline')}+🍀 · «ничего» <code>39% − 1%×ур</code>, PvP <code>+1%×ур</code><br>
+            удача: фикс. таблица ${resIconHtml('credits', 'res-gfx-inline')}+${resIconHtml('spice', 'res-gfx-inline')}+${partIconHtml('luck', 'part-gfx-inline')} · «ничего» <code>39% − 1%×ур</code>, PvP <code>+1%×ур</code><br>
             бак: <code>${resIconHtml('credits', 'res-gfx-inline')} 100×2<sup>ур</sup></code>, <code>⌈3×1,4<sup>ур</sup>⌉</code> дет., +10${resIconHtml('fuel', 'res-gfx-inline')}/ур.<br><br>
             <strong>Баланс:</strong> ап боевого стата, если <code>новый ур. ≤ мин. ур. остальных + ${UPGRADE_SPREAD_MAX}</code>
         </div>
@@ -4942,12 +5025,12 @@ function getUpgradeHelpHtml() {
     return `
         <p><strong>Добыча:</strong> уничтожайте объекты → ${resIconHtml('credits', 'res-gfx-inline')} ${resIconHtml('fuel', 'res-gfx-inline')} ${resIconHtml('spice', 'res-gfx-inline')} и детали для ангара.</p>
         <ul>
-            <li><strong>❤️ HP</strong> — запас прочности в PvP и волнах.</li>
-            <li><strong>⚔️ Урон</strong> — сила каждой атаки.</li>
-            <li><strong>🛡️ Защита</strong> — ёмкость щита, гасит урон первой.</li>
-            <li><strong>⚡ СК</strong> — скорость атаки, больше ударов за бой.</li>
-            <li><strong>🍀 Удача</strong> (10 ур., ${resIconHtml('credits', 'res-gfx-inline')}+${resIconHtml('spice', 'res-gfx-inline')}+🍀): −1% «ничего»/ур. на добыче; в PvP +1%/ур. к криту, 2× выстрелу и перезарядке щита (сейчас ${pvp.crit}%).</li>
-            <li><strong>🔋 Бак</strong> — +10 ${resIconHtml('fuel', 'res-gfx-inline')} ёмкости на добыче.</li>
+            <li><strong>${partIconHtml('hp', 'part-gfx-inline')} HP</strong> — запас прочности в PvP и волнах.</li>
+            <li><strong>${partIconHtml('damage', 'part-gfx-inline')} Урон</strong> — сила каждой атаки.</li>
+            <li><strong>${partIconHtml('shield', 'part-gfx-inline')} Защита</strong> — ёмкость щита, гасит урон первой.</li>
+            <li><strong>${partIconHtml('speed', 'part-gfx-inline')} СК</strong> — скорость атаки, больше ударов за бой.</li>
+            <li><strong>${partIconHtml('luck', 'part-gfx-inline')} Удача</strong> (10 ур., ${resIconHtml('credits', 'res-gfx-inline')}+${resIconHtml('spice', 'res-gfx-inline')}+${partIconHtml('luck', 'part-gfx-inline')}): −1% «ничего»/ур. на добыче; в PvP +1%/ур. к криту, 2× выстрелу и перезарядке щита (сейчас ${pvp.crit}%).</li>
+            <li><strong>${partIconHtml('fuelTank', 'part-gfx-inline')} Бак</strong> — +10 ${resIconHtml('fuel', 'res-gfx-inline')} ёмкости на добыче.</li>
         </ul>
         ${getUpgradeFormulaHelpBlock()}
         <p><strong>Фракция «${fname}»:</strong> ${FACTION_UPGRADE_HINT[state.factionId] || 'свои множители роста'}.</p>
@@ -5004,7 +5087,7 @@ function formatCheckinRewardText(reward) {
     if (reward.spice) parts.push(resAmtHtml('spice', reward.spice));
     if (reward.parts) {
         Object.entries(reward.parts).forEach(([key, n]) => {
-            parts.push(`${n}${PART_DEFS[key]?.icon || ''}`);
+            parts.push(partAmtHtml(key, n));
         });
     }
     return parts.join(' ') || '—';
