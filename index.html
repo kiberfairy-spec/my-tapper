@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.35.1</title>
+    <title>Space Dream v2.36.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -141,7 +141,9 @@
             flex-shrink: 0;
             overflow: hidden;
             position: relative;
+            cursor: pointer;
         }
+        .top-player .avatar:active { transform: scale(0.94); }
         .top-player .avatar::before {
             content: '';
             position: absolute;
@@ -1433,6 +1435,37 @@
             font-family: Consolas, 'Courier New', monospace;
             font-size: 0.8rem;
         }
+        .stats-panel { width: min(100%, 360px); }
+        .stats-section {
+            margin: 10px 0 4px;
+            font-size: 8px;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            color: var(--neon-cyan);
+        }
+        .stats-section:first-child { margin-top: 0; }
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9px;
+        }
+        .stats-table td {
+            padding: 3px 4px;
+            border-bottom: 1px solid rgba(0, 232, 255, 0.12);
+            vertical-align: middle;
+        }
+        .stats-table td:first-child { color: #8eb8cc; }
+        .stats-table td:last-child {
+            text-align: right;
+            color: #e8f8ff;
+            font-weight: 600;
+        }
+        .stats-note {
+            margin: 8px 0 0;
+            font-size: 7px;
+            color: #6a90a8;
+            line-height: 1.4;
+        }
         .help-close {
             position: absolute;
             top: 8px;
@@ -1749,7 +1782,7 @@
         <div class="top-hud-scanline"></div>
         <div class="hud-wire-bus"></div>
         <div class="top-player">
-            <div class="avatar" id="avatar">?</div>
+            <div class="avatar" id="avatar" title="Статистика игрока">?</div>
             <div class="player-meta">
                 <div class="player-row-top">
                     <span class="pname" id="ui-name">Игрок</span>
@@ -1909,6 +1942,14 @@
     </div>
 </div>
 
+<div class="help-overlay hidden" id="stats-overlay">
+    <div class="help-panel stats-panel">
+        <button type="button" class="help-close" id="btn-stats-close" aria-label="Закрыть">✕</button>
+        <div class="help-title">СТАТИСТИКА ИГРОКА</div>
+        <div class="help-body" id="stats-body"></div>
+    </div>
+</div>
+
 <!-- Нижняя навигация — консоль корабля -->
 <div class="bottom-nav hidden" id="bottom-nav">
     <div class="cockpit-console">
@@ -1942,7 +1983,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.35.1';
+const VERSION = '2.36.0';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.28;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -2292,6 +2333,7 @@ function addUpgradePart(key, amount = 1) {
     const def = PART_DEFS[key];
     if (!def || amount <= 0) return;
     state.resources[def.resKey] = (state.resources[def.resKey] || 0) + amount;
+    trackEarned(def.resKey, amount);
 }
 
 function getPartCount(key) {
@@ -3125,7 +3167,155 @@ const defaultState = () => ({
     boosts: [],
     leaderboard: [],
     freeRefuelUsed: false,
+    playerStats: {
+        playTimeMs: 0,
+        earned: {
+            credits: 0, fuel: 0, spice: 0,
+            hpParts: 0, damageParts: 0, shieldParts: 0, speedParts: 0,
+            luckParts: 0, fuelTankParts: 0,
+        },
+        minedObjects: 0,
+        pvpWins: 0,
+        pvpLosses: 0,
+    },
 });
+
+let playSessionStartedAt = null;
+
+function defaultPlayerStats() {
+    return defaultState().playerStats;
+}
+
+function ensurePlayerStats() {
+    const def = defaultPlayerStats();
+    state.playerStats = { ...def, ...(state.playerStats || {}) };
+    state.playerStats.earned = { ...def.earned, ...(state.playerStats.earned || {}) };
+}
+
+function trackEarned(key, amount) {
+    if (!amount || amount <= 0) return;
+    ensurePlayerStats();
+    if (state.playerStats.earned[key] != null) {
+        state.playerStats.earned[key] += amount;
+    }
+}
+
+function flushPlayTime() {
+    if (!playSessionStartedAt) return;
+    ensurePlayerStats();
+    state.playerStats.playTimeMs += Date.now() - playSessionStartedAt;
+    playSessionStartedAt = Date.now();
+}
+
+function initPlayTimeTracking() {
+    playSessionStartedAt = Date.now();
+    setInterval(() => {
+        flushPlayTime();
+        Storage.save();
+    }, 30000);
+}
+
+function getTotalPlayTimeMs() {
+    ensurePlayerStats();
+    let ms = state.playerStats.playTimeMs;
+    if (playSessionStartedAt) ms += Date.now() - playSessionStartedAt;
+    return ms;
+}
+
+function formatPlayTime(ms) {
+    const sec = Math.floor(ms / 1000);
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    if (h > 0) return `${h}ч ${m}м`;
+    if (m > 0) return `${m}м ${s}с`;
+    return `${s}с`;
+}
+
+function renderStatsRow(label, value) {
+    return `<tr><td>${label}</td><td>${value}</td></tr>`;
+}
+
+function getPlayerStatsHtml() {
+    ensurePlayerStats();
+    const ps = state.playerStats;
+    const faction = FACTIONS.find(f => f.id === state.factionId);
+    const ship = state.profileComplete ? getCurrentShip() : null;
+    const stats = state.profileComplete ? getShipCombatStats() : null;
+    const earned = ps.earned;
+    const pvpLuck = getLuckPvpBonuses();
+
+    const profileRows = [
+        renderStatsRow('Игрок', state.playerName || '—'),
+        renderStatsRow('Фракция', faction?.name || '—'),
+        renderStatsRow('Корабль', ship?.name || '—'),
+        renderStatsRow('Уровень', `${state.level} · ${state.exp}/${state.level * 100} опыта`),
+        renderStatsRow('VIP', state.vip),
+        renderStatsRow('PvP очки', state.pvpScore),
+        renderStatsRow('Время в игре', formatPlayTime(getTotalPlayTimeMs())),
+    ].join('');
+
+    const combatRows = stats
+        ? FACTION_STAT_LABELS.map(({ key, label }) =>
+            renderStatsRow(label, stats[key] ?? '—')
+        ).join('') +
+          renderStatsRow('🍀 «ничего»', `${getLuckNothingPct()}%`) +
+          renderStatsRow('🍀 PvP-проки', `крит ${pvpLuck.crit}% · 2× ${pvpLuck.doubleShot}% · щит ${pvpLuck.shieldRecharge}%`) +
+          renderStatsRow('⛽ Ёмкость бака', `${state.maxFuel}`)
+        : renderStatsRow('—', 'Создайте профиль');
+
+    const upgradeRows = UPGRADES.map(u => {
+        const lvl = state.upgrades[u.key] || 0;
+        return renderStatsRow(`${partIconHtml(u.key)} ${u.label}`, `${lvl} / ${u.max}`);
+    }).join('');
+
+    const earnedRows = [
+        renderStatsRow('🪙 Золото', Math.floor(earned.credits)),
+        renderStatsRow('⛽ Топливо', Math.floor(earned.fuel)),
+        renderStatsRow('💎 Спайс', Math.floor(earned.spice)),
+        ...Object.values(PART_DEFS).map(d =>
+            renderStatsRow(`${d.icon} ${d.label}`, earned[d.resKey] || 0)
+        ),
+    ].join('');
+
+    const art = ARTIFACTS.find(a => a.id === state.artifact.id);
+    const artifactRow = art && state.artifact.level > 0
+        ? renderStatsRow('Артефакт', `${art.name} ур.${state.artifact.level}`)
+        : '';
+
+    const activityRows = [
+        renderStatsRow('Объектов добыто', ps.minedObjects),
+        renderStatsRow('PvP побед', ps.pvpWins),
+        renderStatsRow('PvP поражений', ps.pvpLosses),
+        renderStatsRow('Чекин', `день ${state.checkin.day} / ${CHECKIN_TOTAL_DAYS}`),
+        artifactRow,
+    ].filter(Boolean).join('');
+
+    return `
+        <div class="stats-section">ПРОФИЛЬ</div>
+        <table class="stats-table">${profileRows}</table>
+        <div class="stats-section">ХАРАКТЕРИСТИКИ КОРАБЛЯ</div>
+        <table class="stats-table">${combatRows}</table>
+        <div class="stats-section">ПРОКАЧКА</div>
+        <table class="stats-table">${upgradeRows}</table>
+        <div class="stats-section">НАФАРМЛЕНО ЗА ВСЁ ВРЕМЯ</div>
+        <table class="stats-table">${earnedRows}</table>
+        <div class="stats-section">АКТИВНОСТЬ</div>
+        <table class="stats-table">${activityRows}</table>
+        <p class="stats-note">Счётчик ресурсов учитывает добычу и награды (чекин и т.п.). Текущий баланс может быть меньше из‑за трат.</p>
+    `;
+}
+
+function openPlayerStats() {
+    if (!state.profileComplete) return;
+    const body = $('stats-body');
+    if (body) body.innerHTML = getPlayerStatsHtml();
+    $('stats-overlay')?.classList.remove('hidden');
+}
+
+function closePlayerStats() {
+    $('stats-overlay')?.classList.add('hidden');
+}
 
 let state = defaultState();
 let currentTab = 'mining';
@@ -3152,6 +3342,7 @@ const Storage = {
     },
 
     save() {
+        flushPlayTime();
         const json = JSON.stringify(state);
         try { localStorage.setItem(SAVE_KEY, json); } catch (e) {}
         try {
@@ -3162,6 +3353,7 @@ const Storage = {
 
     saveAsync() {
         return new Promise(resolve => {
+            flushPlayTime();
             const json = JSON.stringify(state);
             try { localStorage.setItem(SAVE_KEY, json); } catch (e) {}
             try {
@@ -3222,6 +3414,7 @@ const Storage = {
         state.upgrades = { ...defaultState().upgrades, ...(state.upgrades || {}) };
         state.resources = migrateResources(state.resources);
         state.checkin = { ...defaultState().checkin, ...(state.checkin || {}) };
+        ensurePlayerStats();
         if ((state.upgrades.luck || 0) > LUCK_MAX_LEVEL) state.upgrades.luck = LUCK_MAX_LEVEL;
         refreshCheckinState();
         if (state.factionId != null) {
@@ -4348,12 +4541,16 @@ function rollLootForKind(kind) {
         items.push({ type: 'part', key: entry.partKey, amount });
     } else if (entry.id === 'credits') {
         state.resources.credits += amount;
+        trackEarned('credits', amount);
         items.push({ type: 'res', icon: entry.icon, amount });
     } else if (entry.id === 'fuel') {
+        const added = Math.min(amount, Math.max(0, state.maxFuel - state.resources.fuel));
         state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + amount);
+        trackEarned('fuel', added);
         items.push({ type: 'res', icon: entry.icon, amount });
     } else if (entry.id === 'spice') {
         state.resources.spice += amount;
+        trackEarned('spice', amount);
         items.push({ type: 'res', icon: entry.icon, amount });
     }
 
@@ -4483,6 +4680,8 @@ function flyToMine(obj) {
             const loot = rollLootForKind(obj.kind);
             showMineLoot(loot, lootX, lootY);
             state.exp += 12;
+            ensurePlayerStats();
+            state.playerStats.minedObjects += 1;
             if (state.exp >= state.level * 100) {
                 state.exp -= state.level * 100;
                 state.level++;
@@ -4721,9 +4920,19 @@ function getCheckinDayPreview(day) {
 
 function applyCheckinReward(reward) {
     const r = state.resources;
-    if (reward.credits) r.credits += reward.credits;
-    if (reward.fuel) r.fuel = Math.min(state.maxFuel, r.fuel + reward.fuel);
-    if (reward.spice) r.spice += reward.spice;
+    if (reward.credits) {
+        r.credits += reward.credits;
+        trackEarned('credits', reward.credits);
+    }
+    if (reward.fuel) {
+        const added = Math.min(reward.fuel, Math.max(0, state.maxFuel - r.fuel));
+        r.fuel = Math.min(state.maxFuel, r.fuel + reward.fuel);
+        trackEarned('fuel', added);
+    }
+    if (reward.spice) {
+        r.spice += reward.spice;
+        trackEarned('spice', reward.spice);
+    }
     if (reward.parts) {
         Object.entries(reward.parts).forEach(([key, n]) => addUpgradePart(key, n));
     }
@@ -4949,6 +5158,9 @@ function startPvP() {
         { crit: 3, doubleShot: 3, shieldRecharge: 3 }
     );
     const result = my.power >= enemy.power ? 'win' : 'lose';
+    ensurePlayerStats();
+    if (result === 'win') state.playerStats.pvpWins += 1;
+    else state.playerStats.pvpLosses += 1;
     const procText = my.procs.length ? ' · ' + my.procs.join(', ') : '';
     if (result === 'win') {
         state.pvpScore += 15;
@@ -5071,6 +5283,7 @@ function resumeOrStart() {
 async function resetGame() {
     state = defaultState();
     state.profileComplete = false;
+    playSessionStartedAt = Date.now();
 
     shipPos = { x: 0, y: 0 };
     shipRotation = 0;
@@ -5148,6 +5361,15 @@ function bindEvents() {
         if (e.target?.id === 'help-checkin-overlay') closeCheckinHelp();
     });
 
+    $('avatar')?.addEventListener('click', e => {
+        e.stopPropagation();
+        openPlayerStats();
+    });
+    $('btn-stats-close')?.addEventListener('click', closePlayerStats);
+    $('stats-overlay')?.addEventListener('click', e => {
+        if (e.target?.id === 'stats-overlay') closePlayerStats();
+    });
+
     $('btn-reset').onclick = async () => {
         if (!confirm('Сбросить прогресс и выбрать фракцию заново?')) return;
         await resetGame();
@@ -5167,15 +5389,22 @@ function bindEvents() {
     $('btn-pvp').onclick = startPvP;
 
     document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'hidden') Storage.save();
+        if (document.visibilityState === 'hidden') {
+            flushPlayTime();
+            Storage.save();
+        }
         if (document.visibilityState === 'visible') {
+            playSessionStartedAt = Date.now();
             refreshCheckinState();
             applyGameInsets();
             syncPanelHeights();
             onMiningResize();
         }
     });
-    window.addEventListener('pagehide', () => Storage.save());
+    window.addEventListener('pagehide', () => {
+        flushPlayTime();
+        Storage.save();
+    });
     const relayout = () => {
         syncPanelHeights();
         applyGameInsets();
@@ -5217,6 +5446,7 @@ async function boot() {
 
     initMiningTap();
     bindEvents();
+    initPlayTimeTracking();
     resumeOrStart();
     updateHUD();
 
