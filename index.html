@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.45.0</title>
+    <title>Space Dream v2.45.1</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -2699,7 +2699,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.45.0';
+const VERSION = '2.45.1';
 
 // 8-бит иконки ресурсов (космос · металл · пиксель)
 const RES_GFX_SVG = {
@@ -4461,6 +4461,8 @@ const defaultState = () => ({
         attacksUsed: 0,
         opponents: {},
         lastRank: null,
+        lastOpponentId: null,
+        lastOpponentFaction: null,
     },
     freeRefuelUsed: false,
     playerStats: {
@@ -6544,6 +6546,8 @@ function canAttackOpponent(opponentId) {
 }
 
 function recordPvpAttack(opponentId) {
+    const bot = getPvpBotById(opponentId);
+    if (bot) notePvpOpponentPick(bot);
     if (DEV_FREE_PVP) return;
     refreshPvpDailyState();
     state.pvpDaily.attacksUsed += 1;
@@ -7195,20 +7199,61 @@ function auditPvpBots() {
     return rows;
 }
 
+function notePvpOpponentPick(bot) {
+    if (!bot?.id) return;
+    refreshPvpDailyState();
+    state.pvpDaily.lastOpponentId = bot.id;
+    state.pvpDaily.lastOpponentFaction = bot.factionId || null;
+}
+
+function getPvpBotTierAvgPower() {
+    const map = {};
+    PVP_BOTS.forEach(bot => {
+        const t = bot.tier;
+        if (!map[t]) map[t] = { sum: 0, n: 0 };
+        map[t].sum += getBotLoadout(bot).power;
+        map[t].n += 1;
+    });
+    const avg = {};
+    Object.keys(map).forEach(t => { avg[t] = map[t].sum / map[t].n; });
+    return avg;
+}
+
 function pickPvpOpponent(playerPower) {
     const available = PVP_BOTS.filter(b => canAttackOpponent(b.id));
     if (!available.length) return null;
 
-    const minP = playerPower * PVP_POWER_MATCH_MIN;
-    const maxP = playerPower * PVP_POWER_MATCH_MAX;
-    const ranked = available.map(bot => ({ bot, loadout: getBotLoadout(bot) }))
-        .sort((a, b) => Math.abs(a.loadout.power - playerPower) - Math.abs(b.loadout.power - playerPower));
+    const tierAvg = getPvpBotTierAvgPower();
+    let bestTier = 1;
+    let bestDiff = Infinity;
+    for (let t = 1; t <= 5; t++) {
+        if (!tierAvg[t]) continue;
+        const diff = Math.abs(tierAvg[t] - playerPower);
+        if (diff < bestDiff) { bestDiff = diff; bestTier = t; }
+    }
 
-    let pool = ranked.filter(x => x.loadout.power >= minP && x.loadout.power <= maxP);
-    if (!pool.length) pool = ranked.slice(0, Math.min(4, ranked.length));
+    const withLoadout = available.map(bot => ({ bot, loadout: getBotLoadout(bot) }));
+    // Сначала все 3 фракции ближайшего tier, иначе tier±1
+    let pool = withLoadout.filter(x => x.bot.tier === bestTier);
+    if (pool.length < 2) {
+        pool = withLoadout.filter(x => Math.abs(x.bot.tier - bestTier) <= 1);
+    }
+    if (!pool.length) pool = withLoadout;
 
-    const pick = pool[Math.floor(Math.random() * pool.length)];
+    refreshPvpDailyState();
+    const lastId = state.pvpDaily.lastOpponentId;
+    const lastFaction = state.pvpDaily.lastOpponentFaction;
+
+    let candidates = pool.filter(x => x.bot.id !== lastId);
+    if (!candidates.length) candidates = pool;
+
+    const otherFaction = candidates.filter(x => x.bot.factionId !== lastFaction);
+    if (otherFaction.length) candidates = otherFaction;
+
+    const pick = candidates[Math.floor(Math.random() * candidates.length)];
     const { bot, loadout } = pick;
+    notePvpOpponentPick(bot);
+
     const lb = buildPvpLeaderboardList().find(p => p.id === bot.id);
     return {
         id: bot.id,
