@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.43.3</title>
+    <title>Space Dream v2.43.4</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -2699,7 +2699,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.43.3';
+const VERSION = '2.43.4';
 
 // 8-бит иконки ресурсов (космос · металл · пиксель)
 const RES_GFX_SVG = {
@@ -4273,6 +4273,9 @@ const PVP_SCORE_WIN = 15;
 const PVP_SCORE_LOSE = 7;
 const PVP_SCORE_DRAW = 5;
 const PVP_BATTLE_DURATION_MS = 12000;
+const PVP_TICK_MS = 250;
+const PVP_DAMAGE_SCALE = 0.55;
+const PVP_HULL_SCALE = 1.2;
 const PVP_DRAW_HP_PCT_DIFF = 3;
 const PVP_DAILY_RANK_MAX = 500;
 const PVP_LB_DISPLAY = 50;
@@ -6820,7 +6823,7 @@ function applyDamage(defender, rawDmg, events, attackerName) {
 }
 
 function fighterAttack(attacker, defender, events, attackerName) {
-    let dmg = attacker.damage * (0.92 + Math.random() * 0.16);
+    let dmg = attacker.damage * PVP_DAMAGE_SCALE * (0.92 + Math.random() * 0.16);
     const procs = [];
     if (attacker.firstShot && attacker.perkFx.quantum) {
         dmg *= 1 + attacker.perkFx.quantum / 100;
@@ -6850,29 +6853,44 @@ function fighterAttack(attacker, defender, events, attackerName) {
     }
 }
 
+function getPvpChargePerTick(attackSpeed, tickCount) {
+    const shots = 3.5 + attackSpeed / 12;
+    return (shots * 100) / tickCount;
+}
+
 function simulatePvpBattle(playerStats, enemyStats, playerLuck, playerPerks, enemyLuck, enemyPerks) {
     const player = cloneFighter(playerStats, playerLuck, playerPerks);
     const enemy = cloneFighter(enemyStats, enemyLuck, enemyPerks);
+    [player, enemy].forEach(f => {
+        f.maxHp = Math.max(1, Math.round(f.maxHp * PVP_HULL_SCALE));
+        f.hp = f.maxHp;
+        f.maxShield = Math.max(0, Math.round(f.maxShield * PVP_HULL_SCALE));
+        f.shield = f.maxShield;
+        f.shieldBroken = f.maxShield <= 0;
+    });
     if (player.perkFx.jammer && enemy.maxShield > 0) {
         const cut = enemy.maxShield * (player.perkFx.jammer / 100);
         enemy.maxShield = Math.max(0, enemy.maxShield - cut);
         enemy.shield = Math.min(enemy.shield, enemy.maxShield);
     }
     const ticks = [];
-    const TICK_N = Math.round(PVP_BATTLE_DURATION_MS / 250);
+    const TICK_N = Math.round(PVP_BATTLE_DURATION_MS / PVP_TICK_MS);
     for (let i = 0; i < TICK_N; i++) {
         const events = [];
         [player, enemy].forEach(f => { if (f.rechargeCd > 0) f.rechargeCd -= 1; });
-        const order = player.attackSpeed >= enemy.attackSpeed ? [[player, enemy, 'Вы'], [enemy, player, 'Враг']] : [[enemy, player, 'Враг'], [player, enemy, 'Вы']];
+        const order = player.attackSpeed >= enemy.attackSpeed
+            ? [[player, enemy, 'Вы'], [enemy, player, 'Враг']]
+            : [[enemy, player, 'Враг'], [player, enemy, 'Вы']];
         order.forEach(([atk, def, name]) => {
             if (atk.hp <= 0 || def.hp <= 0) return;
-            atk.charge += atk.attackSpeed * (250 / PVP_BATTLE_DURATION_MS) * 100;
-            while (atk.charge >= 100 && def.hp > 0) {
+            atk.charge += getPvpChargePerTick(atk.attackSpeed, TICK_N);
+            if (atk.charge >= 100) {
                 atk.charge -= 100;
                 fighterAttack(atk, def, events, name);
                 if (player.perkFx.phase && name === 'Враг' && events.some(e => e.type === 'proc' || e.cls === 'crit')) {
                     const gain = player.maxShield * (player.perkFx.phase / 100);
                     player.shield = Math.min(player.maxShield, player.shield + gain);
+                    if (player.shield > 0) player.shieldBroken = false;
                     events.push({ type: 'proc', text: `Фаза +${Math.round(gain)} щита`, cls: 'shield-hit' });
                 }
             }
@@ -6884,7 +6902,6 @@ function simulatePvpBattle(playerStats, enemyStats, playerLuck, playerPerks, ene
             events,
             shots: events.some(e => e.type === 'hp' || e.type === 'shield'),
         });
-        if (player.hp <= 0 || enemy.hp <= 0) break;
     }
     const pPct = player.hp / player.maxHp;
     const ePct = enemy.hp / enemy.maxHp;
@@ -6969,18 +6986,19 @@ function runPvpBattleAnimation(battle, opponent, onDone) {
     if (!ticks.length) { setPvpFlightActive(false); onDone(battle.result); return; }
     setPvpFlightActive(true);
     let idx = 0;
-    const tickMs = 250;
+    const tickMs = PVP_TICK_MS;
+    const totalSteps = Math.round(PVP_BATTLE_DURATION_MS / PVP_TICK_MS);
     const totalSec = PVP_BATTLE_DURATION_MS / 1000;
     const timerEl = $('pvp-timer');
     const arena = $('pvp-arena');
     const started = Date.now();
 
     const step = () => {
-        if (idx >= ticks.length) {
+        if (idx >= totalSteps) {
             onDone(battle.result);
             return;
         }
-        const tick = ticks[idx];
+        const tick = ticks[Math.min(idx, ticks.length - 1)];
         renderPvpBars('player', tick.player);
         renderPvpBars('enemy', tick.enemy);
         if (tick.shots) {
