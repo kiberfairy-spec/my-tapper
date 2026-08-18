@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.34.0</title>
+    <title>Space Dream v2.35.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -1928,7 +1928,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.34.0';
+const VERSION = '2.35.0';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.28;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -2120,7 +2120,11 @@ function getUpgradeBonusLabel(key) {
         const delta = getNextUpgradeDelta(key);
         return delta ? `<span class="upgrade-next-bonus">(+${delta} за ап)</span>` : '';
     }
-    if (key === 'luck') return '<span class="upgrade-next-bonus">(+12% лута)</span>';
+    if (key === 'luck') {
+        const next = (state.upgrades.luck || 0) + 1;
+        const nothingPct = Math.max(0, MINE_LOOT_NOTHING_BASE - next * LUCK_NOTHING_REDUCTION_PER_LVL);
+        return `<span class="upgrade-next-bonus">(«ничего» ${nothingPct}% · PvP +1%)</span>`;
+    }
     if (key === 'fuelTank') return '<span class="upgrade-next-bonus">(+10 ⛽)</span>';
     return '';
 }
@@ -2213,12 +2217,46 @@ function migrateResources(r) {
     return out;
 }
 
-function getLuckMultiplier() {
-    return 1 + (state.upgrades.luck || 0) * LUCK_BONUS_PER_LVL;
+function getLuckLevel() {
+    return state.upgrades.luck || 0;
 }
 
-function applyLuckAmount(base) {
-    return Math.max(1, Math.round(base * getLuckMultiplier()));
+function getLuckPvpBonuses() {
+    const lvl = getLuckLevel();
+    const bonus = lvl * LUCK_PVP_BONUS_PER_LVL;
+    return { crit: bonus, doubleShot: bonus, shieldRecharge: bonus };
+}
+
+function getLuckNothingPct(lvl = getLuckLevel()) {
+    return Math.max(0, MINE_LOOT_NOTHING_BASE - lvl * LUCK_NOTHING_REDUCTION_PER_LVL);
+}
+
+function getLuckScopeHint() {
+    const pvp = getLuckPvpBonuses();
+    return `«ничего» ${getLuckNothingPct()}% · крит ${pvp.crit}% · 2× ${pvp.doubleShot}% · щит ${pvp.shieldRecharge}%`;
+}
+
+function formatUpgradeCostLabel(cost, key) {
+    let s = `${cost.credits}🪙`;
+    if (cost.spice) s += ` ${cost.spice}💎`;
+    s += ` ${cost.parts}${partIconHtml(key)}`;
+    return s;
+}
+
+function getEffectiveMineLootTable() {
+    const luckLvl = getLuckLevel();
+    const shift = luckLvl * LUCK_NOTHING_REDUCTION_PER_LVL;
+    const nothingBase = MINE_LOOT_NOTHING_BASE;
+    const nothingNew = Math.max(0, nothingBase - shift);
+    const redistributed = nothingBase - nothingNew;
+    const others = MINE_LOOT_TABLE.filter(e => e.id !== 'nothing');
+    const othersSum = others.reduce((sum, e) => sum + e.pct, 0);
+
+    return MINE_LOOT_TABLE.map(entry => {
+        if (entry.id === 'nothing') return { ...entry, pct: nothingNew };
+        const bonus = othersSum > 0 ? redistributed * (entry.pct / othersSum) : 0;
+        return { ...entry, pct: entry.pct + bonus };
+    });
 }
 
 function randInt(min, max) {
@@ -2226,13 +2264,14 @@ function randInt(min, max) {
 }
 
 function pickMineLootEntry() {
+    const table = getEffectiveMineLootTable();
     const roll = Math.random() * 100;
     let acc = 0;
-    for (const entry of MINE_LOOT_TABLE) {
+    for (const entry of table) {
         acc += entry.pct;
         if (roll < acc) return entry;
     }
-    return MINE_LOOT_TABLE[MINE_LOOT_TABLE.length - 1];
+    return table[table.length - 1];
 }
 
 function addUpgradePart(key, amount = 1) {
@@ -2950,14 +2989,30 @@ const PART_DEFS = {
     damage:   { key: 'damage',   resKey: 'damageParts',   icon: '⚔️',  label: 'Урон',         scope: 'PvP' },
     shield:   { key: 'shield',   resKey: 'shieldParts',   icon: '🛡️',  label: 'Защита',       scope: 'PvP' },
     speed:    { key: 'speed',    resKey: 'speedParts',    icon: '⚡',   label: 'СК. атаки',    scope: 'PvP' },
-    luck:     { key: 'luck',     resKey: 'luckParts',     icon: '🍀',   label: 'Удача',        scope: 'Добыча' },
+    luck:     { key: 'luck',     resKey: 'luckParts',     icon: '🍀',   label: 'Удача',        scope: 'Добыча + PvP' },
     fuelTank: { key: 'fuelTank', resKey: 'fuelTankParts', icon: '🔋',   label: 'Топл. бак',    scope: 'Добыча' },
 };
 const COMBAT_PART_KEYS = ['hp', 'damage', 'shield', 'speed'];
 const MINING_PART_KEYS = ['luck', 'fuelTank'];
-const LUCK_BONUS_PER_LVL = 0.12;
+const LUCK_MAX_LEVEL = 10;
+const LUCK_NOTHING_REDUCTION_PER_LVL = 1;
+const LUCK_PVP_BONUS_PER_LVL = 1;
+const MINE_LOOT_NOTHING_BASE = 39;
 
-// Таблица лута при уничтожении объекта на вкладке «Добыча» (сумма = 100%)
+const LUCK_UPGRADE_COSTS = [
+    { credits: 400, spice: 5, parts: 8 },
+    { credits: 550, spice: 8, parts: 12 },
+    { credits: 750, spice: 12, parts: 16 },
+    { credits: 1000, spice: 16, parts: 22 },
+    { credits: 1350, spice: 22, parts: 30 },
+    { credits: 1800, spice: 30, parts: 40 },
+    { credits: 2400, spice: 40, parts: 52 },
+    { credits: 3200, spice: 55, parts: 68 },
+    { credits: 4200, spice: 75, parts: 88 },
+    { credits: 5500, spice: 100, parts: 115 },
+];
+
+// Базовая таблица лута (удача перераспределяет % «ничего» между остальными)
 const MINE_LOOT_TABLE = [
     { pct: 39, id: 'nothing' },
     { pct: 20, id: 'credits', min: 10, max: 100, icon: '🪙' },
@@ -3031,7 +3086,7 @@ const UPGRADES = [
     { key:'damage',   label:'УРОН',           max:30 },
     { key:'shield',   label:'ЗАЩИТА',         max:30 },
     { key:'speed',    label:'СК. АТАКИ',      max:30 },
-    { key:'luck',     label:'УДАЧА',          max:5  },
+    { key:'luck',     label:'УДАЧА',          max: LUCK_MAX_LEVEL },
     { key:'fuelTank', label:'ТОПЛИВНЫЙ БАК',  max:10 },
 ];
 
@@ -3153,6 +3208,7 @@ const Storage = {
         state.upgrades = { ...defaultState().upgrades, ...(state.upgrades || {}) };
         state.resources = migrateResources(state.resources);
         state.checkin = { ...defaultState().checkin, ...(state.checkin || {}) };
+        if ((state.upgrades.luck || 0) > LUCK_MAX_LEVEL) state.upgrades.luck = LUCK_MAX_LEVEL;
         refreshCheckinState();
         if (state.factionId != null) {
             const list = SHIP_CATALOG[state.factionId] || SHIP_CATALOG.tank;
@@ -4270,7 +4326,7 @@ function rollLootForKind(kind) {
 
     if (entry.id === 'nothing') return formatMineLoot(source, []);
 
-    const amount = applyLuckAmount(randInt(entry.min, entry.max));
+    const amount = randInt(entry.min, entry.max);
     const items = [];
 
     if (entry.partKey) {
@@ -4516,10 +4572,20 @@ function initMiningTap() {
 // ─── Ангар ───────────────────────────────────────────────────
 function upgradeCost(key) {
     const lvl = state.upgrades[key];
-    const isMining = MINING_PART_KEYS.includes(key);
+    if (key === 'luck') {
+        const tier = LUCK_UPGRADE_COSTS[Math.min(lvl, LUCK_UPGRADE_COSTS.length - 1)];
+        return { credits: tier.credits, spice: tier.spice, parts: tier.parts, partKey: key };
+    }
+    if (key === 'fuelTank') {
+        return {
+            credits: 100 * 2 ** lvl,
+            parts: Math.ceil(3 * 1.4 ** lvl),
+            partKey: key,
+        };
+    }
     return {
-        credits: isMining ? 100 * 2 ** lvl : 50 * 2 ** lvl,
-        parts: Math.ceil((isMining ? 3 : 5) * (isMining ? 1.4 : 1.5) ** lvl),
+        credits: 50 * 2 ** lvl,
+        parts: Math.ceil(5 * 1.5 ** lvl),
         partKey: key,
     };
 }
@@ -4533,20 +4599,20 @@ function renderHangarPartsHtml() {
 
 function getUpgradeHelpHtml() {
     const faction = FACTIONS.find(f => f.id === state.factionId);
-    const factionHint = FACTION_UPGRADE_HINT[state.factionId] || '';
     const fname = faction?.name || 'ваша фракция';
+    const pvp = getLuckPvpBonuses();
     return `
-        <p><strong>Как качать:</strong> на вкладке «Добыча» собирайте детали и ресурсы. В ангаре тратье золото 🪙 и нужные детали на улучшения.</p>
-        <p><strong>Боевые статы</strong> (❤️ ⚔️ 🛡️ ⚡) — для PvP и будущего режима волн. <strong>Удача 🍀</strong> и <strong>топливный бак 🔋</strong> — только для добычи.</p>
-        <p><strong>Фракция «${fname}»:</strong> ${factionHint}. Следующий ап показывает, сколько реально добавится вашему кораблю.</p>
-        <p><strong>Ступени роста:</strong></p>
+        <p><strong>Добыча:</strong> уничтожайте объекты → 🪙 ⛽ 💎 и детали для ангара.</p>
         <ul>
-            <li>уровни 1–10: база +5 за ап (× множитель фракции)</li>
-            <li>уровни 11–20: +4 за ап</li>
-            <li>уровни 21–30: +3 за ап</li>
+            <li><strong>❤️ HP</strong> — запас прочности в PvP и волнах.</li>
+            <li><strong>⚔️ Урон</strong> — сила каждой атаки.</li>
+            <li><strong>🛡️ Защита</strong> — ёмкость щита, гасит урон первой.</li>
+            <li><strong>⚡ СК</strong> — скорость атаки, больше ударов за бой.</li>
+            <li><strong>🍀 Удача</strong> (10 ур., 🪙+💎+🍀): −1% «ничего»/ур. на добыче; в PvP +1%/ур. к криту, 2× выстрелу и перезарядке щита (сейчас ${pvp.crit}%).</li>
+            <li><strong>🔋 Бак</strong> — +10 ⛽ ёмкости на добыче.</li>
         </ul>
-        <p><strong>Правило баланса:</strong> разрыв между боевыми статами не больше ${UPGRADE_SPREAD_MAX} уровней. Нельзя прокачать только один параметр — подтягивайте отстающие.</p>
-        <p>При равных вложениях все фракции примерно равны по силе, но играют по-разному: танк живёт дольше, повстанцы стреляют чаще, гильдия бьёт сильнее.</p>
+        <p><strong>Фракция «${fname}»:</strong> ${FACTION_UPGRADE_HINT[state.factionId] || 'свои множители роста'}.</p>
+        <p><strong>Баланс:</strong> боевые статы — разрыв не больше ${UPGRADE_SPREAD_MAX} ур.</p>
     `;
 }
 
@@ -4752,12 +4818,17 @@ function renderHangar() {
         const cost = upgradeCost(u.key);
         const spreadOk = canUpgradeCombatStat(u.key);
         const haveParts = getPartCount(u.key);
-        const can = lvl < u.max && r.credits >= cost.credits && haveParts >= cost.parts && spreadOk;
+        const spiceOk = !cost.spice || r.spice >= cost.spice;
+        const can = lvl < u.max && r.credits >= cost.credits && haveParts >= cost.parts && spiceOk && spreadOk;
         const bonus = getUpgradeBonusLabel(u.key);
         const blocked = COMBAT_UPGRADE_KEYS.includes(u.key) && !spreadOk
             ? `<span class="upgrade-blocked">Разрыв > ${UPGRADE_SPREAD_MAX}</span>` : '';
         const scopeHint = u.key === 'luck'
-            ? '↑ кол-во лута на добыче'
+            ? getLuckScopeHint()
+            : u.key === 'hp' ? 'PvP · живучесть'
+            : u.key === 'damage' ? 'PvP · сила удара'
+            : u.key === 'shield' ? 'PvP · поглощает урон'
+            : u.key === 'speed' ? 'PvP · темп атак'
             : u.key === 'fuelTank' ? '↑ ёмкость топлива' : '';
         return `<div class="upgrade-row">
             <div class="upgrade-head">
@@ -4765,7 +4836,7 @@ function renderHangar() {
                 <span class="upgrade-scope">${d.scope}${scopeHint ? ' · ' + scopeHint : ''}</span>
                 <span class="upgrade-parts">детали: ${haveParts}</span>
             </div>
-            <button class="btn btn-sm" ${can ? '' : 'disabled'} data-upg="${u.key}" title="${spreadOk ? '' : getCombatUpgradeBlockHint(u.key)}">${cost.credits}🪙 ${cost.parts}${partIconHtml(u.key)}</button>
+            <button class="btn btn-sm" ${can ? '' : 'disabled'} data-upg="${u.key}" title="${spreadOk ? '' : getCombatUpgradeBlockHint(u.key)}">${formatUpgradeCostLabel(cost, u.key)}</button>
         </div>`;
     }).join('');
 
@@ -4777,8 +4848,10 @@ function renderHangar() {
             const def = PART_DEFS[key];
             if (state.upgrades[key] >= u.max || state.resources.credits < cost.credits) return;
             if (getPartCount(key) < cost.parts) return;
+            if (cost.spice && state.resources.spice < cost.spice) return;
             if (!canUpgradeCombatStat(key)) return;
             state.resources.credits -= cost.credits;
+            if (cost.spice) state.resources.spice -= cost.spice;
             state.resources[def.resKey] -= cost.parts;
             state.upgrades[key]++;
             if (key === 'fuelTank') {
@@ -4807,10 +4880,42 @@ function renderPvP() {
         state.leaderboard.slice(0,10).map((p,i)=>`<div>#${i+1} ${p.name}: ${p.score}</div>`).join('');
 }
 
+function calcPvPPower(stats, luck) {
+    let power = stats.hp + stats.shield * 0.85 + stats.damage * (0.5 + stats.attackSpeed / 80);
+    const procs = [];
+    if (Math.random() * 100 < luck.crit) {
+        power *= 1.5;
+        procs.push('Крит ×1.5');
+    }
+    if (Math.random() * 100 < luck.doubleShot) {
+        power *= 1.25;
+        procs.push('2× выстрел');
+    }
+    if (Math.random() * 100 < luck.shieldRecharge) {
+        power += stats.shield * 0.15;
+        procs.push('Щит +15%');
+    }
+    return { power, procs };
+}
+
 function startPvP() {
-    const result = Math.random() > 0.45 ? 'win' : 'lose';
-    if (result === 'win') { state.pvpScore += 15; $('pvp-status').textContent = 'ПОБЕДА! +15'; showLoot('+15 PvP'); }
-    else { state.pvpScore = Math.max(0, state.pvpScore - 10); $('pvp-status').textContent = 'ПОРАЖЕНИЕ... -10'; }
+    const stats = getShipCombatStats();
+    const luck = getLuckPvpBonuses();
+    const my = calcPvPPower(stats, luck);
+    const enemy = calcPvPPower(
+        { hp: 80, shield: 70, damage: 28, attackSpeed: 28 },
+        { crit: 3, doubleShot: 3, shieldRecharge: 3 }
+    );
+    const result = my.power >= enemy.power ? 'win' : 'lose';
+    const procText = my.procs.length ? ' · ' + my.procs.join(', ') : '';
+    if (result === 'win') {
+        state.pvpScore += 15;
+        $('pvp-status').textContent = `ПОБЕДА! +15${procText}`;
+        showLoot('+15 PvP');
+    } else {
+        state.pvpScore = Math.max(0, state.pvpScore - 10);
+        $('pvp-status').textContent = `ПОРАЖЕНИЕ... -10${procText}`;
+    }
     const idx = state.leaderboard.findIndex(p => p.name === state.playerName);
     if (idx >= 0) state.leaderboard[idx].score = state.pvpScore;
     else state.leaderboard.push({ name: state.playerName, score: state.pvpScore });
