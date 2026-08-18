@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.42.0</title>
+    <title>Space Dream v2.42.1</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -2320,7 +2320,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.42.0';
+const VERSION = '2.42.1';
 
 // 8-бит иконки ресурсов (космос · металл · пиксель)
 const RES_GFX_SVG = {
@@ -4228,7 +4228,7 @@ const Storage = {
         migratePerksFromLegacy();
         if ((state.upgrades.luck || 0) > LUCK_MAX_LEVEL) state.upgrades.luck = LUCK_MAX_LEVEL;
         refreshCheckinState();
-        ensurePvpDaily();
+        refreshPvpDailyState();
         if (state.factionId != null) {
             const list = SHIP_CATALOG[state.factionId] || SHIP_CATALOG.tank;
             if (state.shipIndex == null || state.shipIndex < 0) state.shipIndex = 0;
@@ -6010,7 +6010,6 @@ function ensurePvpDaily() {
     if (!state.pvpDaily.opponents || typeof state.pvpDaily.opponents !== 'object') {
         state.pvpDaily.opponents = {};
     }
-    refreshPvpDailyState();
 }
 
 function refreshPvpDailyState() {
