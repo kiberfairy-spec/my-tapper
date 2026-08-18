@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.33.4</title>
+    <title>Space Dream v2.34.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -1434,6 +1434,158 @@
             padding: 0;
             line-height: 1;
         }
+
+        /* Чекин */
+        .overlay:has(#win-checkin:not(.hidden)) {
+            align-items: stretch;
+            justify-content: stretch;
+        }
+        #win-checkin {
+            width: 100%;
+            height: 100%;
+            max-width: none;
+            max-height: none;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            padding: 8px 10px 6px;
+            box-sizing: border-box;
+            border-width: 2px;
+            border-style: solid;
+        }
+        #win-checkin > .checkin-header {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        #win-checkin .checkin-title {
+            margin: 0;
+            font-size: 10px;
+        }
+        .checkin-status {
+            flex-shrink: 0;
+            font-size: 7px;
+            text-align: center;
+            color: #9aa3b8;
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+        .checkin-status strong { color: var(--neon-cyan); }
+        .checkin-status.warn { color: #ccaa44; }
+        .checkin-scroll {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-right: 2px;
+        }
+        .checkin-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+        .checkin-cell {
+            position: relative;
+            border: 1px solid rgba(0, 232, 255, 0.25);
+            border-radius: 4px;
+            padding: 4px 2px;
+            text-align: center;
+            background: rgba(0, 8, 24, 0.5);
+            min-height: 42px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+        }
+        .checkin-cell-day {
+            font-size: 7px;
+            font-weight: 600;
+            color: #8aa0c0;
+        }
+        .checkin-cell-reward {
+            font-size: 5px;
+            line-height: 1.2;
+            color: #b8d0e0;
+            word-break: break-word;
+        }
+        .checkin-cell.done {
+            border-color: rgba(68, 204, 102, 0.5);
+            background: rgba(20, 40, 28, 0.55);
+        }
+        .checkin-cell.done::after {
+            content: '✓';
+            position: absolute;
+            top: 2px;
+            right: 3px;
+            font-size: 6px;
+            color: #44cc66;
+        }
+        .checkin-cell.current {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 10px rgba(0, 232, 255, 0.25);
+            background: rgba(0, 40, 60, 0.55);
+        }
+        .checkin-cell.milestone .checkin-cell-day::after {
+            content: ' ★';
+            color: var(--gold);
+            font-size: 6px;
+        }
+        .checkin-cell.locked {
+            opacity: 0.45;
+        }
+        .checkin-today {
+            flex-shrink: 0;
+            font-size: 7px;
+            text-align: center;
+            padding: 6px;
+            margin-bottom: 6px;
+            border: 1px solid rgba(0, 232, 255, 0.3);
+            border-radius: 4px;
+            background: rgba(0, 12, 28, 0.55);
+            color: #c8e8ff;
+        }
+        .checkin-actions {
+            flex-shrink: 0;
+            margin-top: 4px;
+        }
+        .checkin-choices {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .checkin-choice-title {
+            font-size: 7px;
+            text-align: center;
+            color: var(--gold);
+            margin-bottom: 2px;
+        }
+        .checkin-choice-btn {
+            width: 100%;
+            padding: 7px 6px;
+            font-size: 7px;
+            text-align: left;
+            border: 1px solid rgba(0, 232, 255, 0.35);
+            border-radius: 4px;
+            background: rgba(0, 16, 32, 0.75);
+            color: #d0e8ff;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .checkin-choice-btn:active {
+            transform: scale(0.98);
+            border-color: var(--neon-cyan);
+        }
+        .checkin-done-msg {
+            font-size: 7px;
+            text-align: center;
+            color: #44cc66;
+            padding: 8px;
+        }
         @keyframes mineLootFade {
             0% { opacity: 0; transform: translate(-50%, -40%) scale(0.9); }
             12% { opacity: 1; transform: translate(-50%, -55%) scale(1); }
@@ -1703,9 +1855,16 @@
         <p style="font-size:6px;text-align:center">🚧 В разработке</p>
     </div>
     <div class="window hidden" id="win-checkin">
-        <div class="wtitle">ЕЖЕДНЕВНЫЙ ЧЕКИН</div>
-        <div id="checkin-grid"></div>
-        <button class="btn" id="btn-checkin">ЗАБРАТЬ</button>
+        <div class="checkin-header">
+            <div class="wtitle checkin-title">ЕЖЕДНЕВНЫЙ ЧЕКИН</div>
+            <button type="button" class="hangar-help-btn" id="btn-checkin-help" title="Как работает чекин">?</button>
+        </div>
+        <div class="checkin-status" id="checkin-status"></div>
+        <div class="checkin-scroll">
+            <div class="checkin-grid" id="checkin-grid"></div>
+        </div>
+        <div class="checkin-today" id="checkin-today"></div>
+        <div class="checkin-actions" id="checkin-actions"></div>
     </div>
     <div class="window hidden" id="win-battlepass">
         <div class="wtitle">БАТЛ-ПАСС</div>
@@ -1717,6 +1876,14 @@
         <div class="wtitle">УСИЛЕНИЯ</div>
         <div id="boost-list"></div>
         <button class="btn" id="btn-boost-buy">КУПИТЬ</button>
+    </div>
+</div>
+
+<div class="help-overlay hidden" id="help-checkin-overlay">
+    <div class="help-panel">
+        <button type="button" class="help-close" id="btn-help-checkin-close" aria-label="Закрыть">✕</button>
+        <div class="help-title">ЕЖЕДНЕВНЫЙ ЧЕКИН</div>
+        <div class="help-body" id="help-checkin-body"></div>
     </div>
 </div>
 
@@ -1761,7 +1928,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.33.4';
+const VERSION = '2.34.0';
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.28;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -2804,6 +2971,61 @@ const MINE_LOOT_TABLE = [
 ];
 const MINE_SOURCE_LABELS = { meteor: 'Метеорит', wreck: 'Обломки', pirate: 'Пират' };
 
+const CHECKIN_TOTAL_DAYS = 30;
+const CHECKIN_MILESTONE_DAYS = [7, 14, 21, 30];
+const CHECKIN_CHOICE_DAYS = [7, 14, 21];
+
+const CHECKIN_CHOICES = {
+    7: [
+        { id: 'strike', title: 'Штурм', reward: { credits: 100, parts: { damage: 5 } } },
+        { id: 'armor', title: 'Броня', reward: { credits: 80, parts: { shield: 5, hp: 5 } } },
+        { id: 'farm', title: 'Добыча', reward: { credits: 60, fuel: 15, parts: { luck: 3 } } },
+    ],
+    14: [
+        { id: 'wealth', title: 'Богатство', reward: { credits: 150, spice: 8 } },
+        { id: 'combat', title: 'Боевой', reward: { credits: 120, parts: { damage: 4, speed: 4 } } },
+        { id: 'miner', title: 'Шахтёр', reward: { credits: 100, parts: { luck: 5, fuelTank: 5 } } },
+    ],
+    21: [
+        { id: 'warrior', title: 'Воин', reward: { credits: 200, parts: { hp: 3, damage: 3, shield: 3, speed: 3 } } },
+        { id: 'trader', title: 'Торговец', reward: { credits: 180, spice: 10, fuel: 15 } },
+        { id: 'lucky', title: 'Везунчик', reward: { credits: 150, parts: { luck: 8, fuelTank: 8 } } },
+    ],
+};
+
+const CHECKIN_REWARDS = {
+    1: { credits: 50 },
+    2: { fuel: 10 },
+    3: { credits: 30 },
+    4: { parts: { hp: 2 } },
+    5: { fuel: 15 },
+    6: { credits: 40, parts: { luck: 1 } },
+    8: { fuel: 20 },
+    9: { credits: 60 },
+    10: { parts: { speed: 2 } },
+    11: { spice: 1 },
+    12: { credits: 50, fuel: 10 },
+    13: { parts: { damage: 2 } },
+    15: { credits: 70 },
+    16: { fuel: 12 },
+    17: { parts: { shield: 2 } },
+    18: { spice: 2 },
+    19: { credits: 80 },
+    20: { parts: { hp: 3, speed: 2 } },
+    22: { credits: 90, fuel: 10 },
+    23: { parts: { damage: 3 } },
+    24: { spice: 3 },
+    25: { credits: 100, parts: { luck: 2 } },
+    26: { fuel: 20 },
+    27: { parts: { shield: 3, hp: 2 } },
+    28: { credits: 120, spice: 2 },
+    29: { parts: { speed: 4, damage: 2 } },
+    30: {
+        credits: 500, fuel: 20, spice: 10,
+        parts: { luck: 3, fuelTank: 3, hp: 2, damage: 2, shield: 2, speed: 2 },
+    },
+};
+
 const UPGRADES = [
     { key:'hp',       label:'ХП',             max:30 },
     { key:'damage',   label:'УРОН',           max:30 },
@@ -2930,6 +3152,8 @@ const Storage = {
         state = this.pickBestSave(local, cloud);
         state.upgrades = { ...defaultState().upgrades, ...(state.upgrades || {}) };
         state.resources = migrateResources(state.resources);
+        state.checkin = { ...defaultState().checkin, ...(state.checkin || {}) };
+        refreshCheckinState();
         if (state.factionId != null) {
             const list = SHIP_CATALOG[state.factionId] || SHIP_CATALOG.tank;
             if (state.shipIndex == null || state.shipIndex < 0) state.shipIndex = 0;
@@ -4336,6 +4560,178 @@ function closeUpgradeHelp() {
     $('help-upgrade-overlay')?.classList.add('hidden');
 }
 
+// ─── Чекин ───────────────────────────────────────────────────
+function getTodayKey() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function parseDayKey(key) {
+    const [y, m, d] = key.split('-').map(Number);
+    return new Date(y, m - 1, d);
+}
+
+function daysBetween(fromKey, toKey) {
+    return Math.round((parseDayKey(toKey) - parseDayKey(fromKey)) / 86400000);
+}
+
+function refreshCheckinState() {
+    const c = state.checkin;
+    if (!c.day || c.day < 1) c.day = 1;
+    if (c.day > CHECKIN_TOTAL_DAYS) c.day = 1;
+    const today = getTodayKey();
+    if (!c.lastClaim) {
+        c.claimedToday = false;
+        return;
+    }
+    if (c.lastClaim === today) {
+        c.claimedToday = true;
+        return;
+    }
+    c.claimedToday = false;
+    if (daysBetween(c.lastClaim, today) > 1) c.day = 1;
+}
+
+function formatCheckinRewardText(reward) {
+    if (!reward) return '—';
+    const parts = [];
+    if (reward.credits) parts.push(`${reward.credits}🪙`);
+    if (reward.fuel) parts.push(`${reward.fuel}⛽`);
+    if (reward.spice) parts.push(`${reward.spice}💎`);
+    if (reward.parts) {
+        Object.entries(reward.parts).forEach(([key, n]) => {
+            parts.push(`${n}${PART_DEFS[key]?.icon || ''}`);
+        });
+    }
+    return parts.join(' ') || '—';
+}
+
+function getCheckinDayPreview(day) {
+    if (CHECKIN_CHOICE_DAYS.includes(day)) return 'выбор ×3';
+    return formatCheckinRewardText(CHECKIN_REWARDS[day]);
+}
+
+function applyCheckinReward(reward) {
+    const r = state.resources;
+    if (reward.credits) r.credits += reward.credits;
+    if (reward.fuel) r.fuel = Math.min(state.maxFuel, r.fuel + reward.fuel);
+    if (reward.spice) r.spice += reward.spice;
+    if (reward.parts) {
+        Object.entries(reward.parts).forEach(([key, n]) => addUpgradePart(key, n));
+    }
+}
+
+function completeCheckinClaim(reward) {
+    applyCheckinReward(reward);
+    const day = state.checkin.day;
+    state.checkin.lastClaim = getTodayKey();
+    state.checkin.claimedToday = true;
+    state.checkin.day = day >= CHECKIN_TOTAL_DAYS ? 1 : day + 1;
+    Storage.save();
+    updateHUD();
+    showLoot(formatCheckinRewardText(reward));
+    hideOverlay();
+}
+
+function getCheckinHelpHtml() {
+    return `
+        <p><strong>30 дней</strong> — заходи каждый день и забирай награду. Цикл повторяется после 30-го дня.</p>
+        <p><strong>Пропуск:</strong> если не зашёл больше суток — серия сбрасывается на <strong>день 1</strong>.</p>
+        <p><strong>Дни 7, 14, 21:</strong> выбери <strong>1 из 3</strong> наборов наград — боевой, добычный или смешанный.</p>
+        <p><strong>День 30:</strong> главный приз цикла — большой набор ресурсов и деталей.</p>
+        <p>В таблице видно, что ты уже забрал (✓), текущий день подсвечен, вехи отмечены ★.</p>
+    `;
+}
+
+function openCheckinHelp() {
+    $('help-checkin-body').innerHTML = getCheckinHelpHtml();
+    $('help-checkin-overlay')?.classList.remove('hidden');
+}
+
+function closeCheckinHelp() {
+    $('help-checkin-overlay')?.classList.add('hidden');
+}
+
+function renderCheckinActions() {
+    const actions = $('checkin-actions');
+    const todayBox = $('checkin-today');
+    if (!actions || !todayBox) return;
+
+    refreshCheckinState();
+    const day = state.checkin.day;
+    const claimed = state.checkin.claimedToday;
+    const claimedDay = claimed ? (day === 1 ? CHECKIN_TOTAL_DAYS : day - 1) : null;
+
+    if (claimed) {
+        todayBox.textContent = `День ${claimedDay} получен. Завтра — день ${day}.`;
+        actions.innerHTML = '<div class="checkin-done-msg">✓ Приз забран · заходи завтра</div>';
+        return;
+    }
+
+    if (CHECKIN_CHOICE_DAYS.includes(day)) {
+        const options = CHECKIN_CHOICES[day] || [];
+        todayBox.innerHTML = `<strong>День ${day}</strong> — выберите одну награду:`;
+        actions.innerHTML =
+            `<div class="checkin-choices">
+                <div class="checkin-choice-title">★ Веха · выбор награды</div>
+                ${options.map(opt => `
+                    <button type="button" class="checkin-choice-btn" data-choice-day="${day}" data-choice-id="${opt.id}">
+                        <strong>${opt.title}</strong> — ${formatCheckinRewardText(opt.reward)}
+                    </button>
+                `).join('')}
+            </div>`;
+        actions.querySelectorAll('.checkin-choice-btn').forEach(btn => {
+            btn.onclick = () => {
+                const d = Number(btn.dataset.choiceDay);
+                const opt = CHECKIN_CHOICES[d]?.find(o => o.id === btn.dataset.choiceId);
+                if (opt) completeCheckinClaim(opt.reward);
+            };
+        });
+        return;
+    }
+
+    const reward = CHECKIN_REWARDS[day];
+    todayBox.innerHTML = `<strong>День ${day}:</strong> ${formatCheckinRewardText(reward)}`;
+    actions.innerHTML = '<button class="btn" id="btn-checkin-claim">ЗАБРАТЬ</button>';
+    $('btn-checkin-claim').onclick = () => completeCheckinClaim(reward);
+}
+
+function renderCheckin() {
+    refreshCheckinState();
+    const day = state.checkin.day;
+    const claimed = state.checkin.claimedToday;
+    const doneThrough = claimed
+        ? (day === 1 ? CHECKIN_TOTAL_DAYS : day - 1)
+        : day - 1;
+
+    const status = $('checkin-status');
+    if (status) {
+        status.className = 'checkin-status' + (claimed ? '' : ' warn');
+        status.innerHTML = claimed
+            ? `Серия: <strong>день ${day}</strong> / ${CHECKIN_TOTAL_DAYS} · сегодня уже забрали`
+            : `Серия: <strong>день ${day}</strong> / ${CHECKIN_TOTAL_DAYS} · пропуск = с начала`;
+    }
+
+    const grid = $('checkin-grid');
+    if (grid) {
+        grid.innerHTML = '';
+        for (let d = 1; d <= CHECKIN_TOTAL_DAYS; d++) {
+            const cell = document.createElement('div');
+            cell.className = 'checkin-cell';
+            if (CHECKIN_MILESTONE_DAYS.includes(d)) cell.classList.add('milestone');
+            if (d <= doneThrough) cell.classList.add('done');
+            else if (d === day && !claimed) cell.classList.add('current');
+            else if (d > day) cell.classList.add('locked');
+            cell.innerHTML =
+                `<span class="checkin-cell-day">${d}</span>` +
+                `<span class="checkin-cell-reward">${getCheckinDayPreview(d)}</span>`;
+            grid.appendChild(cell);
+        }
+    }
+
+    renderCheckinActions();
+}
+
 function renderHangar() {
     const r = state.resources;
     const spreadHint = getUpgradeSpreadHint();
@@ -4596,6 +4992,15 @@ function bindEvents() {
         if (e.target?.id === 'help-upgrade-overlay') closeUpgradeHelp();
     });
 
+    $('btn-checkin-help')?.addEventListener('click', e => {
+        e.stopPropagation();
+        openCheckinHelp();
+    });
+    $('btn-help-checkin-close')?.addEventListener('click', closeCheckinHelp);
+    $('help-checkin-overlay')?.addEventListener('click', e => {
+        if (e.target?.id === 'help-checkin-overlay') closeCheckinHelp();
+    });
+
     $('btn-reset').onclick = async () => {
         if (!confirm('Сбросить прогресс и выбрать фракцию заново?')) return;
         await resetGame();
@@ -4606,20 +5011,18 @@ function bindEvents() {
     });
 
     document.querySelectorAll('[data-open]').forEach(btn => {
-        btn.onclick = () => showWindow(btn.dataset.open);
+        btn.onclick = () => {
+            if (btn.dataset.open === 'checkin') renderCheckin();
+            showWindow(btn.dataset.open);
+        };
     });
 
     $('btn-pvp').onclick = startPvP;
-    $('btn-checkin').onclick = () => {
-        if (state.checkin.claimedToday) return alert('Уже забрали сегодня');
-        state.resources.credits += 20; state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + 5);
-        state.checkin.claimedToday = true; state.checkin.day = Math.min(7, state.checkin.day + 1);
-        Storage.save(); updateHUD(); showLoot('+20 🪙 +5 ⛽');
-    };
 
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') Storage.save();
         if (document.visibilityState === 'visible') {
+            refreshCheckinState();
             applyGameInsets();
             syncPanelHeights();
             onMiningResize();
