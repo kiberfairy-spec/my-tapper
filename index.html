@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.48.0</title>
+    <title>Space Dream v2.49.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -2794,7 +2794,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.48.0';
+const VERSION = '2.49.0';
 
 // 8-бит иконки ресурсов (космос · металл · пиксель)
 const RES_GFX_SVG = {
@@ -3000,7 +3000,30 @@ function getMaxFuelFromUpgrades(upgrades) {
 
 function syncPlayerMaxFuel() {
     state.maxFuel = getMaxFuelFromUpgrades(state.upgrades);
-    state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel ?? BASE_MAX_FUEL);
+    if (state.resources.fuel == null || state.resources.fuel === undefined) {
+        state.resources.fuel = BASE_MAX_FUEL;
+    }
+    state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel);
+}
+
+function touchFuelTimestamp() {
+    state.fuelUpdatedAt = Date.now();
+}
+
+/** Начислить топливо за офлайн-время (+1 каждые FUEL_REGEN_MS). */
+function applyOfflineFuelRegen() {
+    syncPlayerMaxFuel();
+    const now = Date.now();
+    if (!state.fuelUpdatedAt) {
+        state.fuelUpdatedAt = now;
+        return;
+    }
+    const elapsed = Math.max(0, now - state.fuelUpdatedAt);
+    const gained = Math.floor(elapsed / FUEL_REGEN_MS);
+    if (gained > 0 && state.resources.fuel < state.maxFuel) {
+        state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + gained);
+    }
+    state.fuelUpdatedAt = now - (elapsed % FUEL_REGEN_MS);
 }
 
 function syncBotMaxFuel(live) {
@@ -4572,6 +4595,8 @@ const defaultState = () => ({
         luckParts: 0, fuelTankParts: 0,
     },
     maxFuel: 100,
+    fuelUpdatedAt: null,
+    mining: { objects: [] },
     upgrades: { hp:0, damage:0, shield:0, speed:0, luck:0, fuelTank:0 },
     perks: { levels: defaultPerkLevels(), equipped: [null, null] },
     checkin: { day:1, lastClaim:null, claimedToday:false },
@@ -4855,7 +4880,10 @@ const Storage = {
         refreshPvpDailyState();
         state.pvpDaily = { ...defaultState().pvpDaily, ...(state.pvpDaily || {}) };
         state.pvpBotWorld = { ...defaultState().pvpBotWorld, ...(state.pvpBotWorld || {}) };
+        state.mining = { objects: [], ...(state.mining || {}) };
+        if (!Array.isArray(state.mining.objects)) state.mining.objects = [];
         syncPlayerMaxFuel();
+        applyOfflineFuelRegen();
         if (state.factionId != null) {
             const list = SHIP_CATALOG[state.factionId] || SHIP_CATALOG.tank;
             if (state.shipIndex == null || state.shipIndex < 0) state.shipIndex = 0;
@@ -5833,7 +5861,12 @@ function moveShip(wx, wy) {
 function layoutMining() {
     initMiningWorld();
     resetShipToOrbit();
-    if (!mineObjects.length) generateMineObjects();
+    ensureMiningState();
+    if (state.mining.objects.length > 0) {
+        restoreMiningWave();
+    } else if (!mineObjects.length) {
+        generateMineObjects();
+    }
     ensurePiratePatrolLoop();
     if (planetRenderState) startPlanetSpin();
 }
@@ -5859,7 +5892,7 @@ function onMiningResize() {
         }
     }
     if (Math.abs(prevCenter.x - MAP_CENTER.x) > 1 || Math.abs(prevCenter.y - MAP_CENTER.y) > 1) {
-        generateMineObjects();
+        if (!mineObjects.length && state.mining?.objects?.length) restoreMiningWave();
     }
     resetShipToOrbit();
 }
@@ -5896,6 +5929,68 @@ function bindMineObject(obj) {
     });
 }
 
+function ensureMiningState() {
+    if (!state.mining || !Array.isArray(state.mining.objects)) {
+        state.mining = { objects: [] };
+    }
+}
+
+function saveMiningWave() {
+    ensureMiningState();
+    state.mining.objects = mineObjects.map(o => ({
+        kind: o.kind,
+        x: Math.round(o.x),
+        y: Math.round(o.y),
+        rotation: o.rotation || 0,
+        patrolTx: o.patrolTarget?.x ?? null,
+        patrolTy: o.patrolTarget?.y ?? null,
+        patrolPaused: !!o.patrolPaused,
+    }));
+}
+
+function clearMiningWaveDom() {
+    const world = $('mining-world');
+    if (world) world.querySelectorAll('.mine-object').forEach(e => e.remove());
+    mineObjects = [];
+}
+
+function spawnMineObject(data) {
+    const world = $('mining-world');
+    if (!world) return null;
+    const el = document.createElement('div');
+    el.className = 'mine-object mine-' + data.kind;
+    el.style.left = data.x + 'px';
+    el.style.top = data.y + 'px';
+    if (data.kind === 'meteor' || data.kind === 'wreck') {
+        el.style.animationDuration = (3.2 + Math.random() * 2.4).toFixed(2) + 's';
+        el.style.animationDelay = (-Math.random() * 5).toFixed(2) + 's';
+    }
+    el.appendChild(createMineSprite(data.kind));
+    const objRef = { x: data.x, y: data.y, kind: data.kind, el };
+    if (data.kind === 'pirate') {
+        objRef.rotation = data.rotation || 0;
+        objRef.patrolPaused = !!data.patrolPaused;
+        objRef.patrolTarget = (data.patrolTx != null && data.patrolTy != null)
+            ? { x: data.patrolTx, y: data.patrolTy }
+            : pickPiratePatrolPoint();
+        updatePirateVisual(objRef);
+    }
+    bindMineObject(objRef);
+    world.insertBefore(el, $('player-ship'));
+    mineObjects.push(objRef);
+    return objRef;
+}
+
+function restoreMiningWave() {
+    ensureMiningState();
+    clearMiningWaveDom();
+    refreshWorldBounds();
+    state.mining.objects.forEach(spawnMineObject);
+    ensurePiratePatrolLoop();
+    const laser = $('laser-layer');
+    if (laser) $('mining-world')?.appendChild(laser);
+}
+
 function buildMineKinds() {
     // 9 объектов: по 3 каждого типа, порядок случайный
     return shuffleArr([
@@ -5908,8 +6003,7 @@ function buildMineKinds() {
 function generateMineObjects() {
     const world = $('mining-world');
     if (!world) return;
-    world.querySelectorAll('.mine-object').forEach(e => e.remove());
-    mineObjects = [];
+    clearMiningWaveDom();
     refreshWorldBounds();
 
     const kinds = buildMineKinds();
@@ -5944,29 +6038,14 @@ function generateMineObjects() {
             y = p.y;
         }
         placed.push({ x, y });
-
-        const el = document.createElement('div');
-        el.className = 'mine-object mine-' + kind;
-        el.style.left = x + 'px';
-        el.style.top = y + 'px';
-        if (kind === 'meteor' || kind === 'wreck') {
-            el.style.animationDuration = (3.2 + Math.random() * 2.4).toFixed(2) + 's';
-            el.style.animationDelay = (-Math.random() * 5).toFixed(2) + 's';
-        }
-        el.appendChild(createMineSprite(kind));
-
-        const objRef = { x, y, kind, el };
-        mineObjects.push(objRef);
-        if (kind === 'pirate') initPiratePatrol(objRef);
-        bindMineObject(objRef);
-        world.insertBefore(el, $('player-ship'));
+        spawnMineObject({ kind, x, y, rotation: kind === 'pirate' ? Math.random() * 360 : 0 });
     });
 
     ensurePiratePatrolLoop();
-
-    // Эффекты поверх объектов
     const laser = $('laser-layer');
     if (laser) world.appendChild(laser);
+    saveMiningWave();
+    Storage.save();
 }
 
 function addArtifactParts(amount, track = true) {
@@ -6000,6 +6079,7 @@ function rollLootForKind(kind) {
     } else if (entry.id === 'fuel') {
         const added = Math.min(amount, Math.max(0, state.maxFuel - state.resources.fuel));
         state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + amount);
+        touchFuelTimestamp();
         trackEarned('fuel', added);
         items.push({ type: 'res', resType: entry.id, amount });
     } else if (entry.id === 'spice') {
@@ -6131,6 +6211,7 @@ function flyToMine(obj) {
     shipFlying = true;
     if (!DEV_FREE_FUEL) {
         state.resources.fuel -= FUEL_PER_FLIGHT;
+        touchFuelTimestamp();
         Storage.save();
         updateHUD();
     }
@@ -6154,7 +6235,13 @@ function flyToMine(obj) {
             setTimeout(() => {
                 obj.el.remove();
                 shipFlying = false;
-                if (mineObjects.length === 0) generateMineObjects();
+                if (mineObjects.length === 0) {
+                    ensureMiningState();
+                    state.mining.objects = [];
+                    generateMineObjects();
+                } else {
+                    saveMiningWave();
+                }
                 Storage.save();
                 updateHUD();
                 checkFuelAndReturn();
@@ -6620,6 +6707,7 @@ function renderHangar() {
             if (key === 'fuelTank') {
                 syncPlayerMaxFuel();
                 state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + FUEL_TANK_BONUS);
+                touchFuelTimestamp();
             }
             Storage.save(); updateHUD(); renderHangar();
         };
@@ -7911,6 +7999,7 @@ function renderShips() {
 
 function completeProfile() {
     state.profileComplete = true;
+    touchFuelTimestamp();
     Storage.save();
     showGameUI();
     switchTab('mining');
@@ -8130,10 +8219,11 @@ async function boot() {
         window.__pvpBotWorld = () => state.pvpBotWorld;
     }
 
-    // Восстановление топлива: +1 каждые 4 минуты до maxFuel
+    // Восстановление топлива: +1 каждые 4 минуты до maxFuel (онлайн)
     setInterval(() => {
         if (state.resources.fuel < state.maxFuel) {
             state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + 1);
+            touchFuelTimestamp();
             updateHUD();
             Storage.save();
         }
