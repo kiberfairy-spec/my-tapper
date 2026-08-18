@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.39.0</title>
+    <title>Space Dream v2.39.1</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -2110,6 +2110,7 @@
                 <div class="hangar-panel" id="hangar-panel-perks">
                     <div class="upgrade-section-head">
                         <span class="wtitle upgrade-section-title">ПЕРКИ</span>
+                        <button type="button" class="hangar-help-btn" id="btn-perk-help" title="Как работают перки">?</button>
                     </div>
                     <div id="perk-list"></div>
                 </div>
@@ -2177,6 +2178,14 @@
     </div>
 </div>
 
+<div class="help-overlay hidden" id="help-perk-overlay">
+    <div class="help-panel">
+        <button type="button" class="help-close" id="btn-help-perk-close" aria-label="Закрыть">✕</button>
+        <div class="help-title">ПЕРКИ КОРАБЛЯ</div>
+        <div class="help-body" id="help-perk-body"></div>
+    </div>
+</div>
+
 <div class="help-overlay hidden" id="stats-overlay">
     <div class="help-panel stats-panel">
         <button type="button" class="help-close" id="btn-stats-close" aria-label="Закрыть">✕</button>
@@ -2218,7 +2227,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.39.0';
+const VERSION = '2.39.1';
 
 // 8-бит иконки ресурсов (космос · металл · пиксель)
 const RES_GFX_SVG = {
@@ -5497,6 +5506,36 @@ function closeUpgradeHelp() {
     $('help-upgrade-overlay')?.classList.add('hidden');
 }
 
+function getPerkHelpHtml() {
+    ensurePerks();
+    const cost0 = PERK_UPGRADE_COSTS[0];
+    const perkLine = p => {
+        const lvl = getPerkLevel(p.id);
+        const now = lvl >= 1 ? ` · сейчас ${p.valueFmt(p.values[lvl - 1])}` : '';
+        return `<li>${perkThumbHtml(p.id, true)} <strong>${p.name}</strong> — ${p.desc}${now}</li>`;
+    };
+    const equipped = state.perks.equipped.filter(Boolean).map(id => PERKS.find(p => p.id === id)?.name).filter(Boolean);
+    return `
+        <p><strong>6 перков</strong>, на корабль — <strong>2 слота</strong> (квадраты над носом). Качать можно все, активны только выбранные.</p>
+        <p><strong>Прокачка:</strong> ${resIconHtml('artifact', 'res-gfx-inline')} + ${resIconHtml('spice', 'res-gfx-inline')} · до ${PERK_MAX_LEVEL} ур. · 1-й ап ≈ ${cost0.parts}+${cost0.spice}.</p>
+        <p><strong>На корабле:</strong> ${equipped.length ? equipped.join(', ') : 'нет'} · ядра — с добычи (~3%).</p>
+        <p><strong>PvP</strong> (уже работают):</p>
+        <ul>${PERKS.filter(p => p.scope === 'pvp').map(perkLine).join('')}</ul>
+        <p><strong>Волны</strong> (скоро):</p>
+        <ul>${PERKS.filter(p => p.scope === 'rogue').map(perkLine).join('')}</ul>
+    `;
+}
+
+function openPerkHelp() {
+    const body = $('help-perk-body');
+    if (body) body.innerHTML = getPerkHelpHtml();
+    $('help-perk-overlay')?.classList.remove('hidden');
+}
+
+function closePerkHelp() {
+    $('help-perk-overlay')?.classList.add('hidden');
+}
+
 // ─── Чекин ───────────────────────────────────────────────────
 function getTodayKey() {
     const d = new Date();
@@ -5998,9 +6037,17 @@ function bindEvents() {
         e.stopPropagation();
         openUpgradeHelp();
     });
+    $('btn-perk-help')?.addEventListener('click', e => {
+        e.stopPropagation();
+        openPerkHelp();
+    });
     $('btn-help-upgrade-close')?.addEventListener('click', closeUpgradeHelp);
     $('help-upgrade-overlay')?.addEventListener('click', e => {
         if (e.target?.id === 'help-upgrade-overlay') closeUpgradeHelp();
+    });
+    $('btn-help-perk-close')?.addEventListener('click', closePerkHelp);
+    $('help-perk-overlay')?.addEventListener('click', e => {
+        if (e.target?.id === 'help-perk-overlay') closePerkHelp();
     });
 
     $('btn-checkin-help')?.addEventListener('click', e => {
