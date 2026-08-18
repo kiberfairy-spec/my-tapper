@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.36.0</title>
+    <title>Space Dream v2.37.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -370,14 +370,47 @@
             z-index: 0;
         }
         .res-pill-hero {
-            border: 2px solid rgba(255, 92, 244, 0.55);
-            background: rgba(40, 8, 40, 0.45);
-            box-shadow: 0 0 8px rgba(255, 92, 244, 0.2);
+            border: 2px solid rgba(255, 212, 0, 0.55);
+            background: rgba(36, 28, 6, 0.45);
+            box-shadow: 0 0 8px rgba(255, 212, 0, 0.22);
         }
         .res-icon {
-            font-size: 10px;
-            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 0;
             flex-shrink: 0;
+        }
+        .res-gfx {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 0;
+            vertical-align: middle;
+            flex-shrink: 0;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.85));
+        }
+        .res-gfx svg {
+            display: block;
+            width: 11px;
+            height: 11px;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        .res-gfx-lg svg { width: 13px; height: 13px; }
+        .res-gfx-inline svg { width: 10px; height: 10px; }
+        .res-pill-hero .res-gfx svg { width: 12px; height: 12px; }
+        .res-gfx-spice svg {
+            filter: drop-shadow(0 0 4px rgba(255, 212, 0, 0.9)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.85));
+        }
+        .res-node-spice .res-pill-hero {
+            border-color: rgba(255, 212, 0, 0.62);
+            background: rgba(36, 28, 6, 0.62);
+            box-shadow: 0 0 10px rgba(255, 212, 0, 0.32), inset 0 0 8px rgba(255, 190, 0, 0.08);
+        }
+        .res-node-spice .res-val {
+            color: #ffe880;
+            text-shadow: 0 0 8px rgba(255, 212, 0, 0.75);
         }
         .res-val {
             font-size: 8px;
@@ -1280,6 +1313,8 @@
             animation: mineLootFade 2.5s ease-out forwards;
         }
         .mine-loot .loot-sep { opacity: 0.45; margin: 0 3px; }
+        .mine-loot .res-gfx svg { width: 10px; height: 10px; vertical-align: -2px; }
+        .hangar-res .res-gfx-inline { margin: 0 2px; }
         .part-chip {
             display: inline-flex;
             align-items: center;
@@ -1795,28 +1830,28 @@
             <div class="res-node res-node-fuel neon-blue">
                 <span class="hud-wire"></span>
                 <div class="res-pill resource-neon neon-blue">
-                    <span class="res-icon">⛽</span>
+                    <span class="res-icon" data-res="fuel"></span>
                     <span class="res-val" id="ui-fuel">100</span>
                 </div>
             </div>
             <div class="res-node neon-gold">
                 <span class="hud-wire"></span>
                 <div class="res-pill resource-neon neon-gold">
-                    <span class="res-icon">🪙</span>
+                    <span class="res-icon" data-res="credits"></span>
                     <span class="res-val" id="ui-credits">0</span>
                 </div>
             </div>
-            <div class="res-node neon-pink">
+            <div class="res-node neon-gold res-node-spice">
                 <span class="hud-wire"></span>
-                <div class="res-pill res-pill-hero resource-neon neon-pink">
-                    <span class="res-icon">💎</span>
+                <div class="res-pill res-pill-hero resource-neon neon-gold">
+                    <span class="res-icon" data-res="spice"></span>
                     <span class="res-val" id="ui-spice">0</span>
                 </div>
             </div>
             <div class="res-node neon-green">
                 <span class="hud-wire"></span>
                 <div class="res-pill resource-neon neon-green">
-                    <span class="res-icon">🔩</span>
+                    <span class="res-icon" data-res="parts"></span>
                     <span class="res-val" id="ui-parts">0</span>
                 </div>
             </div>
@@ -1983,7 +2018,69 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.36.0';
+const VERSION = '2.37.0';
+
+// 8-бит иконки ресурсов (космос · металл · пиксель)
+const RES_GFX_SVG = {
+    credits: `<svg viewBox="0 0 12 12" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="6" cy="6" r="5" fill="#5a4830"/>
+        <circle cx="6" cy="6" r="4" fill="#c89800"/>
+        <circle cx="6" cy="6" r="3" fill="#ffd400"/>
+        <rect x="4" y="4" width="4" height="1" fill="#fff8a8"/>
+        <rect x="5" y="5" width="2" height="3" fill="#e8b800"/>
+        <rect x="4" y="7" width="4" height="1" fill="#906810"/>
+    </svg>`,
+    fuel: `<svg viewBox="0 0 12 12" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="1" width="8" height="10" fill="#3a4558"/>
+        <rect x="3" y="2" width="6" height="8" fill="#141c28"/>
+        <rect x="4" y="5" width="4" height="4" fill="#4da6ff"/>
+        <rect x="4" y="3" width="4" height="2" fill="#80ccff"/>
+        <rect x="5" y="2" width="2" height="1" fill="#a8c8ff"/>
+        <rect x="4" y="0" width="4" height="1" fill="#8898a8"/>
+        <rect x="5" y="9" width="2" height="2" fill="#687888"/>
+    </svg>`,
+    spice: `<svg viewBox="0 0 16 16" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8 1 L14 5 L8 9 L2 5 Z" fill="#ffe880"/>
+        <path d="M2 5 L8 9 L8 15 L2 11 Z" fill="#a87810"/>
+        <path d="M8 9 L14 5 L14 11 L8 15 Z" fill="#e8b028"/>
+        <path d="M8 1 L10 2 L8 3 L6 2 Z" fill="#fffacd"/>
+        <path d="M8 3 L12 5 L8 7 L4 5 Z" fill="#ffd850" opacity="0.45"/>
+        <path d="M2 5 L3 6 L3 8 L2 7 Z" fill="#785810"/>
+        <path d="M14 5 L13 6 L13 8 L14 7 Z" fill="#ffd040"/>
+        <rect x="7" y="10" width="2" height="2" fill="#c89818"/>
+    </svg>`,
+    parts: `<svg viewBox="0 0 12 12" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="6,1 9,3 9,6 6,8 3,6 3,3" fill="#506070"/>
+        <polygon points="6,1 7,2 6,3 5,2" fill="#98a8b8"/>
+        <rect x="5" y="8" width="2" height="2" fill="#384858"/>
+        <rect x="4" y="10" width="4" height="1" fill="#788898"/>
+        <rect x="5" y="9" width="2" height="1" fill="#a0b0c0"/>
+    </svg>`,
+};
+
+function resIconHtml(type, extraClass = '') {
+    const svg = RES_GFX_SVG[type];
+    if (!svg) return '';
+    const cls = ['res-gfx', `res-gfx-${type}`, extraClass].filter(Boolean).join(' ');
+    return `<span class="${cls}" aria-hidden="true">${svg}</span>`;
+}
+
+function resAmtHtml(type, amount) {
+    return `${amount}${resIconHtml(type, 'res-gfx-inline')}`;
+}
+
+function resLabelHtml(type, label) {
+    return `${resIconHtml(type, 'res-gfx-inline')} ${label}`;
+}
+
+function initResourceIcons() {
+    document.querySelectorAll('[data-res]').forEach(el => {
+        const type = el.dataset.res;
+        if (!RES_GFX_SVG[type]) return;
+        el.innerHTML = RES_GFX_SVG[type];
+        el.classList.add('res-gfx', `res-gfx-${type}`);
+    });
+}
 const ORBIT_DIST = 120;
 const PLANET_SCALE = 1.28;
 const PLANET_HUB_R = Math.round(200 * PLANET_SCALE);
@@ -2180,7 +2277,7 @@ function getUpgradeBonusLabel(key) {
         const nothingPct = Math.max(0, MINE_LOOT_NOTHING_BASE - next * LUCK_NOTHING_REDUCTION_PER_LVL);
         return `<span class="upgrade-next-bonus">(«ничего» ${nothingPct}% · PvP +1%)</span>`;
     }
-    if (key === 'fuelTank') return '<span class="upgrade-next-bonus">(+10 ⛽)</span>';
+    if (key === 'fuelTank') return `<span class="upgrade-next-bonus">(+10 ${resIconHtml('fuel', 'res-gfx-inline')})</span>`;
     return '';
 }
 
@@ -2292,8 +2389,8 @@ function getLuckScopeHint() {
 }
 
 function formatUpgradeCostLabel(cost, key) {
-    let s = `${cost.credits}🪙`;
-    if (cost.spice) s += ` ${cost.spice}💎`;
+    let s = `${cost.credits}${resIconHtml('credits', 'res-gfx-inline')}`;
+    if (cost.spice) s += ` ${cost.spice}${resIconHtml('spice', 'res-gfx-inline')}`;
     s += ` ${cost.parts}${partIconHtml(key)}`;
     return s;
 }
@@ -2355,7 +2452,7 @@ function formatMineLoot(source, items) {
     if (!items.length) return `${source}: ничего`;
     const body = items.map(it => {
         if (it.type === 'part') return `+${it.amount} ${partIconHtml(it.key)}`;
-        return `+${it.amount} ${it.icon}`;
+        return `+${it.amount} ${resIconHtml(it.resType, 'res-gfx-inline')}`;
     }).join('<span class="loot-sep">·</span>');
     return `${source}: ${body}`;
 }
@@ -3071,13 +3168,13 @@ const LUCK_UPGRADE_COSTS = [
 // Базовая таблица лута (удача перераспределяет % «ничего» между остальными)
 const MINE_LOOT_TABLE = [
     { pct: 39, id: 'nothing' },
-    { pct: 20, id: 'credits', min: 10, max: 100, icon: '🪙' },
-    { pct: 10, id: 'fuel', min: 5, max: 15, icon: '⛽' },
+    { pct: 20, id: 'credits', min: 10, max: 100 },
+    { pct: 10, id: 'fuel', min: 5, max: 15 },
     { pct: 6, id: 'hp', min: 2, max: 6, partKey: 'hp' },
     { pct: 6, id: 'shield', min: 2, max: 6, partKey: 'shield' },
     { pct: 6, id: 'damage', min: 2, max: 6, partKey: 'damage' },
     { pct: 6, id: 'speed', min: 2, max: 6, partKey: 'speed' },
-    { pct: 2, id: 'spice', min: 1, max: 10, icon: '💎' },
+    { pct: 2, id: 'spice', min: 1, max: 10 },
     { pct: 5, id: 'luck', min: 2, max: 6, partKey: 'luck' },
 ];
 const MINE_SOURCE_LABELS = { meteor: 'Метеорит', wreck: 'Обломки', pirate: 'Пират' };
@@ -3261,7 +3358,7 @@ function getPlayerStatsHtml() {
         ).join('') +
           renderStatsRow('🍀 «ничего»', `${getLuckNothingPct()}%`) +
           renderStatsRow('🍀 PvP-проки', `крит ${pvpLuck.crit}% · 2× ${pvpLuck.doubleShot}% · щит ${pvpLuck.shieldRecharge}%`) +
-          renderStatsRow('⛽ Ёмкость бака', `${state.maxFuel}`)
+          renderStatsRow(`${resIconHtml('fuel', 'res-gfx-inline')} Ёмкость бака`, `${state.maxFuel}`)
         : renderStatsRow('—', 'Создайте профиль');
 
     const upgradeRows = UPGRADES.map(u => {
@@ -3270,9 +3367,9 @@ function getPlayerStatsHtml() {
     }).join('');
 
     const earnedRows = [
-        renderStatsRow('🪙 Золото', Math.floor(earned.credits)),
-        renderStatsRow('⛽ Топливо', Math.floor(earned.fuel)),
-        renderStatsRow('💎 Спайс', Math.floor(earned.spice)),
+        renderStatsRow(`${resIconHtml('credits', 'res-gfx-inline')} Золото`, Math.floor(earned.credits)),
+        renderStatsRow(`${resIconHtml('fuel', 'res-gfx-inline')} Топливо`, Math.floor(earned.fuel)),
+        renderStatsRow(`${resIconHtml('spice', 'res-gfx-inline')} Спайс`, Math.floor(earned.spice)),
         ...Object.values(PART_DEFS).map(d =>
             renderStatsRow(`${d.icon} ${d.label}`, earned[d.resKey] || 0)
         ),
@@ -4101,7 +4198,7 @@ function flyToPlanetDock() {
     flyShipTo(dock.x, dock.y, () => {
         returningToPlanet = false;
         shipFlying = false;
-        showMineLoot('⛽ Нет топлива', MAP_CENTER.x, MAP_CENTER.y + 60);
+        showMineLoot(`${resIconHtml('fuel', 'res-gfx-inline')} Нет топлива`, MAP_CENTER.x, MAP_CENTER.y + 60);
     });
 }
 
@@ -4542,16 +4639,16 @@ function rollLootForKind(kind) {
     } else if (entry.id === 'credits') {
         state.resources.credits += amount;
         trackEarned('credits', amount);
-        items.push({ type: 'res', icon: entry.icon, amount });
+        items.push({ type: 'res', resType: entry.id, amount });
     } else if (entry.id === 'fuel') {
         const added = Math.min(amount, Math.max(0, state.maxFuel - state.resources.fuel));
         state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + amount);
         trackEarned('fuel', added);
-        items.push({ type: 'res', icon: entry.icon, amount });
+        items.push({ type: 'res', resType: entry.id, amount });
     } else if (entry.id === 'spice') {
         state.resources.spice += amount;
         trackEarned('spice', amount);
-        items.push({ type: 'res', icon: entry.icon, amount });
+        items.push({ type: 'res', resType: entry.id, amount });
     }
 
     return formatMineLoot(source, items);
@@ -4830,9 +4927,9 @@ function getUpgradeFormulaHelpBlock() {
             ступень: ур. 1–10 → +5, 11–20 → +4, 21+ → +3<br>
             множители: HP×${m.hp} · Щ×${m.shield} · У×${m.damage} · СК×${m.speed}${nextLine}<br><br>
             <strong>Стоимость</strong><br>
-            боевые: <code>🪙 50×2<sup>ур</sup></code>, детали <code>⌈5×1,5<sup>ур</sup>⌉</code><br>
-            удача: фикс. таблица 🪙+💎+🍀 · «ничего» <code>39% − 1%×ур</code>, PvP <code>+1%×ур</code><br>
-            бак: <code>🪙 100×2<sup>ур</sup></code>, <code>⌈3×1,4<sup>ур</sup>⌉</code> дет., +10⛽/ур.<br><br>
+            боевые: <code>${resIconHtml('credits', 'res-gfx-inline')} 50×2<sup>ур</sup></code>, детали <code>⌈5×1,5<sup>ур</sup>⌉</code><br>
+            удача: фикс. таблица ${resIconHtml('credits', 'res-gfx-inline')}+${resIconHtml('spice', 'res-gfx-inline')}+🍀 · «ничего» <code>39% − 1%×ур</code>, PvP <code>+1%×ур</code><br>
+            бак: <code>${resIconHtml('credits', 'res-gfx-inline')} 100×2<sup>ур</sup></code>, <code>⌈3×1,4<sup>ур</sup>⌉</code> дет., +10${resIconHtml('fuel', 'res-gfx-inline')}/ур.<br><br>
             <strong>Баланс:</strong> ап боевого стата, если <code>новый ур. ≤ мин. ур. остальных + ${UPGRADE_SPREAD_MAX}</code>
         </div>
     `;
@@ -4843,14 +4940,14 @@ function getUpgradeHelpHtml() {
     const fname = faction?.name || 'ваша фракция';
     const pvp = getLuckPvpBonuses();
     return `
-        <p><strong>Добыча:</strong> уничтожайте объекты → 🪙 ⛽ 💎 и детали для ангара.</p>
+        <p><strong>Добыча:</strong> уничтожайте объекты → ${resIconHtml('credits', 'res-gfx-inline')} ${resIconHtml('fuel', 'res-gfx-inline')} ${resIconHtml('spice', 'res-gfx-inline')} и детали для ангара.</p>
         <ul>
             <li><strong>❤️ HP</strong> — запас прочности в PvP и волнах.</li>
             <li><strong>⚔️ Урон</strong> — сила каждой атаки.</li>
             <li><strong>🛡️ Защита</strong> — ёмкость щита, гасит урон первой.</li>
             <li><strong>⚡ СК</strong> — скорость атаки, больше ударов за бой.</li>
-            <li><strong>🍀 Удача</strong> (10 ур., 🪙+💎+🍀): −1% «ничего»/ур. на добыче; в PvP +1%/ур. к криту, 2× выстрелу и перезарядке щита (сейчас ${pvp.crit}%).</li>
-            <li><strong>🔋 Бак</strong> — +10 ⛽ ёмкости на добыче.</li>
+            <li><strong>🍀 Удача</strong> (10 ур., ${resIconHtml('credits', 'res-gfx-inline')}+${resIconHtml('spice', 'res-gfx-inline')}+🍀): −1% «ничего»/ур. на добыче; в PvP +1%/ур. к криту, 2× выстрелу и перезарядке щита (сейчас ${pvp.crit}%).</li>
+            <li><strong>🔋 Бак</strong> — +10 ${resIconHtml('fuel', 'res-gfx-inline')} ёмкости на добыче.</li>
         </ul>
         ${getUpgradeFormulaHelpBlock()}
         <p><strong>Фракция «${fname}»:</strong> ${FACTION_UPGRADE_HINT[state.factionId] || 'свои множители роста'}.</p>
@@ -4902,9 +4999,9 @@ function refreshCheckinState() {
 function formatCheckinRewardText(reward) {
     if (!reward) return '—';
     const parts = [];
-    if (reward.credits) parts.push(`${reward.credits}🪙`);
-    if (reward.fuel) parts.push(`${reward.fuel}⛽`);
-    if (reward.spice) parts.push(`${reward.spice}💎`);
+    if (reward.credits) parts.push(resAmtHtml('credits', reward.credits));
+    if (reward.fuel) parts.push(resAmtHtml('fuel', reward.fuel));
+    if (reward.spice) parts.push(resAmtHtml('spice', reward.spice));
     if (reward.parts) {
         Object.entries(reward.parts).forEach(([key, n]) => {
             parts.push(`${n}${PART_DEFS[key]?.icon || ''}`);
@@ -5060,7 +5157,7 @@ function renderHangar() {
         (FACTION_UPGRADE_HINT[state.factionId]
             ? `<div class="hangar-faction-hint">${FACTION_UPGRADE_HINT[state.factionId]}</div>` : ''));
     $('hangar-res').innerHTML =
-        `🪙${Math.floor(r.credits)} ⛽${Math.floor(r.fuel)}/${state.maxFuel} 💎${r.spice}` +
+        `${resAmtHtml('credits', Math.floor(r.credits))} ${resAmtHtml('fuel', Math.floor(r.fuel))}/${state.maxFuel} ${resAmtHtml('spice', r.spice)}` +
         `<div class="hangar-parts">${renderHangarPartsHtml()}</div>`;
 
     $('upgrade-list').innerHTML = UPGRADES.map(u => {
@@ -5445,6 +5542,7 @@ async function boot() {
     hideLoadScreen();
 
     initMiningTap();
+    initResourceIcons();
     bindEvents();
     initPlayTimeTracking();
     resumeOrStart();
