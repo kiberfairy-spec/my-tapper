@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.52.5</title>
+    <title>Space Dream v2.52.6</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -3403,7 +3403,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.52.5';
+const VERSION = '2.52.6';
 
 // 8-бит иконки ресурсов (космос · металл · пиксель)
 const RES_GFX_SVG = {
@@ -4066,6 +4066,12 @@ const SHIP_FACTION_DISPLAY_SCALE = {
     dps: 1.0,
     sniper: 1.05,
 };
+/** Добыча: повстанцы и гильдия чуть крупнее, чтобы сравняться с конфедерацией в одной «коробке» */
+const SHIP_MINING_FACTION_SCALE = {
+    tank: 0.84,
+    dps: 1.07,
+    sniper: 1.12,
+};
 const SHIP_MINING_BOX = 50;
 const SHIP_PVP_BOX = 72;
 const SHIP_PVP_LOBBY_BOX = 104;
@@ -4211,7 +4217,10 @@ function buildFactionShipImage(src, factionId, sizeStyle, onReady) {
         recolorAccentStripes(tctx, getFactionStripeColor(factionId), factionId);
 
         const hiRes = loader.naturalWidth > 80 || loader.naturalHeight > 80;
-        const factionScale = SHIP_FACTION_DISPLAY_SCALE[factionId] ?? 1;
+        const baseFactionScale = SHIP_FACTION_DISPLAY_SCALE[factionId] ?? 1;
+        const factionScale = sizeStyle.box === 'mining'
+            ? (SHIP_MINING_FACTION_SCALE[factionId] ?? baseFactionScale)
+            : baseFactionScale;
         let outW = SHIP_NORM_W;
         let outH = SHIP_NORM_H;
         if (sizeStyle.box) {
