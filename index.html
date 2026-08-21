@@ -619,6 +619,15 @@
             gap: 3px;
             pointer-events: auto;
         }
+        .btn-action-spice {
+            --action-neon: #c8a020;
+            --action-glow: rgba(255, 200, 0, 0.75);
+            color: #ffe880;
+            background-color: #1a1400;
+            background-image:
+                linear-gradient(180deg, rgba(255, 220, 100, 0.14) 0%, transparent 40%),
+                linear-gradient(180deg, #5a4800 0%, #322800 52%, #1a1400 100%);
+        }
         .btn-action {
             --action-neon: #b80030;
             --action-glow: rgba(184, 0, 48, 0.85);
@@ -1420,7 +1429,7 @@
             will-change: transform;
         }
         .hangar-panel {
-            width: 50%;
+            width: 33.333%;
             flex-shrink: 0;
             overflow-y: auto;
             overflow-x: hidden;
@@ -1453,6 +1462,174 @@
             letter-spacing: 0.08em;
             margin-top: 2px;
         }
+        .container-scene {
+            position: relative;
+            height: 72px;
+            margin: 4px 0 8px;
+            border: 1px solid rgba(0, 232, 255, 0.22);
+            border-radius: 4px;
+            background: linear-gradient(180deg, rgba(0, 12, 28, 0.9) 0%, rgba(0, 6, 16, 0.95) 100%);
+            overflow: hidden;
+        }
+        .container-belt {
+            position: absolute;
+            left: 0; right: 0;
+            top: 50%;
+            height: 10px;
+            margin-top: -5px;
+            background: repeating-linear-gradient(90deg, #2a3848 0 8px, #1a2430 8px 16px);
+            animation: container-belt-move 1.2s linear infinite;
+        }
+        @keyframes container-belt-move {
+            from { background-position: 0 0; }
+            to { background-position: 16px 0; }
+        }
+        .container-scanner {
+            position: absolute;
+            top: 8px;
+            width: 18px;
+            height: 56px;
+            border: 1px solid rgba(0, 232, 255, 0.35);
+            background: rgba(0, 40, 60, 0.5);
+        }
+        .container-scanner.left { left: 8px; }
+        .container-scanner.right { right: 8px; }
+        .container-scanner::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: 4px;
+            width: 2px;
+            height: 40px;
+            margin-left: -1px;
+            background: linear-gradient(180deg, transparent, rgba(255, 80, 120, 0.9));
+            transform-origin: bottom center;
+            animation: container-laser 1.4s ease-in-out infinite;
+        }
+        .container-scanner.right::after {
+            background: linear-gradient(180deg, transparent, rgba(120, 200, 255, 0.9));
+            animation-delay: 0.35s;
+        }
+        @keyframes container-laser {
+            0%, 100% { transform: rotate(-12deg); opacity: 0.5; }
+            50% { transform: rotate(12deg); opacity: 1; }
+        }
+        .container-scene.active .container-scanner::after {
+            animation-duration: 0.55s;
+        }
+        .container-on-belt {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -58%);
+            font-size: 28px;
+            line-height: 1;
+            filter: drop-shadow(0 0 6px rgba(255, 212, 0, 0.4));
+            animation: container-pulse 1s ease-in-out infinite;
+        }
+        @keyframes container-pulse {
+            0%, 100% { transform: translate(-50%, -58%) scale(1); }
+            50% { transform: translate(-50%, -62%) scale(1.06); }
+        }
+        .container-timer {
+            position: absolute;
+            left: 0; right: 0;
+            bottom: 4px;
+            text-align: center;
+            font-size: 5px;
+            color: #8ec8e0;
+            letter-spacing: 0.06em;
+        }
+        .container-list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .container-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px;
+            border: 1px solid rgba(0, 232, 255, 0.2);
+            border-radius: 4px;
+            background: rgba(0, 8, 24, 0.45);
+            cursor: pointer;
+        }
+        .container-row.selected {
+            border-color: rgba(255, 212, 0, 0.55);
+            box-shadow: inset 0 0 8px rgba(255, 200, 0, 0.08);
+        }
+        .container-row-info { flex: 1; min-width: 0; }
+        .container-row-name { font-size: 6px; color: #c8dce8; }
+        .container-row-meta { font-size: 4px; color: #6a8498; margin-top: 2px; }
+        .container-row-qty { font-size: 7px; color: #fff; min-width: 20px; text-align: right; }
+        .container-actions { margin-top: 6px; text-align: center; }
+        .container-actions .btn { width: 100%; max-width: 200px; }
+        .container-loot-preview { font-size: 4px; color: #6a8498; text-align: center; margin-top: 4px; line-height: 1.5; }
+        .container-slots {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .container-slot-wrap {
+            flex: 1;
+            min-width: 0;
+        }
+        .container-slot-label {
+            font-size: 4px;
+            color: #6a8498;
+            text-align: center;
+            margin-bottom: 2px;
+            letter-spacing: 0.06em;
+        }
+        .container-scene.compact {
+            height: 58px;
+            margin: 0;
+        }
+        .container-scene.compact .container-on-belt { font-size: 20px; }
+        .container-scene.compact .container-scanner { height: 44px; top: 6px; }
+        .container-scene.empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-style: dashed;
+            opacity: 0.55;
+        }
+        .container-scene.empty span {
+            font-size: 4px;
+            color: #5a7080;
+            letter-spacing: 0.08em;
+        }
+        .container-slot-claim {
+            width: 100%;
+            margin-top: 4px;
+            font-size: 5px;
+            padding: 4px 2px;
+        }
+        .container-vip-hint {
+            font-size: 4px;
+            color: #6a8498;
+            text-align: center;
+            margin-bottom: 6px;
+            line-height: 1.45;
+        }
+        .res-node-spice { position: relative; }
+        .spice-lb-dropdown {
+            position: absolute;
+            top: 6px;
+            right: 82px;
+            z-index: 50;
+            width: min(calc(100vw - 96px), 280px);
+            max-height: min(72vh, 380px);
+            overflow-y: auto;
+            background: rgba(4, 12, 24, 0.98);
+            border: 1px solid rgba(255, 200, 0, 0.45);
+            border-radius: 6px;
+            padding: 6px 0;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+            font-size: 4px;
+        }
+        .spice-lb-dropdown.hidden { display: none; }
         .perk-row {
             display: flex;
             align-items: stretch;
@@ -3174,7 +3351,7 @@
                     <span class="res-val" id="ui-credits">0</span>
                 </div>
             </div>
-            <div class="res-node neon-gold res-node-spice">
+            <div class="res-node neon-gold res-node-spice" id="res-node-spice">
                 <span class="hud-wire"></span>
                 <div class="res-pill res-pill-hero resource-neon neon-gold">
                     <span class="res-icon" data-res="spice"></span>
@@ -3204,10 +3381,12 @@
 <div class="mining-screen" id="mining-screen">
     <div class="mining-hud" id="mining-hud">
         <div class="mining-hud-actions">
+            <button type="button" class="btn-action btn-action-spice" id="btn-spice-lb">🌶<br>ТОП</button>
             <button type="button" class="btn-action" data-open="battlepass">🎫<br>БАТЛ-ПАСС</button>
             <button type="button" class="btn-action" data-open="vip">⭐<br>VIP</button>
             <button type="button" class="btn-action" data-open="checkin">📅<br>ЧЕКИН</button>
         </div>
+        <div class="spice-lb-dropdown hidden" id="spice-lb-dropdown"></div>
     </div>
     <div class="mining-viewport" id="mining-viewport">
         <div class="mining-world" id="mining-world">
@@ -3270,13 +3449,20 @@
                     </div>
                     <div id="perk-list"></div>
                 </div>
+                <div class="hangar-panel" id="hangar-panel-containers">
+                    <div class="upgrade-section-head">
+                        <span class="wtitle upgrade-section-title">КОНТЕЙНЕРЫ</span>
+                    </div>
+                    <div id="container-panel-root"></div>
+                </div>
             </div>
         </div>
         <div class="hangar-panel-dots" id="hangar-panel-dots">
             <span class="hangar-panel-dot active" data-panel="0"></span>
             <span class="hangar-panel-dot" data-panel="1"></span>
+            <span class="hangar-panel-dot" data-panel="2"></span>
         </div>
-        <div class="hangar-swipe-hint" id="hangar-swipe-hint">← свайп · улучшения / перки →</div>
+        <div class="hangar-swipe-hint" id="hangar-swipe-hint">← свайп · улучшения / перки / контейнеры →</div>
     </div>
     <div class="window hidden" id="win-pvp">
         <div class="pvp-header">
@@ -3509,7 +3695,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.53.2';
+const VERSION = '2.54.2';
 
 // 8-бит иконки ресурсов (космос · металл · пиксель)
 const RES_GFX_SVG = {
@@ -3555,38 +3741,57 @@ const RES_GFX_SVG = {
         <rect x="5" y="1" width="2" height="1" fill="#8898a8"/>
     </svg>`,
     container: `<svg viewBox="0 0 14 14" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
-        <rect x="1" y="5" width="12" height="8" fill="#5a6878"/>
-        <rect x="2" y="6" width="10" height="6" fill="#9aa8b8"/>
-        <rect x="2" y="6" width="5" height="3" fill="#dce8f4" opacity="0.55"/>
-        <rect x="3" y="2" width="8" height="4" fill="#788898"/>
-        <rect x="4" y="1" width="6" height="2" fill="#b0c0d0"/>
+        <rect x="1" y="5" width="12" height="8" fill="#4a5058"/>
+        <rect x="2" y="6" width="10" height="6" fill="#8a929c"/>
+        <rect x="2" y="6" width="5" height="3" fill="#c8d0d8" opacity="0.5"/>
+        <rect x="3" y="2" width="8" height="4" fill="#6a7278"/>
+        <rect x="4" y="1" width="6" height="2" fill="#a8b0b8"/>
         <rect x="2" y="7" width="1" height="1" fill="#404850"/>
         <rect x="11" y="7" width="1" height="1" fill="#404850"/>
-        <rect x="2" y="10" width="1" height="1" fill="#404850"/>
-        <rect x="11" y="10" width="1" height="1" fill="#404850"/>
-        <rect x="1" y="5" width="12" height="1" fill="#c8d4e0"/>
+        <rect x="1" y="5" width="12" height="1" fill="#d0d8e0"/>
+    </svg>`,
+    containerStandard: `<svg viewBox="0 0 14 14" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="5" width="12" height="8" fill="#4a5058"/>
+        <rect x="2" y="6" width="10" height="6" fill="#8a929c"/>
+        <rect x="2" y="6" width="5" height="3" fill="#c8d0d8" opacity="0.5"/>
+        <rect x="3" y="2" width="8" height="4" fill="#6a7278"/>
+        <rect x="4" y="1" width="6" height="2" fill="#a8b0b8"/>
+        <rect x="2" y="7" width="1" height="1" fill="#404850"/>
+        <rect x="11" y="7" width="1" height="1" fill="#404850"/>
+        <rect x="1" y="5" width="12" height="1" fill="#d0d8e0"/>
     </svg>`,
     containerElite: `<svg viewBox="0 0 14 14" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
-        <rect x="1" y="5" width="12" height="8" fill="#5a6878"/>
-        <rect x="2" y="6" width="10" height="6" fill="#9aa8b8"/>
-        <rect x="2" y="6" width="5" height="3" fill="#dce8f4" opacity="0.55"/>
-        <rect x="3" y="2" width="8" height="4" fill="#788898"/>
-        <rect x="4" y="1" width="6" height="2" fill="#b0c0d0"/>
+        <rect x="1" y="5" width="12" height="8" fill="#6a5520"/>
+        <rect x="2" y="6" width="10" height="6" fill="#c8a840"/>
+        <rect x="2" y="6" width="5" height="3" fill="#ffe880" opacity="0.55"/>
+        <rect x="3" y="2" width="8" height="4" fill="#9a7828"/>
+        <rect x="4" y="1" width="6" height="2" fill="#e8c850"/>
         <rect x="2" y="8" width="10" height="1" fill="#ffd400"/>
-        <rect x="2" y="7" width="1" height="1" fill="#404850"/>
-        <rect x="11" y="7" width="1" height="1" fill="#404850"/>
-        <rect x="1" y="5" width="12" height="1" fill="#c8d4e0"/>
+        <rect x="2" y="7" width="1" height="1" fill="#504018"/>
+        <rect x="11" y="7" width="1" height="1" fill="#504018"/>
+        <rect x="1" y="5" width="12" height="1" fill="#f0d870"/>
+    </svg>`,
+    containerAdvanced: `<svg viewBox="0 0 14 14" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="5" width="12" height="8" fill="#3a2858"/>
+        <rect x="2" y="6" width="10" height="6" fill="#7858a8"/>
+        <rect x="2" y="6" width="5" height="3" fill="#b898e8" opacity="0.55"/>
+        <rect x="3" y="2" width="8" height="4" fill="#584080"/>
+        <rect x="4" y="1" width="6" height="2" fill="#9070c0"/>
+        <rect x="6" y="3" width="2" height="1" fill="#c8a0ff"/>
+        <rect x="2" y="7" width="1" height="1" fill="#302040"/>
+        <rect x="11" y="7" width="1" height="1" fill="#302040"/>
+        <rect x="1" y="5" width="12" height="1" fill="#a880d8"/>
     </svg>`,
     containerBattle: `<svg viewBox="0 0 14 14" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
-        <rect x="1" y="5" width="12" height="8" fill="#5a6878"/>
-        <rect x="2" y="6" width="10" height="6" fill="#9aa8b8"/>
-        <rect x="2" y="6" width="5" height="3" fill="#dce8f4" opacity="0.55"/>
-        <rect x="3" y="2" width="8" height="4" fill="#788898"/>
-        <rect x="4" y="1" width="6" height="2" fill="#b0c0d0"/>
-        <rect x="6" y="3" width="2" height="1" fill="#44aaff"/>
-        <rect x="2" y="7" width="1" height="1" fill="#404850"/>
-        <rect x="11" y="7" width="1" height="1" fill="#404850"/>
-        <rect x="1" y="5" width="12" height="1" fill="#c8d4e0"/>
+        <rect x="1" y="5" width="12" height="8" fill="#3a2858"/>
+        <rect x="2" y="6" width="10" height="6" fill="#7858a8"/>
+        <rect x="2" y="6" width="5" height="3" fill="#b898e8" opacity="0.55"/>
+        <rect x="3" y="2" width="8" height="4" fill="#584080"/>
+        <rect x="4" y="1" width="6" height="2" fill="#9070c0"/>
+        <rect x="6" y="3" width="2" height="1" fill="#c8a0ff"/>
+        <rect x="2" y="7" width="1" height="1" fill="#302040"/>
+        <rect x="11" y="7" width="1" height="1" fill="#302040"/>
+        <rect x="1" y="5" width="12" height="1" fill="#a880d8"/>
     </svg>`,
 };
 
@@ -3655,19 +3860,41 @@ function resLabelHtml(type, label) {
     return `${resIconHtml(type, 'res-gfx-inline')} ${label}`;
 }
 
-function containerIconHtml(kind = 'silver', cls = 'res-gfx-inline') {
-    const key = kind === 'elite' ? 'containerElite' : kind === 'battle' ? 'containerBattle' : 'container';
-    return `<span class="${cls} container-icon container-${kind}">${RES_GFX_SVG[key]}</span>`;
+function containerIconHtml(kind = 'standard', cls = 'res-gfx-inline') {
+    const norm = kind === 'battle' ? 'advanced' : kind === 'silver' ? 'standard' : kind;
+    const key = norm === 'elite' ? 'containerElite'
+        : norm === 'advanced' ? 'containerAdvanced'
+        : 'containerStandard';
+    return `<span class="${cls} container-icon container-${norm}">${RES_GFX_SVG[key]}</span>`;
 }
 
-function getContainerCount() {
-    return state.resources.containers || 0;
+function normalizeContainerType(type) {
+    if (type === 'battle' || type === 'silver') return 'advanced';
+    if (type === 'standard' || type === 'advanced' || type === 'elite') return type;
+    return 'standard';
 }
 
-function addContainers(n, track = true) {
-    if (!n || n <= 0) return;
-    state.resources.containers = (state.resources.containers || 0) + n;
+function getContainerCount(type = null) {
+    const r = state.resources;
+    if (!type) {
+        return (r.containerStandard || 0) + (r.containerAdvanced || 0) + (r.containerElite || 0) + (r.containers || 0);
+    }
+    const t = normalizeContainerType(type);
+    const def = CONTAINER_TYPES[t];
+    return def ? (r[def.resKey] || 0) : 0;
+}
+
+function addContainer(type, n = 1, track = true) {
+    const t = normalizeContainerType(type);
+    const def = CONTAINER_TYPES[t];
+    if (!def || n <= 0) return;
+    state.resources[def.resKey] = (state.resources[def.resKey] || 0) + n;
     if (track) trackEarned('containers', n);
+}
+
+/** @deprecated — миграция со старого поля containers */
+function addContainers(n, track = true) {
+    addContainer('standard', n, track);
 }
 
 function initResourceIcons() {
@@ -4005,6 +4232,9 @@ function migrateResources(r) {
         const n = Math.max(1, Math.floor(r.shards / 2));
         out.hpParts = (out.hpParts || 0) + n;
         out.shieldParts = (out.shieldParts || 0) + Math.max(0, r.shards - n);
+    }
+    if (r?.containers && !r?.containerStandard) {
+        out.containerStandard = (out.containerStandard || 0) + r.containers;
     }
     delete out.weaponParts;
     delete out.shards;
@@ -4985,24 +5215,29 @@ function formatPerkCostLabel(cost) {
 }
 
 let hangarPanelIndex = 0;
+const HANGAR_PANEL_TITLES = ['УЛУЧШЕНИЯ', 'ПЕРКИ', 'КОНТЕЙНЕРЫ'];
 
 function setHangarPanel(idx, animate = true) {
     const track = $('hangar-panel-track');
     if (!track) return;
-    hangarPanelIndex = Math.max(0, Math.min(1, idx));
+    hangarPanelIndex = Math.max(0, Math.min(2, idx));
     track.style.transition = animate ? 'transform 0.28s ease-out' : 'none';
-    track.style.transform = `translateX(-${hangarPanelIndex * 50}%)`;
+    track.style.transform = `translateX(-${hangarPanelIndex * 33.333}%)`;
     document.querySelectorAll('.hangar-panel-dot').forEach((d, i) => {
         d.classList.toggle('active', i === hangarPanelIndex);
     });
     const title = $('hangar-section-title');
-    if (title) title.textContent = hangarPanelIndex ? 'ПЕРКИ' : 'УЛУЧШЕНИЯ';
+    if (title) title.textContent = HANGAR_PANEL_TITLES[hangarPanelIndex];
     const hint = $('hangar-swipe-hint');
     if (hint) {
-        hint.textContent = hangarPanelIndex
-            ? '→ свайп вправо · улучшения'
-            : '← свайп влево · перки';
+        const labels = ['улучшения', 'перки', 'контейнеры'];
+        hint.textContent = hangarPanelIndex === 0
+            ? '← свайп · перки / контейнеры'
+            : hangarPanelIndex === 2
+                ? '→ свайп · перки'
+                : '← перки · → контейнеры';
     }
+    if (hangarPanelIndex === 2) renderContainerPanel();
 }
 
 function bindHangarSwipe() {
@@ -5035,8 +5270,8 @@ function bindHangarSwipe() {
         const dy = t.clientY - startY;
         startX = null;
         if (Math.abs(dx) < TH || Math.abs(dx) < Math.abs(dy)) return;
-        if (dx < 0 && hangarPanelIndex === 0) setHangarPanel(1);
-        else if (dx > 0 && hangarPanelIndex === 1) setHangarPanel(0);
+        if (dx < 0 && hangarPanelIndex < 2) setHangarPanel(hangarPanelIndex + 1);
+        else if (dx > 0 && hangarPanelIndex > 0) setHangarPanel(hangarPanelIndex - 1);
     }, { passive: true });
 
     $('hangar-panel-dots')?.querySelectorAll('.hangar-panel-dot').forEach(dot => {
@@ -5195,7 +5430,8 @@ const VIP_TIERS = {
         regenMult: 1.60,
         pvpAttacks: 6,
         creditMult: 1.15,
-        cosmetic: 'Золотой луч',
+        containerSlots: 2,
+        cosmetic: 'Золотой луч · 2 контейнера',
         recommended: true,
         daily: { containerEvery: 3 },
     },
@@ -5204,6 +5440,7 @@ const VIP_TIERS = {
         regenMult: 2.00,
         pvpAttacks: 6,
         creditMult: 1.20,
+        containerSlots: 2,
         cosmetic: 'Аним. щит',
         daily: { spice: 2 },
     },
@@ -5212,7 +5449,8 @@ const VIP_TIERS = {
         regenMult: 2.67,
         pvpAttacks: 7,
         creditMult: 1.25,
-        cosmetic: 'Скин корабля',
+        containerSlots: 3,
+        cosmetic: 'Скин корабля · 3 контейнера',
         daily: { eliteEvery: 7 },
     },
 };
@@ -5234,6 +5472,13 @@ function getVipRegenMs() {
 
 function getVipPvpAttacksPerDay() {
     return getVipTier()?.pvpAttacks ?? PVP_ATTACKS_PER_DAY;
+}
+
+/** Одновременных сканирований: 1 · VIP 3–4 → 2 · VIP 5 → 3. Очереди нет. */
+function getMaxContainerSlots(level = getVipLevel()) {
+    if (level >= 5) return 3;
+    if (level >= 3) return 2;
+    return 1;
 }
 
 function getVipCreditMult() {
@@ -5342,62 +5587,128 @@ let pvpBotSimRunning = false;
 const PVP_DAILY_RANK_MAX = 500;
 const PVP_LB_DISPLAY = 50;
 
-// ТОП 1–5: уникальный приз каждого места (элитный контейнер)
+// ТОП 1–5: спайс — главный приз, детали урезаны, без топлива
 const PVP_REWARD_TOP5 = {
-    1: { credits: 280, spice: 4, artifactParts: 2, combatParts: 5, luckParts: 2, container: 'elite' },
-    2: { credits: 255, spice: 3, artifactParts: 1, combatParts: 5, luckParts: 1, coreChance: 0.55, container: 'elite' },
-    3: { credits: 230, spice: 3, artifactParts: 1, combatParts: 4, luckParts: 1, coreChance: 0.45, container: 'elite' },
-    4: { credits: 205, spice: 2, artifactParts: 1, combatParts: 4, fuel: 10, coreChance: 0.35, container: 'elite' },
-    5: { credits: 180, spice: 2, artifactParts: 1, combatParts: 3, fuel: 12, coreChance: 0.25, container: 'elite' },
+    1: { credits: 180, spice: 10, artifactParts: 2, combatParts: 1, luckParts: 1, container: 'elite' },
+    2: { credits: 160, spice: 8, artifactParts: 1, combatParts: 1, coreChance: 0.4, container: 'elite' },
+    3: { credits: 145, spice: 7, artifactParts: 1, combatParts: 1, coreChance: 0.32, container: 'elite' },
+    4: { credits: 130, spice: 6, artifactParts: 1, coreChance: 0.25, container: 'elite' },
+    5: { credits: 115, spice: 5, artifactParts: 1, coreChance: 0.18, container: 'elite' },
 };
 
-// Группы мест: внутри группы приз плавно уменьшается к нижней границе
 const PVP_REWARD_GROUPS = [
-    { from: 6, to: 10, start: { credits: 160, spice: 2, fuel: 20, combatParts: 3, coreChance: 0.28, container: 'battle' },
-      end: { credits: 130, spice: 1, fuel: 14, combatParts: 2, coreChance: 0.12, container: 'battle' } },
-    { from: 11, to: 25, start: { credits: 125, spice: 1, fuel: 12, combatParts: 2, luckParts: 1, coreChance: 0.15, container: 'battle' },
-      end: { credits: 85, spice: 1, fuel: 8, combatParts: 1, luckParts: 0, coreChance: 0.05, container: 'battle' } },
-    { from: 26, to: 50, start: { credits: 78, fuel: 10, combatParts: 2, spiceChance: 0.15 },
-      end: { credits: 52, fuel: 6, combatParts: 1, spiceChance: 0.05 } },
-    { from: 51, to: 100, start: { credits: 50, fuel: 5, combatParts: 1, combatChance: 0.25 },
-      end: { credits: 28, fuel: 2, combatParts: 0, combatChance: 0.08 } },
-    { from: 101, to: 200, start: { credits: 26, fuel: 2 },
-      end: { credits: 14, fuel: 1 } },
-    { from: 201, to: 300, start: { credits: 13 },
-      end: { credits: 8 } },
-    { from: 301, to: 500, start: { credits: 7 },
-      end: { credits: 4 } },
+    { from: 6, to: 10, start: { credits: 100, spice: 4, combatParts: 1, coreChance: 0.22, container: 'advanced' },
+      end: { credits: 80, spice: 3, coreChance: 0.1, container: 'advanced' } },
+    { from: 11, to: 25, start: { credits: 75, spice: 2, combatParts: 1, coreChance: 0.12, container: 'advanced' },
+      end: { credits: 55, spice: 1, coreChance: 0.04, container: 'standard' } },
+    { from: 26, to: 50, start: { credits: 50, spice: 1, spiceChance: 0.12 },
+      end: { credits: 35, spiceChance: 0.04 } },
+    { from: 51, to: 100, start: { credits: 32, spiceChance: 0.1, combatChance: 0.15 },
+      end: { credits: 18, spiceChance: 0.03, combatChance: 0.05 } },
+    { from: 101, to: 200, start: { credits: 16, spiceChance: 0.06 },
+      end: { credits: 10, spiceChance: 0.02 } },
+    { from: 201, to: 300, start: { credits: 9 },
+      end: { credits: 6 } },
+    { from: 301, to: 500, start: { credits: 5 },
+      end: { credits: 3 } },
 ];
 
 const PVP_WEEKLY_RANK_MAX = 500;
 
 // Недельный ТОП 1–5: крупнее суточных (~×2.5)
 const PVP_WEEKLY_REWARD_TOP5 = {
-    1: { credits: 700, spice: 10, artifactParts: 5, combatParts: 8, luckParts: 4, container: 'elite' },
-    2: { credits: 640, spice: 8, artifactParts: 3, combatParts: 7, luckParts: 3, coreChance: 0.55, container: 'elite' },
-    3: { credits: 580, spice: 7, artifactParts: 2, combatParts: 6, luckParts: 2, coreChance: 0.45, container: 'elite' },
-    4: { credits: 520, spice: 5, artifactParts: 2, combatParts: 5, fuel: 25, coreChance: 0.35, container: 'elite' },
-    5: { credits: 460, spice: 5, artifactParts: 1, combatParts: 5, fuel: 30, coreChance: 0.25, container: 'elite' },
+    1: { credits: 450, spice: 25, artifactParts: 3, combatParts: 2, luckParts: 1, container: 'elite' },
+    2: { credits: 400, spice: 20, artifactParts: 2, combatParts: 2, coreChance: 0.4, container: 'elite' },
+    3: { credits: 360, spice: 18, artifactParts: 2, combatParts: 1, coreChance: 0.32, container: 'elite' },
+    4: { credits: 320, spice: 15, artifactParts: 1, combatParts: 1, coreChance: 0.25, container: 'elite' },
+    5: { credits: 280, spice: 12, artifactParts: 1, coreChance: 0.18, container: 'elite' },
 };
 
 const PVP_WEEKLY_REWARD_GROUPS = [
-    { from: 6, to: 10, start: { credits: 400, spice: 5, fuel: 45, combatParts: 5, coreChance: 0.28, container: 'battle' },
-      end: { credits: 320, spice: 3, fuel: 35, combatParts: 4, coreChance: 0.12, container: 'battle' } },
-    { from: 11, to: 25, start: { credits: 310, spice: 3, fuel: 28, combatParts: 4, luckParts: 2, coreChance: 0.15, container: 'battle' },
-      end: { credits: 210, spice: 2, fuel: 18, combatParts: 2, luckParts: 1, coreChance: 0.05, container: 'battle' } },
-    { from: 26, to: 50, start: { credits: 195, fuel: 22, combatParts: 3, spiceChance: 0.15 },
-      end: { credits: 130, fuel: 14, combatParts: 2, spiceChance: 0.05 } },
-    { from: 51, to: 100, start: { credits: 125, fuel: 12, combatParts: 2, combatChance: 0.25 },
-      end: { credits: 70, fuel: 6, combatParts: 1, combatChance: 0.08 } },
-    { from: 101, to: 200, start: { credits: 65, fuel: 5 },
-      end: { credits: 35, fuel: 3 } },
-    { from: 201, to: 300, start: { credits: 32 },
-      end: { credits: 20 } },
-    { from: 301, to: 500, start: { credits: 18 },
-      end: { credits: 10 } },
+    { from: 6, to: 10, start: { credits: 250, spice: 10, combatParts: 1, coreChance: 0.22, container: 'advanced' },
+      end: { credits: 200, spice: 8, coreChance: 0.1, container: 'advanced' } },
+    { from: 11, to: 25, start: { credits: 185, spice: 6, combatParts: 1, coreChance: 0.12, container: 'advanced' },
+      end: { credits: 130, spice: 4, coreChance: 0.04, container: 'standard' } },
+    { from: 26, to: 50, start: { credits: 120, spice: 3, spiceChance: 0.12 },
+      end: { credits: 80, spice: 2, spiceChance: 0.04 } },
+    { from: 51, to: 100, start: { credits: 75, spiceChance: 0.1, combatChance: 0.15 },
+      end: { credits: 42, spiceChance: 0.03, combatChance: 0.05 } },
+    { from: 101, to: 200, start: { credits: 38, spiceChance: 0.06 },
+      end: { credits: 22, spiceChance: 0.02 } },
+    { from: 201, to: 300, start: { credits: 20 },
+      end: { credits: 12 } },
+    { from: 301, to: 500, start: { credits: 11 },
+      end: { credits: 6 } },
 ];
 
 const MINE_SOURCE_LABELS = { meteor: 'Метеорит', wreck: 'Обломки', pirate: 'Пират' };
+
+// ─── Контейнеры (3 типа) ─────────────────────────────────────
+const CONTAINER_TYPES = {
+    standard: {
+        id: 'standard', label: 'Стандартный', color: 'gray', openMs: 2 * 60 * 60 * 1000,
+        resKey: 'containerStandard',
+    },
+    advanced: {
+        id: 'advanced', label: 'Техно', color: 'purple', openMs: 4 * 60 * 60 * 1000,
+        resKey: 'containerAdvanced',
+    },
+    elite: {
+        id: 'elite', label: 'Элитный', color: 'gold', openMs: 6 * 60 * 60 * 1000,
+        resKey: 'containerElite',
+    },
+};
+
+/** Лут контейнеров: без топлива; спайс — самый редкий */
+const CONTAINER_LOOT = {
+    standard: [
+        { pct: 38, id: 'credits', min: 35, max: 75 },
+        { pct: 28, id: 'combatPart', amount: 1 },
+        { pct: 18, id: 'luckPart', amount: 1 },
+        { pct: 12, id: 'artifact', amount: 1 },
+        { pct: 4, id: 'spice', min: 1, max: 1 },
+    ],
+    advanced: [
+        { pct: 28, id: 'credits', min: 70, max: 140 },
+        { pct: 22, id: 'combatPart', amount: 2 },
+        { pct: 18, id: 'luckPart', amount: 1 },
+        { pct: 20, id: 'artifact', min: 1, max: 2 },
+        { pct: 12, id: 'spice', min: 1, max: 2 },
+    ],
+    elite: [
+        { pct: 18, id: 'credits', min: 120, max: 260 },
+        { pct: 14, id: 'combatPart', min: 2, max: 3 },
+        { pct: 12, id: 'luckPart', amount: 2 },
+        { pct: 28, id: 'artifact', min: 2, max: 3 },
+        { pct: 28, id: 'spice', min: 2, max: 4 },
+    ],
+};
+
+const SPICE_MONTHLY_RANK_MAX = 500;
+const SPICE_LB_DISPLAY = 50;
+const CHECKIN_PART_ROTATION = ['hp', 'damage', 'shield', 'speed'];
+const CHECKIN_PART_LABELS = { hp: 'HP', damage: 'Урон', shield: 'Щит', speed: 'Скорость' };
+
+const SPICE_MONTHLY_REWARD_TOP5 = {
+    1: { spice: 80, artifactParts: 8, credits: 500, container: 'elite' },
+    2: { spice: 60, artifactParts: 6, credits: 400, container: 'elite' },
+    3: { spice: 45, artifactParts: 5, credits: 350, container: 'advanced' },
+    4: { spice: 35, artifactParts: 4, credits: 300, container: 'advanced' },
+    5: { spice: 28, artifactParts: 3, credits: 250, container: 'advanced' },
+};
+
+const SPICE_MONTHLY_REWARD_GROUPS = [
+    { from: 6, to: 10, start: { spice: 22, artifactParts: 2, credits: 200, container: 'advanced' },
+      end: { spice: 15, artifactParts: 1, credits: 150, container: 'standard' } },
+    { from: 11, to: 25, start: { spice: 14, artifactParts: 1, credits: 120 },
+      end: { spice: 8, credits: 80 } },
+    { from: 26, to: 50, start: { spice: 7, credits: 60 },
+      end: { spice: 4, credits: 40 } },
+    { from: 51, to: 100, start: { spice: 3, credits: 30 },
+      end: { spice: 2, credits: 18 } },
+    { from: 101, to: 500, start: { spice: 2, credits: 12 },
+      end: { spice: 1, credits: 6 } },
+];
 
 // ─── Бесплатный чекин (7 дней) ───────────────────────────────
 const CHECKIN_TOTAL_DAYS = 7;
@@ -5490,12 +5801,15 @@ const defaultState = () => ({
     profileComplete: false,
     level: 1, exp: 0, vip: 0, pvpScore: 0,
     resources: {
-        credits: 0, fuel: 100, spice: 0, artifactParts: 0, containers: 0,
+        credits: 0, fuel: 100, spice: 0, artifactParts: 0,
+        containerStandard: 0, containerAdvanced: 0, containerElite: 0, containers: 0,
         hpParts: 0, damageParts: 0, shieldParts: 0, speedParts: 0,
         luckParts: 0, fuelTankParts: 0,
     },
     maxFuel: 100,
     fuelUpdatedAt: null,
+    containerOpenings: [],
+    spiceMonthly: { monthKey: null, earned: 0 },
     mining: { objects: [] },
     upgrades: { hp:0, damage:0, shield:0, speed:0, luck:0, fuelTank:0 },
     perks: { levels: defaultPerkLevels(), equipped: [null, null] },
@@ -5555,6 +5869,10 @@ function trackEarned(key, amount) {
     ensurePlayerStats();
     if (state.playerStats.earned[key] != null) {
         state.playerStats.earned[key] += amount;
+    }
+    if (key === 'spice') {
+        ensureSpiceMonthly();
+        state.spiceMonthly.earned += amount;
     }
 }
 
@@ -5725,6 +6043,15 @@ function normalizeLoadedSave(raw) {
     base.pvpWeekly = { ...defaultState().pvpWeekly, ...(base.pvpWeekly || {}) };
     base.pvpInbox = Array.isArray(base.pvpInbox) ? base.pvpInbox : [];
     base.pvpBotWorld = { ...defaultState().pvpBotWorld, ...(base.pvpBotWorld || {}) };
+    base.spiceMonthly = { ...defaultState().spiceMonthly, ...(base.spiceMonthly || {}) };
+    if (Array.isArray(base.containerOpenings)) {
+        base.containerOpenings = base.containerOpenings.filter(o => o && o.type && o.finishesAt);
+    } else if (base.containerOpening && typeof base.containerOpening === 'object') {
+        base.containerOpenings = [{ ...base.containerOpening, id: `co-m-${Date.now()}` }];
+    } else {
+        base.containerOpenings = [];
+    }
+    delete base.containerOpening;
     base.mining = { objects: [], ...(base.mining || {}) };
     if (!Array.isArray(base.mining.objects)) base.mining.objects = [];
     if (base.fuelUpdatedAt == null && base.resources?.fuel != null) {
@@ -6718,6 +7045,7 @@ function switchTab(tab) {
             });
         });
     } else {
+        closeSpiceLeaderboard();
         stopPlanetSpin();
         stopPiratePatrol();
         $('mining-screen').classList.remove('active');
@@ -7620,6 +7948,382 @@ function formatUtcWeekLabel(weekKey) {
     return `нед. ${weekKey.replace(/^\d+-W/, '')} · ${weekKey.split('-')[0]} UTC`;
 }
 
+function getUtcMonthKey(d = new Date()) {
+    return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+}
+
+function formatUtcMonthLabel(monthKey) {
+    if (!monthKey) return '—';
+    const [y, m] = monthKey.split('-');
+    const names = ['', 'янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+    return `${names[Number(m)] || m} ${y} UTC`;
+}
+
+function getCheckinWeekTheme() {
+    const wk = getUtcWeekKey();
+    const weekNo = parseInt(wk.split('-W')[1], 10) || 1;
+    return CHECKIN_PART_ROTATION[(weekNo - 1) % CHECKIN_PART_ROTATION.length];
+}
+
+function getFreeCheckinDayReward(day) {
+    const base = FREE_CHECKIN_REWARDS[day];
+    if (!base) return null;
+    const theme = getCheckinWeekTheme();
+    const themeLabel = CHECKIN_PART_LABELS[theme] || theme;
+    if (day === 4) return { ...base, parts: { [theme]: 2 }, _themeLabel: themeLabel };
+    if (day === 6) return { credits: 45, parts: { [theme]: 2 }, _themeLabel: themeLabel };
+    return base;
+}
+
+function ensureSpiceMonthly() {
+    if (!state.spiceMonthly) state.spiceMonthly = { monthKey: null, earned: 0 };
+}
+
+function ensureBotSpiceMonthly(live) {
+    if (!live.spiceMonthly) live.spiceMonthly = { monthKey: getUtcMonthKey(), earned: 0 };
+}
+
+function botTrackSpiceMonthly(live, amount) {
+    if (!amount || amount <= 0) return;
+    ensureBotSpiceMonthly(live);
+    const month = getUtcMonthKey();
+    if (live.spiceMonthly.monthKey !== month) {
+        live.spiceMonthly.monthKey = month;
+        live.spiceMonthly.earned = 0;
+    }
+    live.spiceMonthly.earned += amount;
+}
+
+function refreshSpiceMonthly() {
+    ensureSpiceMonthly();
+    ensurePvpInbox();
+    const month = getUtcMonthKey();
+    const sm = state.spiceMonthly;
+    if (sm.monthKey && sm.monthKey !== month) {
+        finalizeSpiceMonthlyRewards(sm.monthKey);
+    }
+    if (sm.monthKey !== month) {
+        sm.monthKey = month;
+        sm.earned = 0;
+    }
+    if (state.pvpBotWorld?.bots) {
+        Object.values(state.pvpBotWorld.bots).forEach(live => {
+            ensureBotSpiceMonthly(live);
+            if (live.spiceMonthly.monthKey !== month) {
+                live.spiceMonthly.monthKey = month;
+                live.spiceMonthly.earned = 0;
+            }
+        });
+    }
+}
+
+function lerpSpiceMonthlyReward(start, end, t) {
+    const out = {};
+    const keys = new Set([...Object.keys(start || {}), ...Object.keys(end || {})]);
+    keys.forEach(k => {
+        const a = start[k] ?? 0;
+        const b = end[k] ?? 0;
+        if (typeof a === 'number' && typeof b === 'number') out[k] = Math.max(0, Math.round(a + (b - a) * t));
+        else if (t < 0.5) out[k] = a;
+        else out[k] = b;
+    });
+    return out;
+}
+
+function getSpiceMonthlyRewardTemplate(rank) {
+    if (rank <= 5) return { ...(SPICE_MONTHLY_REWARD_TOP5[rank] || {}) };
+    for (const g of SPICE_MONTHLY_REWARD_GROUPS) {
+        if (rank >= g.from && rank <= g.to) {
+            const t = (rank - g.from) / Math.max(1, g.to - g.from);
+            return lerpSpiceMonthlyReward(g.start, g.end, t);
+        }
+    }
+    return null;
+}
+
+function resolveSpiceMonthlyReward(rank) {
+    return { ...(getSpiceMonthlyRewardTemplate(rank) || {}) };
+}
+
+function buildSpiceLeaderboardList(opts = {}) {
+    if (!opts.skipRefresh) refreshSpiceMonthly();
+    if (!opts.skipBotEnsure) ensurePvpBotWorld({ skipPeriodRefresh: true });
+    const monthKey = opts.monthKey || getUtcMonthKey();
+    const me = {
+        id: '__me__',
+        name: state.playerName || 'Вы',
+        spiceScore: state.spiceMonthly?.monthKey === monthKey ? (state.spiceMonthly.earned || 0) : 0,
+        isMe: true,
+        isBot: false,
+    };
+    const bots = PVP_BOTS.map(bot => {
+        const live = state.pvpBotWorld?.bots?.[bot.id];
+        const sm = live?.spiceMonthly;
+        return {
+            id: bot.id,
+            name: bot.name,
+            spiceScore: sm?.monthKey === monthKey ? (sm.earned || 0) : 0,
+            isBot: true,
+            isMe: false,
+        };
+    });
+    const list = [...bots, me];
+    list.sort((a, b) => b.spiceScore - a.spiceScore);
+    list.forEach((p, i) => { p.rank = i + 1; });
+    return list;
+}
+
+function finalizeSpiceMonthlyRewards(oldMonthKey) {
+    const list = buildSpiceLeaderboardList({ monthKey: oldMonthKey, skipRefresh: true, skipBotEnsure: true });
+    const me = list.find(p => p.isMe);
+    if (!me?.rank || me.rank > SPICE_MONTHLY_RANK_MAX) return;
+    const reward = resolveSpiceMonthlyReward(me.rank);
+    if (!reward || !Object.keys(reward).length) return;
+    pushPvpInboxMail('spice-monthly', oldMonthKey, me.rank, reward);
+}
+
+function formatContainerOpenTime(ms) {
+    const h = Math.floor(ms / 3600000);
+    const m = Math.floor((ms % 3600000) / 60000);
+    if (h > 0) return `${h}ч ${m}м`;
+    return `${m}м`;
+}
+
+function rollContainerLoot(type) {
+    const table = CONTAINER_LOOT[normalizeContainerType(type)];
+    if (!table?.length) return {};
+    const roll = Math.random() * 100;
+    let acc = 0;
+    let entry = table[table.length - 1];
+    for (const e of table) {
+        acc += e.pct;
+        if (roll < acc) { entry = e; break; }
+    }
+    const reward = {};
+    if (entry.id === 'credits') reward.credits = randInt(entry.min, entry.max);
+    else if (entry.id === 'spice') reward.spice = randInt(entry.min || 1, entry.max || entry.min || 1);
+    else if (entry.id === 'artifact') reward.artifactParts = entry.amount || randInt(entry.min || 1, entry.max || 1);
+    else if (entry.id === 'combatPart') {
+        const keys = ['hp', 'damage', 'shield', 'speed'];
+        const k = keys[Math.floor(Math.random() * keys.length)];
+        reward.parts = { [k]: entry.amount || randInt(entry.min || 1, entry.max || 1) };
+    } else if (entry.id === 'luckPart') {
+        reward.parts = { luck: entry.amount || 1 };
+    }
+    return reward;
+}
+
+let selectedContainerType = 'standard';
+
+function ensureContainerOpenings() {
+    if (!Array.isArray(state.containerOpenings)) {
+        state.containerOpenings = [];
+    }
+}
+
+function getContainerOpenings() {
+    ensureContainerOpenings();
+    return state.containerOpenings;
+}
+
+function getFreeContainerSlots() {
+    return Math.max(0, getMaxContainerSlots() - getContainerOpenings().length);
+}
+
+function isContainerSlotReady(op) {
+    return op && Date.now() >= op.finishesAt;
+}
+
+function startContainerOpening(type) {
+    const t = normalizeContainerType(type);
+    const def = CONTAINER_TYPES[t];
+    if (!def) return false;
+    ensureContainerOpenings();
+    if (getFreeContainerSlots() <= 0) return false;
+    if (getContainerCount(t) <= 0) return false;
+    state.resources[def.resKey] = Math.max(0, (state.resources[def.resKey] || 0) - 1);
+    const now = Date.now();
+    state.containerOpenings.push({
+        id: `co-${now}-${Math.random().toString(36).slice(2, 7)}`,
+        type: t,
+        startedAt: now,
+        finishesAt: now + def.openMs,
+    });
+    Storage.save();
+    renderContainerPanel();
+    return true;
+}
+
+function claimContainerOpening(slotId) {
+    ensureContainerOpenings();
+    const idx = state.containerOpenings.findIndex(o => o.id === slotId);
+    if (idx < 0) return false;
+    const op = state.containerOpenings[idx];
+    if (!isContainerSlotReady(op)) return false;
+    const reward = rollContainerLoot(op.type);
+    applyDailyReward(reward);
+    state.containerOpenings.splice(idx, 1);
+    Storage.save();
+    updateHUD();
+    showRewardLoot(formatDailyRewardText(reward));
+    renderContainerPanel();
+    return true;
+}
+
+function renderContainerSlotHtml(op, slotIndex) {
+    if (!op) {
+        return `<div class="container-slot-wrap">
+            <div class="container-slot-label">СЛОТ ${slotIndex + 1}</div>
+            <div class="container-scene compact empty"><span>Свободно</span></div>
+        </div>`;
+    }
+    const ready = isContainerSlotReady(op);
+    const def = CONTAINER_TYPES[op.type];
+    const sceneClass = `container-scene compact${ready || !ready ? ' active' : ''}`;
+    let timerHtml = '';
+    if (ready) {
+        timerHtml = '<div class="container-timer">✓ Готово</div>';
+    } else {
+        timerHtml = `<div class="container-timer">⏱ ${formatContainerOpenTime(op.finishesAt - Date.now())}</div>`;
+    }
+    const claimBtn = ready
+        ? `<button type="button" class="btn container-slot-claim" data-claim-slot="${op.id}">ЗАБРАТЬ</button>`
+        : '';
+    return `<div class="container-slot-wrap">
+        <div class="container-slot-label">${def?.label || op.type}</div>
+        <div class="${sceneClass}">
+            <div class="container-belt"></div>
+            <div class="container-scanner left"></div>
+            <div class="container-scanner right"></div>
+            <div class="container-on-belt">${containerIconHtml(op.type, 'res-gfx-inline')}</div>
+            ${timerHtml}
+        </div>
+        ${claimBtn}
+    </div>`;
+}
+
+function formatContainerLootHint(type) {
+    const t = normalizeContainerType(type);
+    const table = CONTAINER_LOOT[t] || [];
+    return table.map(e => {
+        if (e.id === 'spice') return `спайс ${e.pct}%`;
+        if (e.id === 'artifact') return `ядра ${e.pct}%`;
+        if (e.id === 'combatPart') return `детали ${e.pct}%`;
+        if (e.id === 'luckPart') return `удача ${e.pct}%`;
+        if (e.id === 'credits') return `кредиты ${e.pct}%`;
+        return '';
+    }).filter(Boolean).join(' · ');
+}
+
+function renderContainerPanel() {
+    const root = $('container-panel-root');
+    if (!root) return;
+    ensureContainerOpenings();
+    const maxSlots = getMaxContainerSlots();
+    const openings = getContainerOpenings();
+    const freeSlots = getFreeContainerSlots();
+    const slotsHtml = [];
+    for (let i = 0; i < maxSlots; i++) {
+        slotsHtml.push(renderContainerSlotHtml(openings[i] || null, i));
+    }
+    const rows = Object.values(CONTAINER_TYPES).map(def => {
+        const qty = getContainerCount(def.id);
+        const sel = selectedContainerType === def.id ? ' selected' : '';
+        return `<div class="container-row${sel}" data-container-type="${def.id}">
+            ${containerIconHtml(def.id, 'res-gfx-inline')}
+            <div class="container-row-info">
+                <div class="container-row-name">${def.label}</div>
+                <div class="container-row-meta">Открытие: ${formatContainerOpenTime(def.openMs)} · без топлива</div>
+            </div>
+            <div class="container-row-qty">×${qty}</div>
+        </div>`;
+    }).join('');
+    const canOpen = freeSlots > 0 && getContainerCount(selectedContainerType) > 0;
+    const vipHint = getVipLevel() >= 5
+        ? 'VIP 5 · 3 слота одновременно'
+        : getVipLevel() >= 3
+            ? 'VIP 3+ · 2 слота одновременно'
+            : '1 слот · VIP 3 = 2 · VIP 5 = 3';
+    root.innerHTML = `
+        <div class="container-vip-hint">${vipHint} · без ускорения · чистый рандом · заберите лут вручную</div>
+        <div class="container-slots">${slotsHtml.join('')}</div>
+        <div class="container-list">${rows}</div>
+        <div class="container-loot-preview">Шансы «${CONTAINER_TYPES[selectedContainerType]?.label || ''}»: ${formatContainerLootHint(selectedContainerType)}</div>
+        <div class="container-actions">
+            <button type="button" class="btn" id="btn-container-action" ${canOpen ? '' : 'disabled'}>
+                ${freeSlots > 0 ? 'ПОСТАВИТЬ НА СКАН' : 'ВСЕ СЛОТЫ ЗАНЯТЫ'}
+            </button>
+        </div>`;
+    root.querySelectorAll('.container-row').forEach(row => {
+        row.onclick = () => {
+            selectedContainerType = row.dataset.containerType;
+            renderContainerPanel();
+        };
+    });
+    root.querySelectorAll('[data-claim-slot]').forEach(btn => {
+        btn.onclick = () => claimContainerOpening(btn.dataset.claimSlot);
+    });
+    $('btn-container-action')?.addEventListener('click', () => startContainerOpening(selectedContainerType));
+}
+
+function renderSpiceLeaderboardDropdown() {
+    const el = $('spice-lb-dropdown');
+    if (!el) return;
+    refreshSpiceMonthly();
+    const month = getUtcMonthKey();
+    const list = buildSpiceLeaderboardList();
+    const me = list.find(p => p.isMe);
+    const top = list.slice(0, SPICE_LB_DISPLAY);
+    const inTop = me && me.rank <= SPICE_LB_DISPLAY;
+    let html = `<div class="pvp-lb-title">🌶 СПАЙС · ${formatUtcMonthLabel(month)} · ТОП-${SPICE_LB_DISPLAY}</div>`;
+    html += `<div class="pvp-prize-hint" style="padding:2px 8px">Добыто за месяц UTC · награды в 📬</div>`;
+    html += top.map(p => {
+        const rowCls = p.isMe ? ' me' : '';
+        return `<div class="pvp-lb-row${rowCls}"><span class="pvp-lb-name">#${p.rank} ${p.name}</span><span>${resAmtHtml('spice', p.spiceScore)}</span></div>`;
+    }).join('');
+    if (me) {
+        html += `<div class="pvp-lb-sep">ваше место</div>`;
+        html += `<div class="pvp-lb-row me"><span class="pvp-lb-name">#${me.rank} ${me.name}</span><span>${resAmtHtml('spice', me.spiceScore)}</span></div>`;
+        if (me.rank <= SPICE_MONTHLY_RANK_MAX && !inTop) {
+            html += `<div class="pvp-prize-hint" style="padding:2px 8px">Приз: ${formatPvpRewardText(getSpiceMonthlyRewardTemplate(me.rank), true)}</div>`;
+        } else if (me.rank <= SPICE_MONTHLY_RANK_MAX) {
+            html += `<div class="pvp-prize-hint" style="padding:2px 8px">Ваш приз: ${formatPvpRewardText(getSpiceMonthlyRewardTemplate(me.rank), true)}</div>`;
+        }
+    }
+    const prizeRows = [1, 2, 3, 4, 5].map(r =>
+        `<div class="pvp-prize-row"><span class="pvp-prize-rank">#${r}</span><span class="pvp-prize-val">${formatPvpRewardText(getSpiceMonthlyRewardTemplate(r), true)}</span></div>`
+    ).join('');
+    html += `<div class="pvp-prize-title" style="margin-top:6px;padding:0 8px">Призы месяца</div>${prizeRows}`;
+    el.innerHTML = html;
+}
+
+function toggleSpiceLeaderboard() {
+    const el = $('spice-lb-dropdown');
+    if (!el) return;
+    $('pvp-lb-dropdown')?.classList.add('hidden');
+    $('pvp-mail-dropdown')?.classList.add('hidden');
+    if (!el.classList.contains('hidden')) {
+        el.classList.add('hidden');
+        return;
+    }
+    renderSpiceLeaderboardDropdown();
+    el.classList.remove('hidden');
+}
+
+function closeSpiceLeaderboard() {
+    $('spice-lb-dropdown')?.classList.add('hidden');
+}
+
+function startContainerTickLoop() {
+    if (window._containerTickTimer) return;
+    window._containerTickTimer = setInterval(() => {
+        if (!getContainerOpenings().length) return;
+        if ($('win-hangar') && !$('win-hangar').classList.contains('hidden') && hangarPanelIndex === 2) {
+            renderContainerPanel();
+        }
+    }, 1000);
+}
+
 function parseUtcDayKey(key) {
     const [y, m, d] = key.split('-').map(Number);
     return Date.UTC(y, m - 1, d);
@@ -7664,7 +8368,10 @@ function formatDailyRewardText(reward) {
     if (reward.fuel) parts.push(resAmtHtml('fuel', reward.fuel));
     if (reward.spice) parts.push(resAmtHtml('spice', reward.spice));
     if (reward.artifactParts) parts.push(resAmtHtml('artifact', reward.artifactParts));
-    if (reward.containers) parts.push(containerIconHtml('silver') + ' ×' + reward.containers);
+    if (reward.containers) parts.push(containerIconHtml('standard') + ' ×' + reward.containers);
+    if (reward.container === 'elite') parts.push(containerIconHtml('elite') + ' ×1');
+    else if (reward.container === 'advanced' || reward.container === 'battle') parts.push(containerIconHtml('advanced') + ' ×1');
+    else if (reward.container === 'standard') parts.push(containerIconHtml('standard') + ' ×1');
     if (reward.parts) {
         Object.entries(reward.parts).forEach(([key, n]) => {
             parts.push(partAmtHtml(key, n));
@@ -7679,7 +8386,12 @@ function formatCheckinRewardText(reward) {
 }
 
 function getFreeCheckinDayPreview(day) {
-    return formatDailyRewardText(FREE_CHECKIN_REWARDS[day]);
+    const reward = getFreeCheckinDayReward(day);
+    let text = formatDailyRewardText(reward);
+    if (reward?._themeLabel && (day === 4 || day === 6)) {
+        text += ` <span style="opacity:0.7">(${reward._themeLabel} нед.)</span>`;
+    }
+    return text;
 }
 
 function getBpDayPreview(day) {
@@ -7707,7 +8419,10 @@ function applyDailyReward(reward) {
         addArtifactParts(reward.artifactParts);
     }
     if (reward.containers) {
-        addContainers(reward.containers);
+        addContainer('standard', reward.containers);
+    }
+    if (reward.container) {
+        addContainer(normalizeContainerType(reward.container), 1);
     }
     if (reward.parts) {
         Object.entries(reward.parts).forEach(([key, n]) => addUpgradePart(key, n));
@@ -7745,6 +8460,7 @@ function getCheckinHelpHtml() {
         <p><strong>7 дней</strong> — бесплатная серия для всех игроков. Скромные, но полезные награды.</p>
         <p><strong>Сброс серии:</strong> новый UTC-день начинается в <strong>00:00 UTC</strong>.</p>
         <p><strong>Пропуск:</strong> не зашёл больше суток UTC — серия сбора с <strong>дня 1</strong>.</p>
+        <p><strong>Дни 4 и 6:</strong> детали прокачки меняются каждую UTC-неделю (HP → Урон → Щит → Скорость).</p>
         <p><strong>День 7:</strong> приз недели — кредиты, топливо, спайс и <strong>1 ядро перка</strong>.</p>
         <p>За полноценный 30-дневный цикл с вехами и выбором наград — см. <strong>Батл-пасс</strong>.</p>
     `;
@@ -7823,7 +8539,7 @@ function renderStreakActions(cfg) {
         return;
     }
 
-    const reward = rewards[day];
+    const reward = cfg.getReward ? cfg.getReward(day) : rewards[day];
     todayBox.innerHTML = `<strong>День ${day}:</strong> ${formatDailyRewardText(reward)}`;
     actions.innerHTML = '<button class="btn btn-streak-claim" id="' + cfg.claimBtnId + '">ЗАБРАТЬ</button>';
     $(cfg.claimBtnId).onclick = () => cfg.onComplete(reward);
@@ -7863,6 +8579,7 @@ function renderCheckinActions() {
         choiceDays: CHECKIN_CHOICE_DAYS,
         choices: {},
         rewards: FREE_CHECKIN_REWARDS,
+        getReward: getFreeCheckinDayReward,
         actionsId: 'checkin-actions',
         todayId: 'checkin-today',
         claimBtnId: 'btn-checkin-claim',
@@ -7877,11 +8594,13 @@ function renderCheckin() {
     const claimed = state.checkin.claimedToday;
 
     const status = $('checkin-status');
+    const theme = CHECKIN_PART_LABELS[getCheckinWeekTheme()] || '';
     if (status) {
         status.className = 'checkin-status' + (claimed ? '' : ' warn');
+        const themeHint = theme ? ` · неделя: <strong>${theme}</strong>` : '';
         status.innerHTML = claimed
-            ? `Бесплатная серия: <strong>день ${day}</strong> / ${CHECKIN_TOTAL_DAYS} · сегодня UTC уже забрали`
-            : `Бесплатная серия: <strong>день ${day}</strong> / ${CHECKIN_TOTAL_DAYS} · сброс 00:00 UTC · пропуск = с начала`;
+            ? `Бесплатная серия: <strong>день ${day}</strong> / ${CHECKIN_TOTAL_DAYS} · сегодня UTC уже забрали${themeHint}`
+            : `Бесплатная серия: <strong>день ${day}</strong> / ${CHECKIN_TOTAL_DAYS} · сброс 00:00 UTC · пропуск = с начала${themeHint}`;
     }
 
     renderStreakGrid({
@@ -8006,7 +8725,7 @@ function claimVipDailyBonus(silent = false) {
     if (d.containerEvery) {
         state.vipDaily.containerStreak = (state.vipDaily.containerStreak || 0) + 1;
         if (state.vipDaily.containerStreak >= d.containerEvery) {
-            addContainers(1);
+            addContainer('standard', 1);
             state.vipDaily.containerStreak = 0;
             parts.push(containerIconHtml('silver') + ' ×1');
         }
@@ -8014,7 +8733,7 @@ function claimVipDailyBonus(silent = false) {
     if (d.eliteEvery) {
         state.vipDaily.eliteStreak = (state.vipDaily.eliteStreak || 0) + 1;
         if (state.vipDaily.eliteStreak >= d.eliteEvery) {
-            addContainers(1);
+            addContainer('standard', 1);
             state.vipDaily.eliteStreak = 0;
             parts.push(containerIconHtml('elite') + ' ×1');
         }
@@ -8047,6 +8766,7 @@ function setVipLevel(level) {
     startFuelRegenLoop();
     updateHUD();
     renderPvpDailyBar();
+    if (hangarPanelIndex === 2) renderContainerPanel();
     Storage.save();
 }
 
@@ -8091,6 +8811,7 @@ function renderVipShop() {
             <ul class="vip-tier-perks">
                 <li>Реген: ${formatVipRegenMin(n)} (~${estimateVipFuelPerDay(n)} топл./сут)</li>
                 <li>PvP: ${t.pvpAttacks} атак/сут</li>
+                <li>Контейнеры: ${getMaxContainerSlots(n)} одновременно</li>
                 <li>Кредиты с добычи: +${Math.round((t.creditMult - 1) * 100)}%</li>
                 <li>${t.cosmetic}</li>
             </ul>
@@ -8194,6 +8915,7 @@ function renderHangar() {
     renderPerkList();
     bindHangarSwipe();
     setHangarPanel(hangarPanelIndex, false);
+    if (hangarPanelIndex === 2) renderContainerPanel();
 }
 
 // ─── PvP: суточный рейтинг ──────────────────────────────────
@@ -8258,6 +8980,7 @@ function refreshPvpPeriods() {
     ensurePvpDaily();
     ensurePvpWeekly();
     ensurePvpInbox();
+    refreshSpiceMonthly();
     const today = getUtcTodayKey();
     const week = getUtcWeekKey();
     const d = state.pvpDaily;
@@ -8494,7 +9217,8 @@ function formatPvpRewardText(reward, short = false) {
     if (!reward) return '—';
     const parts = [];
     if (reward.container === 'elite') parts.push(containerIconHtml('elite') + ' элит');
-    else if (reward.container === 'battle') parts.push(containerIconHtml('battle') + ' бой');
+    else if (reward.container === 'advanced' || reward.container === 'battle') parts.push(containerIconHtml('advanced') + ' техно');
+    else if (reward.container === 'standard') parts.push(containerIconHtml('standard') + ' станд.');
     if (reward.credits) parts.push(resAmtHtml('credits', reward.credits));
     if (reward.spice) parts.push(resAmtHtml('spice', reward.spice));
     if (reward.fuel) parts.push(resAmtHtml('fuel', reward.fuel));
@@ -8513,7 +9237,7 @@ function formatPvpRewardText(reward, short = false) {
 function applyPvpReward(reward) {
     if (!reward) return;
     const r = state.resources;
-    if (reward.container) addContainers(1);
+    if (reward.container) addContainer(normalizeContainerType(reward.container), 1);
     if (reward.credits) { r.credits += reward.credits; trackEarned('credits', reward.credits); }
     if (reward.fuel) {
         const added = Math.min(reward.fuel, Math.max(0, state.maxFuel - r.fuel));
@@ -8534,6 +9258,9 @@ function applyPvpReward(reward) {
 }
 
 function getPvpMailSubject(kind, periodKey, rank) {
+    if (kind === 'spice-monthly') {
+        return `Спайс-рейтинг · ${formatUtcMonthLabel(periodKey)} · место #${rank}`;
+    }
     if (kind === 'weekly') {
         return `Недельный рейтинг · ${formatUtcWeekLabel(periodKey)} · место #${rank}`;
     }
@@ -8680,6 +9407,7 @@ function createBotLiveState(template) {
         },
         pvpDaily: { score: 0, attacksUsed: 0, opponents: {}, history: [] },
         pvpWeekly: { weekKey: null, score: 0, fightsUsed: 0 },
+        spiceMonthly: { monthKey: getUtcMonthKey(), earned: Math.max(0, tier * 4 + randInt(0, 8)) },
         lastSimDayKey: null,
         simLog: { minedObjects: 0, upgradesBought: 0, pvpFights: 0, pvpWins: 0 },
     };
@@ -8729,6 +9457,7 @@ function botApplyMineRoll(live, kind) {
         r.fuel = Math.min(live.maxFuel, (r.fuel || 0) + amount);
     } else if (entry.id === 'spice') {
         r.spice = (r.spice || 0) + amount;
+        botTrackSpiceMonthly(live, amount);
     } else if (entry.id === 'artifactParts') {
         r.artifactParts = (r.artifactParts || 0) + amount;
     }
@@ -8947,6 +9676,7 @@ function ensurePvpBotWorld(opts = {}) {
         } else {
             syncBotMaxFuel(state.pvpBotWorld.bots[t.id]);
             ensureBotWeekly(state.pvpBotWorld.bots[t.id]);
+            ensureBotSpiceMonthly(state.pvpBotWorld.bots[t.id]);
         }
     });
     refreshBotPvpWeeklyPeriods();
@@ -10311,6 +11041,12 @@ function bindEvents() {
     $('ui-vip')?.addEventListener('click', openVipFromBadge);
     $('ui-vip')?.addEventListener('touchend', openVipFromBadge, { passive: false });
 
+    $('btn-spice-lb')?.addEventListener('click', e => {
+        e.stopPropagation();
+        toggleSpiceLeaderboard();
+    });
+    $('mining-screen')?.addEventListener('click', e => e.stopPropagation());
+
     $('btn-vip-close')?.addEventListener('click', e => {
         e.stopPropagation();
         closeVipPanel();
@@ -10351,6 +11087,7 @@ function bindEvents() {
         $('pvp-lb-dropdown')?.classList.add('hidden');
         $('pvp-history-dropdown')?.classList.add('hidden');
         $('pvp-mail-dropdown')?.classList.add('hidden');
+        $('spice-lb-dropdown')?.classList.add('hidden');
     });
     $('win-pvp')?.addEventListener('click', e => e.stopPropagation());
 
@@ -10364,6 +11101,7 @@ function bindEvents() {
             refreshCheckinState();
             refreshBpState();
             refreshVipDailyState();
+            refreshSpiceMonthly();
             applyGameInsets();
             syncPanelHeights();
             onMiningResize();
@@ -10419,6 +11157,8 @@ async function boot() {
     resumeOrStart();
     updateHUD();
     ensurePvpBotWorld();
+    refreshSpiceMonthly();
+    startContainerTickLoop();
     if (DEV_FREE_PVP) {
         auditPvpBots();
         window.__pvpBots = auditPvpBots;
