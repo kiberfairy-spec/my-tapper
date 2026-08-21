@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.51.4</title>
+    <title>Space Dream v2.52.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -2151,6 +2151,51 @@
         }
         .pvp-header .wtitle { flex: 1; margin: 0; }
         .pvp-lb-btn { font-size: 7px; line-height: 1; }
+        .pvp-history-dropdown {
+            position: absolute;
+            top: 28px;
+            left: 6px;
+            z-index: 40;
+            width: min(92%, 240px);
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(4, 12, 28, 0.97);
+            border: 1px solid rgba(255, 120, 60, 0.45);
+            border-radius: 4px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.55);
+            padding: 6px;
+            font-size: 5px;
+        }
+        .pvp-history-dropdown.hidden { display: none; }
+        .pvp-history-title {
+            color: #ffaa66;
+            font-size: 5px;
+            letter-spacing: 0.08em;
+            margin-bottom: 4px;
+            text-align: center;
+        }
+        .pvp-history-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 2px;
+            border-bottom: 1px solid rgba(255, 120, 60, 0.12);
+        }
+        .pvp-history-row:last-child { border-bottom: none; }
+        .pvp-history-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #a0c8e0; }
+        .pvp-history-meta { color: #8898aa; font-size: 4px; flex-shrink: 0; }
+        .pvp-history-revenge {
+            font-size: 4px;
+            padding: 2px 4px;
+            border: 1px solid rgba(255, 120, 60, 0.55);
+            background: rgba(255, 80, 40, 0.15);
+            color: #ffaa66;
+            border-radius: 2px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .pvp-history-revenge:disabled { opacity: 0.35; cursor: default; }
+        .pvp-history-empty { text-align: center; color: #8898aa; padding: 8px 4px; font-size: 5px; }
         .pvp-daily-bar {
             font-size: 5px;
             text-align: center;
@@ -2212,6 +2257,171 @@
             box-shadow: inset 0 0 28px rgba(0, 0, 0, 0.7);
         }
         .pvp-lobby.hidden { display: none; }
+        .pvp-vs {
+            position: relative;
+            flex: 1 1 auto;
+            min-height: 200px;
+            margin: 4px 0;
+            border: 1px solid rgba(0, 232, 255, 0.28);
+            border-radius: 4px;
+            overflow: hidden;
+            background: linear-gradient(180deg, #060818 0%, #0a1028 50%, #060818 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 8px;
+            gap: 8px;
+        }
+        .pvp-vs.hidden { display: none; }
+        .pvp-vs-scan {
+            font-size: 7px;
+            color: var(--neon-cyan);
+            letter-spacing: 0.14em;
+            animation: pvpScanPulse 1.2s ease-in-out infinite;
+        }
+        @keyframes pvpScanPulse {
+            0%, 100% { opacity: 0.45; }
+            50% { opacity: 1; text-shadow: 0 0 8px var(--neon-glow-c); }
+        }
+        .pvp-vs-match {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .pvp-vs-match.hidden { display: none; }
+        .pvp-vs-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+        }
+        .pvp-vs-side {
+            flex: 1;
+            text-align: center;
+            min-width: 0;
+        }
+        .pvp-vs-side-name {
+            font-size: 6px;
+            color: #a0c8e0;
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .pvp-vs-side-meta { font-size: 4px; color: #8898aa; margin-top: 2px; }
+        .pvp-vs-badge {
+            font-size: 12px;
+            font-weight: 700;
+            color: #ff6655;
+            text-shadow: 0 0 10px rgba(255, 80, 60, 0.6);
+            flex-shrink: 0;
+        }
+        .pvp-vs-power {
+            width: 100%;
+            max-width: 280px;
+            font-size: 4px;
+            color: #8898aa;
+        }
+        .pvp-vs-power-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin: 3px 0;
+        }
+        .pvp-vs-power-label { width: 28px; flex-shrink: 0; text-align: right; }
+        .pvp-vs-power-track {
+            flex: 1;
+            height: 6px;
+            background: rgba(0, 8, 24, 0.8);
+            border: 1px solid rgba(0, 232, 255, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .pvp-vs-power-fill {
+            height: 100%;
+            border-radius: 1px;
+            transition: width 0.4s ease;
+        }
+        .pvp-vs-power-fill.you { background: linear-gradient(90deg, #0088aa, var(--neon-cyan)); }
+        .pvp-vs-power-fill.en { background: linear-gradient(90deg, #aa3333, #ff6655); }
+        .pvp-vs-power-val { width: 24px; text-align: left; flex-shrink: 0; color: #a0c8e0; }
+        .pvp-vs-actions { margin-top: 4px; }
+        .pvp-vs-actions .btn { font-size: 7px; padding: 6px 14px; }
+        #pvp-vs-my-ship canvas, #pvp-vs-en-ship canvas,
+        #pvp-vs-my-ship .ship-sprite-img, #pvp-vs-en-ship .ship-sprite-img {
+            width: 56px !important;
+            height: 56px !important;
+            object-fit: contain;
+            margin: 0 auto;
+        }
+        .pvp-half { overflow: visible; }
+        .pvp-result {
+            position: absolute;
+            inset: 0;
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px;
+            background: rgba(4, 8, 20, 0.92);
+            backdrop-filter: blur(2px);
+        }
+        .pvp-result.hidden { display: none; }
+        .pvp-result-title {
+            font-size: 11px;
+            letter-spacing: 0.1em;
+            text-shadow: 0 0 12px currentColor;
+        }
+        .pvp-result-title.win { color: #40e878; }
+        .pvp-result-title.lose { color: #ff6655; }
+        .pvp-result-title.draw { color: #ffd400; }
+        .pvp-result-stats {
+            font-size: 5px;
+            color: #a0c8e0;
+            text-align: center;
+            line-height: 1.6;
+            max-width: 260px;
+        }
+        .pvp-result-score { font-size: 7px; color: var(--gold); margin-top: 2px; }
+        .pvp-result .btn { font-size: 7px; margin-top: 4px; }
+        .pvp-dmg-pop {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 8px;
+            font-weight: 700;
+            pointer-events: none;
+            z-index: 12;
+            animation: pvpDmgFloat 0.75s ease-out forwards;
+            text-shadow: 0 0 6px currentColor;
+        }
+        .pvp-dmg-pop.shield { color: #55bbff; top: 38%; }
+        .pvp-dmg-pop.hp { color: #ff6655; top: 42%; }
+        .pvp-dmg-pop.crit { color: #ffd400; font-size: 9px; }
+        .pvp-dmg-pop.proc { color: #ffaa66; font-size: 6px; top: 30%; }
+        @keyframes pvpDmgFloat {
+            0% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-22px) scale(1.1); }
+        }
+        .pvp-half.pvp-shield-flash::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(85, 187, 255, 0.18);
+            pointer-events: none;
+            z-index: 8;
+            animation: pvpShieldFlash 0.35s ease-out forwards;
+        }
+        @keyframes pvpShieldFlash {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
         .pvp-lobby-space {
             position: absolute;
             inset: 0;
@@ -2443,6 +2653,14 @@
         .pvp-half-enemy { top: 0; flex-direction: column; justify-content: flex-end; padding-bottom: 2px; }
         .pvp-half-player { bottom: 0; flex-direction: column; justify-content: flex-start; padding-top: 2px; }
         .pvp-combatant.hidden { visibility: hidden; pointer-events: none; }
+        .pvp-combatant-en {
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+        .pvp-combatant-my {
+            flex-direction: column;
+            justify-content: flex-start;
+        }
         .pvp-zone-divider {
             position: absolute;
             left: 0; right: 0;
@@ -2481,27 +2699,28 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-evenly;
-            gap: 2px;
+            justify-content: center;
+            gap: 3px;
             z-index: 2;
         }
-        .pvp-half-enemy .pvp-combatant { flex-direction: column-reverse; }
         .pvp-name {
-            font-size: 6px;
+            font-size: 5px;
             color: #a0c8e0;
             max-width: 100%;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            flex-shrink: 0;
         }
         .pvp-perks-row {
             display: flex;
-            gap: 4px;
+            gap: 3px;
             align-items: center;
-            min-height: 16px;
+            min-height: 14px;
+            flex-shrink: 0;
         }
         .pvp-perk-slot {
-            width: 16px; height: 16px;
+            width: 14px; height: 14px;
             border: 1px solid rgba(255, 120, 60, 0.35);
             border-radius: 2px;
             display: flex;
@@ -2554,13 +2773,13 @@
             0%, 100% { transform: scaleY(-1) translateY(0); }
             50% { transform: scaleY(-1) translateY(-3px); }
         }
-        .pvp-bars { width: 100%; max-width: 180px; }
+        .pvp-bars { width: 100%; max-width: 150px; flex-shrink: 0; }
         .pvp-bar-row {
             display: flex;
             align-items: center;
-            gap: 4px;
-            margin: 2px 0;
-            font-size: 5px;
+            gap: 3px;
+            margin: 1px 0;
+            font-size: 4px;
         }
         .pvp-bar-row.hidden { display: none; }
         .pvp-bar-label { width: 8px; color: #8898aa; flex-shrink: 0; }
@@ -2570,7 +2789,7 @@
         }
         .pvp-bar-track {
             flex: 1;
-            height: 8px;
+            height: 6px;
             background: rgba(0, 8, 24, 0.8);
             border: 1px solid rgba(0, 232, 255, 0.25);
             border-radius: 2px;
@@ -2589,7 +2808,7 @@
             background: linear-gradient(90deg, #aa2222, #ff4444);
             box-shadow: 0 0 5px rgba(255, 68, 68, 0.5);
         }
-        .pvp-bar-val { width: 22px; text-align: right; color: #8898aa; flex-shrink: 0; }
+        .pvp-bar-val { width: 18px; text-align: right; color: #8898aa; flex-shrink: 0; font-size: 4px; }
         .pvp-log {
             font-size: 4px;
             color: #8898aa;
@@ -2868,9 +3087,11 @@
     <div class="window hidden" id="win-pvp">
         <div class="pvp-header">
             <div class="wtitle">КОСМОБИТВА</div>
+            <button type="button" class="hangar-help-btn" id="btn-pvp-history" title="История атак">📜</button>
             <button type="button" class="hangar-help-btn" id="btn-pvp-help" title="Правила PvP и награды">?</button>
             <button type="button" class="hangar-help-btn pvp-lb-btn" id="btn-pvp-leaderboard" title="Суточный ТОП-50">🏆</button>
         </div>
+        <div class="pvp-history-dropdown hidden" id="pvp-history-dropdown"></div>
         <div class="pvp-lb-dropdown hidden" id="pvp-lb-dropdown"></div>
         <div class="pvp-daily-bar" id="pvp-daily-bar"></div>
         <div class="pvp-lobby" id="pvp-lobby">
@@ -2882,6 +3103,37 @@
                 </div>
                 <div class="pvp-lobby-ship" id="pvp-lobby-ship"></div>
                 <div class="pvp-lobby-tagline">ПАТРУЛЬ · ОЖИДАНИЕ БОЯ</div>
+            </div>
+        </div>
+        <div class="pvp-vs hidden" id="pvp-vs">
+            <div class="pvp-vs-scan" id="pvp-vs-scan">СКАНИРОВАНИЕ СЕКТОРА…</div>
+            <div class="pvp-vs-match hidden" id="pvp-vs-match">
+                <div class="pvp-vs-row">
+                    <div class="pvp-vs-side">
+                        <div class="pvp-vs-side-name" id="pvp-vs-my-name">Вы</div>
+                        <div id="pvp-vs-my-ship"></div>
+                        <div class="pvp-vs-side-meta" id="pvp-vs-my-meta"></div>
+                    </div>
+                    <div class="pvp-vs-badge">VS</div>
+                    <div class="pvp-vs-side">
+                        <div class="pvp-vs-side-name" id="pvp-vs-en-name">???</div>
+                        <div id="pvp-vs-en-ship"></div>
+                        <div class="pvp-vs-side-meta" id="pvp-vs-en-meta"></div>
+                    </div>
+                </div>
+                <div class="pvp-vs-power">
+                    <div class="pvp-vs-power-row">
+                        <span class="pvp-vs-power-label">Вы</span>
+                        <div class="pvp-vs-power-track"><div class="pvp-vs-power-fill you" id="pvp-vs-my-power" style="width:50%"></div></div>
+                        <span class="pvp-vs-power-val" id="pvp-vs-my-power-val">0</span>
+                    </div>
+                    <div class="pvp-vs-power-row">
+                        <span class="pvp-vs-power-label">Враг</span>
+                        <div class="pvp-vs-power-track"><div class="pvp-vs-power-fill en" id="pvp-vs-en-power" style="width:50%"></div></div>
+                        <span class="pvp-vs-power-val" id="pvp-vs-en-power-val">0</span>
+                    </div>
+                </div>
+                <div class="pvp-vs-actions"><button class="btn" id="btn-pvp-start-battle">В БОЙ!</button></div>
             </div>
         </div>
         <div class="pvp-arena hidden" id="pvp-arena">
@@ -2900,24 +3152,30 @@
                 </div>
             </div>
             <div class="pvp-half pvp-half-enemy">
-                <div class="pvp-combatant" id="pvp-en-combatant">
-                    <div class="pvp-ship-wrap" id="pvp-en-ship"></div>
-                    <div class="pvp-bars" id="pvp-en-bars"></div>
-                    <div class="pvp-perks-row" id="pvp-en-perks"></div>
+                <div class="pvp-combatant pvp-combatant-en hidden" id="pvp-en-combatant">
                     <div class="pvp-name" id="pvp-en-name">—</div>
+                    <div class="pvp-perks-row" id="pvp-en-perks"></div>
+                    <div class="pvp-bars" id="pvp-en-bars"></div>
+                    <div class="pvp-ship-wrap" id="pvp-en-ship"></div>
                 </div>
             </div>
             <div class="pvp-zone-divider">
                 <svg class="pvp-fx-layer" id="pvp-fx-layer"></svg>
-                <span class="pvp-timer" id="pvp-timer">0:12</span>
+                <span class="pvp-timer" id="pvp-timer">0:15</span>
             </div>
             <div class="pvp-half pvp-half-player">
-                <div class="pvp-combatant" id="pvp-my-combatant">
-                    <div class="pvp-name" id="pvp-my-name">Вы</div>
+                <div class="pvp-combatant pvp-combatant-my" id="pvp-my-combatant">
+                    <div class="pvp-ship-wrap" id="pvp-my-ship"></div>
                     <div class="pvp-perks-row" id="pvp-my-perks"></div>
                     <div class="pvp-bars" id="pvp-my-bars"></div>
-                    <div class="pvp-ship-wrap" id="pvp-my-ship"></div>
+                    <div class="pvp-name" id="pvp-my-name">Вы</div>
                 </div>
+            </div>
+            <div class="pvp-result hidden" id="pvp-result">
+                <div class="pvp-result-title" id="pvp-result-title">ПОБЕДА</div>
+                <div class="pvp-result-stats" id="pvp-result-stats"></div>
+                <div class="pvp-result-score" id="pvp-result-score"></div>
+                <button class="btn" id="btn-pvp-result-ok">ПРОДОЛЖИТЬ</button>
             </div>
         </div>
         <div class="pvp-log hidden" id="pvp-log"></div>
@@ -3051,7 +3309,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.51.2';
+const VERSION = '2.52.0';
 
 // 8-бит иконки ресурсов (космос · металл · пиксель)
 const RES_GFX_SVG = {
@@ -5005,6 +5263,7 @@ const defaultState = () => ({
         score: 0,
         attacksUsed: 0,
         opponents: {},
+        history: [],
         lastRank: null,
         lastOpponentId: null,
         lastOpponentFaction: null,
@@ -7548,6 +7807,9 @@ function ensurePvpDaily() {
     if (!state.pvpDaily.opponents || typeof state.pvpDaily.opponents !== 'object') {
         state.pvpDaily.opponents = {};
     }
+    if (!Array.isArray(state.pvpDaily.history)) {
+        state.pvpDaily.history = [];
+    }
 }
 
 function refreshPvpDailyState() {
@@ -7559,6 +7821,7 @@ function refreshPvpDailyState() {
         d.score = 0;
         d.attacksUsed = 0;
         d.opponents = {};
+        d.history = [];
         d.lastRank = null;
     }
 }
@@ -7584,13 +7847,70 @@ function canAttackOpponent(opponentId) {
     return (state.pvpDaily.opponents[opponentId] || 0) < PVP_MAX_REPEAT_OPPONENT;
 }
 
-function recordPvpAttack(opponentId) {
+function recordPvpAttack(opponentId, isRevenge = false) {
     const bot = getPvpBotById(opponentId);
     if (bot) notePvpOpponentPick(bot);
     if (DEV_FREE_PVP) return;
     refreshPvpDailyState();
     state.pvpDaily.attacksUsed += 1;
-    state.pvpDaily.opponents[opponentId] = (state.pvpDaily.opponents[opponentId] || 0) + 1;
+    if (!isRevenge) {
+        state.pvpDaily.opponents[opponentId] = (state.pvpDaily.opponents[opponentId] || 0) + 1;
+    }
+}
+
+function addPvpHistoryLoss(opponent) {
+    if (!opponent?.id) return;
+    refreshPvpDailyState();
+    const exists = state.pvpDaily.history.some(h =>
+        h.opponentId === opponent.id && h.result === 'lose' && !h.revenged
+    );
+    if (exists) return;
+    state.pvpDaily.history.unshift({
+        opponentId: opponent.id,
+        opponentName: opponent.name,
+        factionId: opponent.factionId,
+        tier: opponent.tier,
+        result: 'lose',
+        revenged: false,
+        at: Date.now(),
+    });
+    if (state.pvpDaily.history.length > 20) {
+        state.pvpDaily.history.length = 20;
+    }
+}
+
+function markPvpHistoryRevenged(opponentId) {
+    refreshPvpDailyState();
+    state.pvpDaily.history.forEach(h => {
+        if (h.opponentId === opponentId && h.result === 'lose' && !h.revenged) {
+            h.revenged = true;
+        }
+    });
+}
+
+function canRevengeOpponent(opponentId) {
+    refreshPvpDailyState();
+    if (pvpAttacksLeft() <= 0 && !DEV_FREE_PVP) return false;
+    return state.pvpDaily.history.some(h =>
+        h.opponentId === opponentId && h.result === 'lose' && !h.revenged
+    );
+}
+
+function buildPvpOpponentFromBot(bot) {
+    const loadout = getBotLoadout(bot);
+    const lb = buildPvpLeaderboardList().find(p => p.id === bot.id);
+    return {
+        id: bot.id,
+        name: bot.name,
+        factionId: bot.factionId,
+        tier: bot.tier,
+        rank: lb?.rank,
+        dailyScore: lb?.dailyScore,
+        stats: loadout.stats,
+        luck: loadout.luck,
+        perks: loadout.perks,
+        power: loadout.power,
+    };
 }
 
 function lerpNum(a, b, t) {
@@ -7741,7 +8061,7 @@ function createBotLiveState(template) {
             levels: perkLevels,
             equipped: [...(template.perksEquipped || [null, null])],
         },
-        pvpDaily: { score: 0, attacksUsed: 0, opponents: {} },
+        pvpDaily: { score: 0, attacksUsed: 0, opponents: {}, history: [] },
         lastSimDayKey: null,
         simLog: { minedObjects: 0, upgradesBought: 0, pvpFights: 0, pvpWins: 0 },
     };
@@ -8149,6 +8469,233 @@ function renderPvpDailyBar() {
 
 // ─── PvP: арена и бой (вариант A) ────────────────────────────
 let pvpBattleRunning = false;
+let pvpPendingBattle = null;
+let pvpBattleAnimTimer = null;
+
+function clearPvpBattleAnimTimer() {
+    if (pvpBattleAnimTimer) {
+        clearTimeout(pvpBattleAnimTimer);
+        pvpBattleAnimTimer = null;
+    }
+}
+
+function setPvpView(mode) {
+    const lobby = $('pvp-lobby');
+    const vs = $('pvp-vs');
+    const arena = $('pvp-arena');
+    const log = $('pvp-log');
+    const result = $('pvp-result');
+    lobby?.classList.toggle('hidden', mode !== 'lobby');
+    vs?.classList.toggle('hidden', mode !== 'vs');
+    arena?.classList.toggle('hidden', mode !== 'battle' && mode !== 'result');
+    log?.classList.toggle('hidden', mode !== 'battle' && mode !== 'result');
+    result?.classList.toggle('hidden', mode !== 'result');
+    if (mode === 'lobby') {
+        if (log) log.innerHTML = '';
+        $('pvp-en-combatant')?.classList.add('hidden');
+        setPvpFlightActive(false);
+        clearPvpBattleAnimTimer();
+    }
+}
+
+function togglePvpHistory() {
+    const el = $('pvp-history-dropdown');
+    if (!el) return;
+    $('pvp-lb-dropdown')?.classList.add('hidden');
+    if (!el.classList.contains('hidden')) {
+        el.classList.add('hidden');
+        return;
+    }
+    renderPvpHistoryDropdown();
+    el.classList.remove('hidden');
+}
+
+function renderPvpHistoryDropdown() {
+    refreshPvpDailyState();
+    const list = state.pvpDaily.history || [];
+    const el = $('pvp-history-dropdown');
+    if (!el) return;
+    if (!list.length) {
+        el.innerHTML = '<div class="pvp-history-title">ИСТОРИЯ АТАК</div><div class="pvp-history-empty">Сегодня вас ещё не побеждали</div>';
+        return;
+    }
+    const rows = list.map(h => {
+        const faction = FACTIONS.find(f => f.id === h.factionId)?.name || h.factionId;
+        const canRev = canRevengeOpponent(h.opponentId);
+        const revBtn = h.result === 'lose' && !h.revenged
+            ? `<button type="button" class="pvp-history-revenge" data-revenge="${h.opponentId}" ${canRev ? '' : 'disabled'} title="Реванш (1 атака)">⚔</button>`
+            : `<span class="pvp-history-meta">${h.revenged ? '✓ реванш' : '—'}</span>`;
+        return `<div class="pvp-history-row">
+            <span class="pvp-history-name">${h.opponentName}</span>
+            <span class="pvp-history-meta">${faction} T${h.tier || '?'}</span>
+            ${revBtn}
+        </div>`;
+    }).join('');
+    el.innerHTML = `<div class="pvp-history-title">КТО АТАКОВАЛ СЕГОДНЯ</div>${rows}`;
+    el.querySelectorAll('[data-revenge]').forEach(btn => {
+        btn.onclick = e => {
+            e.stopPropagation();
+            startPvpRevenge(btn.dataset.revenge);
+        };
+    });
+}
+
+function getFactionLabel(factionId) {
+    return FACTIONS.find(f => f.id === factionId)?.name || factionId;
+}
+
+function showPvpVsScreen(opponent, playerPower, isRevenge = false) {
+    setPvpView('vs');
+    const scan = $('pvp-vs-scan');
+    const match = $('pvp-vs-match');
+    const startBtn = $('btn-pvp-start-battle');
+    if (startBtn) startBtn.disabled = true;
+    scan?.classList.remove('hidden');
+    match?.classList.add('hidden');
+    $('pvp-status').textContent = isRevenge ? `Реванш vs ${opponent.name}…` : 'Сканирование сектора…';
+    const btn = $('btn-pvp');
+    if (btn) { btn.disabled = true; btn.textContent = 'ПОДГОТОВКА…'; }
+
+    const reveal = () => {
+        scan?.classList.add('hidden');
+        match?.classList.remove('hidden');
+        const startBtn = $('btn-pvp-start-battle');
+        if (startBtn) startBtn.disabled = false;
+        $('pvp-vs-my-name').textContent = state.playerName || 'Вы';
+        $('pvp-vs-en-name').textContent = opponent.name;
+        const myMeta = `${getFactionLabel(state.factionId)} · сила ${playerPower}`;
+        const enMeta = `${getFactionLabel(opponent.factionId)} T${opponent.tier}${opponent.rank ? ` · #${opponent.rank}` : ''} · ${opponent.power}`;
+        $('pvp-vs-my-meta').textContent = myMeta;
+        $('pvp-vs-en-meta').textContent = enMeta;
+        const maxPow = Math.max(playerPower, opponent.power, 1);
+        $('pvp-vs-my-power').style.width = `${Math.round(playerPower / maxPow * 100)}%`;
+        $('pvp-vs-en-power').style.width = `${Math.round(opponent.power / maxPow * 100)}%`;
+        $('pvp-vs-my-power-val').textContent = String(playerPower);
+        $('pvp-vs-en-power-val').textContent = String(opponent.power);
+        $('pvp-vs-my-ship').innerHTML = '';
+        $('pvp-vs-en-ship').innerHTML = '';
+        if (state.profileComplete) {
+            $('pvp-vs-my-ship').appendChild(drawCurrentShip(PVP_SHIP_PIXEL, 'pvp'));
+            const enShip = (SHIP_CATALOG[opponent.factionId] || SHIP_CATALOG.tank)[0];
+            $('pvp-vs-en-ship').appendChild(renderShipGraphic(enShip, opponent.factionId, PVP_SHIP_PIXEL, 'pvp'));
+        }
+        $('pvp-status').textContent = isRevenge
+            ? `Реванш: ${opponent.name}`
+            : `Противник найден: ${opponent.name}`;
+        if (btn) btn.textContent = 'ПОДГОТОВКА…';
+    };
+
+    setTimeout(reveal, 1200);
+}
+
+function computePvpBattleStats(battle) {
+    let dmgToEnemy = 0;
+    let dmgToPlayer = 0;
+    let perkProcs = 0;
+    battle.ticks.forEach(t => {
+        t.events.forEach(e => {
+            if (e.type === 'proc') perkProcs += 1;
+            if (e.type !== 'hp') return;
+            const m = e.text.match(/−(\d+)/);
+            if (!m) return;
+            const v = parseInt(m[1], 10);
+            if (e.text.startsWith('Вы')) dmgToEnemy += v;
+            else if (e.text.startsWith('Враг')) dmgToPlayer += v;
+        });
+    });
+    return { dmgToEnemy, dmgToPlayer, perkProcs };
+}
+
+function resolvePvpResultFromTick(tick) {
+    const p = tick.player;
+    const e = tick.enemy;
+    if (p.hp <= 0 && e.hp <= 0) return 'draw';
+    if (e.hp <= 0) return 'win';
+    if (p.hp <= 0) return 'lose';
+    const pPct = p.maxHp > 0 ? p.hp / p.maxHp : 0;
+    const ePct = e.maxHp > 0 ? e.hp / e.maxHp : 0;
+    if (Math.abs(pPct - ePct) * 100 < PVP_DRAW_HP_PCT_DIFF) return 'draw';
+    return pPct > ePct ? 'win' : 'lose';
+}
+
+function spawnPvpDamagePopup(side, text, kind = 'hp') {
+    const half = side === 'player' ? $('pvp-half-player') : $('pvp-half-enemy');
+    if (!half) return;
+    const pop = document.createElement('div');
+    pop.className = `pvp-dmg-pop ${kind}`;
+    pop.textContent = text;
+    half.appendChild(pop);
+    setTimeout(() => pop.remove(), 780);
+}
+
+function flashPvpShieldBreak(side) {
+    const half = side === 'player' ? $('pvp-half-player') : $('pvp-half-enemy');
+    half?.classList.add('pvp-shield-flash');
+    setTimeout(() => half?.classList.remove('pvp-shield-flash'), 360);
+}
+
+function pulsePvpPerk(side, perkId) {
+    const row = $(side === 'player' ? 'pvp-my-perks' : 'pvp-en-perks');
+    const slot = row?.querySelector(`[data-perk="${perkId}"]`);
+    if (!slot) return;
+    slot.classList.add('proc');
+    setTimeout(() => slot.classList.remove('proc'), 480);
+}
+
+function showPvpResultCard(result, opponent, battle, isRevenge = false) {
+    setPvpView('result');
+    setPvpFlightActive(false);
+    const stats = computePvpBattleStats(battle);
+    const title = $('pvp-result-title');
+    const statsEl = $('pvp-result-stats');
+    const scoreEl = $('pvp-result-score');
+    title.className = 'pvp-result-title ' + result;
+    title.textContent = result === 'win' ? 'ПОБЕДА' : result === 'draw' ? 'НИЧЬЯ' : 'ПОРАЖЕНИЕ';
+    const revTag = isRevenge ? '<br>⚔ Реванш' : '';
+    statsEl.innerHTML =
+        `vs <strong>${opponent.name}</strong>${revTag}<br>` +
+        `Нанесено: <strong>${stats.dmgToEnemy}</strong> · Получено: <strong>${stats.dmgToPlayer}</strong>` +
+        (stats.perkProcs ? `<br>Перки: ${stats.perkProcs}×` : '');
+    if (result === 'win') scoreEl.textContent = `+${PVP_SCORE_WIN} суточных очков`;
+    else if (result === 'draw') scoreEl.textContent = `+${PVP_SCORE_DRAW} суточных очков`;
+    else scoreEl.textContent = `−${PVP_SCORE_LOSE} суточных очков`;
+}
+
+function applyPvpBattleOutcome(result, opponent, procText, isRevenge = false) {
+    ensurePlayerStats();
+    if (result === 'win') {
+        addPvpDailyScore(PVP_SCORE_WIN);
+        state.pvpScore += PVP_SCORE_WIN;
+        state.playerStats.pvpWins += 1;
+        $('pvp-status').textContent = `ПОБЕДА vs ${opponent.name}! +${PVP_SCORE_WIN} очк.${procText}`;
+        showLoot(`+${PVP_SCORE_WIN} сут. очков`);
+    } else if (result === 'draw') {
+        addPvpDailyScore(PVP_SCORE_DRAW);
+        state.pvpScore += PVP_SCORE_DRAW;
+        $('pvp-status').textContent = `НИЧЬЯ vs ${opponent.name}. +${PVP_SCORE_DRAW} очк.${procText}`;
+        showLoot(`+${PVP_SCORE_DRAW} сут. очков`);
+    } else {
+        addPvpDailyScore(-PVP_SCORE_LOSE);
+        state.pvpScore = Math.max(0, state.pvpScore - PVP_SCORE_LOSE);
+        state.playerStats.pvpLosses += 1;
+        addPvpHistoryLoss(opponent);
+        $('pvp-status').textContent = `ПОРАЖЕНИЕ vs ${opponent.name}... −${PVP_SCORE_LOSE} очк.${procText}`;
+    }
+    if (isRevenge) markPvpHistoryRevenged(opponent.id);
+    Storage.save();
+    pvpBattleRunning = false;
+    pvpPendingBattle = null;
+    renderPvpDailyBar();
+    setPvpView('lobby');
+    renderPvpLobby();
+    const btn = $('btn-pvp');
+    const maxAtk = getVipPvpAttacksPerDay();
+    const used = state.pvpDaily.attacksUsed;
+    if (btn) {
+        btn.disabled = !DEV_FREE_PVP && pvpAttacksLeft() <= 0;
+        btn.textContent = (!DEV_FREE_PVP && pvpAttacksLeft() <= 0) ? `ЛИМИТ ${used}/${maxAtk}` : 'ЕЩЁ БОЙ';
+    }
+}
 
 function renderPvpBarRow(label, cls, pct, cur, max, broken = false) {
     const low = label === 'HP' && pct <= 30 && pct > 0;
@@ -8196,21 +8743,6 @@ function renderPvpPerksRow(elId, equipped) {
         }
         return `<span class="pvp-perk-slot filled" data-perk="${id}" title="${PERKS.find(p => p.id === id)?.name || id}">${perkThumbHtml(id, true)}</span>`;
     }).join('');
-}
-
-function setPvpView(mode) {
-    const lobby = $('pvp-lobby');
-    const arena = $('pvp-arena');
-    const log = $('pvp-log');
-    const inBattle = mode === 'battle';
-    lobby?.classList.toggle('hidden', inBattle);
-    arena?.classList.toggle('hidden', !inBattle);
-    log?.classList.toggle('hidden', !inBattle);
-    if (!inBattle) {
-        if (log) log.innerHTML = '';
-        $('pvp-en-combatant')?.classList.add('hidden');
-        setPvpFlightActive(false);
-    }
 }
 
 function mountPvpLobbyShip() {
@@ -8386,6 +8918,7 @@ function simulatePvpBattle(playerStats, enemyStats, playerLuck, playerPerks, ene
             events,
             shots: events.some(e => e.type === 'hp' || e.type === 'shield'),
         });
+        if (player.hp <= 0 || enemy.hp <= 0) break;
     }
     const pPct = player.hp / player.maxHp;
     const ePct = enemy.hp / enemy.maxHp;
@@ -8403,7 +8936,7 @@ function getPvpFxLayerSize() {
     return { w: Math.max(10, box?.width || 200), h: Math.max(10, box?.height || 40) };
 }
 
-function firePvpLaser(fromPlayer) {
+function firePvpLaser(fromPlayer, opts = {}) {
     const layer = $('pvp-fx-layer');
     if (!layer) return;
     const { w, h } = getPvpFxLayerSize();
@@ -8411,12 +8944,21 @@ function firePvpLaser(fromPlayer) {
     layer.innerHTML = '';
     const y1 = fromPlayer ? h * 0.85 : h * 0.15;
     const y2 = fromPlayer ? h * 0.15 : h * 0.85;
-    const x = w * (0.42 + Math.random() * 0.16);
-    appendLaserBeam(layer, x, y1, x + (Math.random() * 10 - 5), y2, fromPlayer ? getPlayerLaserColor() : 'red');
+    const color = fromPlayer
+        ? (opts.crit ? 'gold' : getPlayerLaserColor())
+        : (opts.crit ? 'gold' : 'red');
+    const drawBeam = () => {
+        const x = w * (0.42 + Math.random() * 0.16);
+        appendLaserBeam(layer, x, y1, x + (Math.random() * 10 - 5), y2, color);
+        const line = layer.lastElementChild;
+        if (line && opts.crit) line.setAttribute('stroke-width', '3.5');
+    };
+    drawBeam();
+    if (opts.double) drawBeam();
     const wrap = fromPlayer ? $('pvp-my-ship') : $('pvp-en-ship');
     wrap?.classList.add('pvp-shoot');
     setTimeout(() => wrap?.classList.remove('pvp-shoot'), 220);
-    setTimeout(() => { if (layer) layer.innerHTML = ''; }, 280);
+    setTimeout(() => { if (layer) layer.innerHTML = ''; }, 320);
 }
 
 function pushPvpLog(events) {
@@ -8435,80 +8977,89 @@ function setPvpFlightActive(active) {
     $('pvp-arena')?.classList.toggle('pvp-battle-active', !!active);
 }
 
-function finishPvpBattleResult(result, opponent, procText) {
-    ensurePlayerStats();
-    if (result === 'win') {
-        addPvpDailyScore(PVP_SCORE_WIN);
-        state.pvpScore += PVP_SCORE_WIN;
-        state.playerStats.pvpWins += 1;
-        $('pvp-status').textContent = `ПОБЕДА vs ${opponent.name}! +${PVP_SCORE_WIN} очк.${procText}`;
-        showLoot(`+${PVP_SCORE_WIN} сут. очков`);
-    } else if (result === 'draw') {
-        addPvpDailyScore(PVP_SCORE_DRAW);
-        state.pvpScore += PVP_SCORE_DRAW;
-        $('pvp-status').textContent = `НИЧЬЯ vs ${opponent.name}. +${PVP_SCORE_DRAW} очк.${procText}`;
-        showLoot(`+${PVP_SCORE_DRAW} сут. очков`);
-    } else {
-        addPvpDailyScore(-PVP_SCORE_LOSE);
-        state.pvpScore = Math.max(0, state.pvpScore - PVP_SCORE_LOSE);
-        state.playerStats.pvpLosses += 1;
-        $('pvp-status').textContent = `ПОРАЖЕНИЕ vs ${opponent.name}... −${PVP_SCORE_LOSE} очк.${procText}`;
+function processPvpTickEvents(tick, arena, prevFlags) {
+    tick.events.forEach(e => {
+        if (e.type === 'shield' || e.type === 'hp') {
+            const m = e.text.match(/−(\d+)/);
+            if (!m) return;
+            const isCrit = e.text.includes('★');
+            const targetSide = e.text.startsWith('Враг') ? 'player' : 'enemy';
+            spawnPvpDamagePopup(targetSide, `−${m[1]}${isCrit ? ' ★' : ''}`, isCrit ? 'crit' : (e.type === 'shield' ? 'shield' : 'hp'));
+        }
+        if (e.type === 'proc') {
+            if (e.text.includes('Квантовый')) pulsePvpPerk('player', 'quantum');
+            if (e.text.includes('Фаза')) pulsePvpPerk('player', 'phase');
+            if (e.text.includes('глуш')) pulsePvpPerk('player', 'jammer');
+        }
+    });
+    if (tick.player.shieldBroken && !prevFlags.playerBroken) flashPvpShieldBreak('player');
+    if (tick.enemy.shieldBroken && !prevFlags.enemyBroken) flashPvpShieldBreak('enemy');
+    prevFlags.playerBroken = tick.player.shieldBroken;
+    prevFlags.enemyBroken = tick.enemy.shieldBroken;
+
+    if (!tick.shots) return;
+    const fromPlayer = tick.events.some(e => e.text.startsWith('Вы'));
+    const enemyShot = tick.events.some(e => e.text.startsWith('Враг') && (e.type === 'hp' || e.type === 'shield'));
+    const playerHit = tick.events.some(e =>
+        e.text.startsWith('Враг') && (e.type === 'hp' || e.type === 'shield')
+    );
+    const shotEvents = tick.events.filter(e => e.type === 'hp' || e.type === 'shield');
+    const playerShotEvents = shotEvents.filter(e => e.text.startsWith('Вы'));
+    const enemyShotEvents = shotEvents.filter(e => e.text.startsWith('Враг'));
+    if (fromPlayer) {
+        firePvpLaser(true, {
+            crit: playerShotEvents.some(e => e.text.includes('★')),
+            double: playerShotEvents.length > 1 || tick.events.some(e => e.text.includes('2×')),
+        });
     }
-    Storage.save();
-    pvpBattleRunning = false;
-    setPvpFlightActive(false);
-    renderPvpDailyBar();
-    setPvpView('lobby');
-    renderPvpLobby();
-    const btn = $('btn-pvp');
-    const maxAtk = getVipPvpAttacksPerDay();
-    const used = state.pvpDaily.attacksUsed;
-    if (btn) {
-        btn.disabled = !DEV_FREE_PVP && pvpAttacksLeft() <= 0;
-        btn.textContent = (!DEV_FREE_PVP && pvpAttacksLeft() <= 0) ? `ЛИМИТ ${used}/${maxAtk}` : 'ЕЩЁ БОЙ';
+    if (enemyShot) {
+        firePvpLaser(false, {
+            crit: enemyShotEvents.some(e => e.text.includes('★')),
+            double: enemyShotEvents.length > 1,
+        });
+    }
+    if (playerHit) {
+        arena?.classList.add('pvp-shake');
+        setTimeout(() => arena?.classList.remove('pvp-shake'), 180);
     }
 }
 
 function runPvpBattleAnimation(battle, opponent, onDone) {
     const ticks = battle.ticks;
+    clearPvpBattleAnimTimer();
     if (!ticks.length) { setPvpFlightActive(false); onDone(battle.result); return; }
     setPvpFlightActive(true);
     let idx = 0;
     const tickMs = PVP_TICK_MS;
-    const totalSteps = Math.round(PVP_BATTLE_DURATION_MS / PVP_TICK_MS);
+    const maxSteps = ticks.length;
     const totalSec = PVP_BATTLE_DURATION_MS / 1000;
     const timerEl = $('pvp-timer');
     const arena = $('pvp-arena');
     const started = Date.now();
+    const prevFlags = { playerBroken: false, enemyBroken: false };
 
     const step = () => {
-        if (idx >= totalSteps) {
+        if (idx >= maxSteps) {
             onDone(battle.result);
             return;
         }
-        const tick = ticks[Math.min(idx, ticks.length - 1)];
+        const tick = ticks[idx];
         renderPvpBars('player', tick.player);
         renderPvpBars('enemy', tick.enemy);
-        if (tick.shots) {
-            const fromPlayer = tick.events.some(e => e.text.startsWith('Вы'));
-            const playerHit = tick.events.some(e =>
-                e.text.startsWith('Враг') && (e.type === 'hp' || e.type === 'shield')
-            );
-            firePvpLaser(fromPlayer);
-            if (!fromPlayer && tick.events.some(e => e.text.startsWith('Враг'))) firePvpLaser(false);
-            if (playerHit) {
-                arena?.classList.add('pvp-shake');
-                setTimeout(() => arena?.classList.remove('pvp-shake'), 180);
-            }
-        }
+        processPvpTickEvents(tick, arena, prevFlags);
         pushPvpLog(tick.events);
-        const left = totalSec - (Date.now() - started) / 1000;
+        const elapsed = (Date.now() - started) / 1000;
+        const left = Math.max(0, totalSec - elapsed);
         if (timerEl) {
             timerEl.textContent = formatPvpTimer(left);
             timerEl.classList.toggle('urgent', left <= 3);
         }
+        if (tick.player.hp <= 0 || tick.enemy.hp <= 0) {
+            onDone(resolvePvpResultFromTick(tick));
+            return;
+        }
         idx += 1;
-        setTimeout(step, tickMs);
+        pvpBattleAnimTimer = setTimeout(step, tickMs);
     };
     step();
 }
@@ -8685,8 +9236,52 @@ function renderPvP() {
     ensurePvpBotWorld();
     setPvpView('lobby');
     $('pvp-lb-dropdown')?.classList.add('hidden');
+    $('pvp-history-dropdown')?.classList.add('hidden');
     renderPvpLobby();
     renderPvpDailyBar();
+}
+
+function launchPvpMatch(opponent, isRevenge = false) {
+    const playerStats = getShipCombatStats();
+    const playerLuck = getLuckPvpBonuses();
+    const playerPerks = getEquippedPvpPerkFx();
+    const playerPower = calcPvpPowerRating(playerStats, playerLuck, playerPerks);
+    pvpPendingBattle = { opponent, playerStats, playerLuck, playerPerks, playerPower, isRevenge };
+    pvpBattleRunning = true;
+    showPvpVsScreen(opponent, playerPower, isRevenge);
+}
+
+function beginPvpBattle() {
+    const pending = pvpPendingBattle;
+    if (!pending?.opponent) return;
+    const startBtn = $('btn-pvp-start-battle');
+    if (startBtn?.disabled) return;
+    if (startBtn) startBtn.disabled = true;
+    const { opponent, playerStats, playerLuck, playerPerks, playerPower, isRevenge } = pending;
+    setPvpView('battle');
+    preparePvpBattleField(playerStats, playerLuck, playerPerks);
+    const factionName = getFactionLabel(opponent.factionId);
+    $('pvp-en-name').textContent = opponent.name;
+    mountPvpEnemyShip(opponent.factionId);
+    $('pvp-en-combatant')?.classList.remove('hidden');
+    renderPvpEnemyPerksRow('pvp-en-perks', opponent.perks);
+    renderPvpBars('enemy', cloneFighter(opponent.stats, opponent.luck, opponent.perks));
+    const btn = $('btn-pvp');
+    if (btn) btn.textContent = 'ИДЁТ БОЙ…';
+    recordPvpAttack(opponent.id, isRevenge);
+    const battle = simulatePvpBattle(
+        playerStats, opponent.stats, playerLuck, playerPerks, opponent.luck, opponent.perks
+    );
+    const rankTag = opponent.rank ? `#${opponent.rank} · ` : '';
+    $('pvp-status').textContent =
+        `${isRevenge ? 'Реванш' : 'Бой'} vs ${opponent.name} · ${rankTag}${factionName} T${opponent.tier} · ${opponent.power}/${playerPower}`;
+    runPvpBattleAnimation(battle, opponent, result => {
+        const procText = battle.ticks.flatMap(t => t.events).filter(e => e.type === 'proc').length
+            ? ' · перки сработали'
+            : '';
+        pvpPendingBattle = { ...pending, result, procText, battle };
+        showPvpResultCard(result, opponent, battle, isRevenge);
+    });
 }
 
 function startPvP() {
@@ -8694,7 +9289,7 @@ function startPvP() {
     refreshPvpDailyState();
     const btn = $('btn-pvp');
     if (!DEV_FREE_PVP && pvpAttacksLeft() <= 0) {
-        $('pvp-status').textContent = 'Лимит атак на сегодня исчерпан (5/5)';
+        $('pvp-status').textContent = 'Лимит атак на сегодня исчерпан';
         renderPvpDailyBar();
         return;
     }
@@ -8706,43 +9301,34 @@ function startPvP() {
 
     const opponent = pickPvpOpponent(playerPower);
     if (!opponent) {
-        pvpBattleRunning = false;
         if (btn) { btn.disabled = false; btn.textContent = 'НАЙТИ БОЙ'; }
         $('pvp-status').textContent = 'Нет доступных соперников (лимит 2 боя/день с каждым)';
         return;
     }
 
-    pvpBattleRunning = true;
     if (btn) { btn.disabled = true; btn.textContent = 'ПОИСК…'; }
+    launchPvpMatch(opponent, false);
+}
 
-    setPvpView('battle');
-    preparePvpBattleField(playerStats, playerLuck, playerPerks);
-    $('pvp-status').textContent = `Поиск соперника…`;
-
-    setTimeout(() => {
-        const factionName = FACTIONS.find(f => f.id === opponent.factionId)?.name || opponent.factionId;
-        $('pvp-en-name').textContent = opponent.name;
-        mountPvpEnemyShip(opponent.factionId);
-        $('pvp-en-combatant')?.classList.remove('hidden');
-
-        const { stats: enemyStats, luck: enemyLuck, perks: enemyPerks, power: enemyPower } = opponent;
-
-        renderPvpEnemyPerksRow('pvp-en-perks', enemyPerks);
-        renderPvpBars('enemy', cloneFighter(enemyStats, enemyLuck, enemyPerks));
-
-        if (btn) btn.textContent = 'ИДЁТ БОЙ…';
-        recordPvpAttack(opponent.id);
-        const battle = simulatePvpBattle(playerStats, enemyStats, playerLuck, playerPerks, enemyLuck, enemyPerks);
-        const rankTag = opponent.rank ? `#${opponent.rank} · ` : '';
-        $('pvp-status').textContent = `Бой vs ${opponent.name} · ${rankTag}${factionName} T${opponent.tier} · сила ${enemyPower}/${playerPower}`;
-
-        runPvpBattleAnimation(battle, opponent, result => {
-            const procText = battle.ticks.flatMap(t => t.events).filter(e => e.type === 'proc').length
-                ? ' · перки сработали'
-                : '';
-            finishPvpBattleResult(result, opponent, procText);
-        });
-    }, 700);
+function startPvpRevenge(opponentId) {
+    if (pvpBattleRunning) return;
+    $('pvp-history-dropdown')?.classList.add('hidden');
+    refreshPvpDailyState();
+    if (!DEV_FREE_PVP && pvpAttacksLeft() <= 0) {
+        $('pvp-status').textContent = 'Лимит атак на сегодня исчерпан';
+        renderPvpDailyBar();
+        return;
+    }
+    if (!canRevengeOpponent(opponentId)) {
+        $('pvp-status').textContent = 'Реванш недоступен';
+        renderPvpHistoryDropdown();
+        return;
+    }
+    const bot = getPvpBotById(opponentId);
+    if (!bot) return;
+    const btn = $('btn-pvp');
+    if (btn) { btn.disabled = true; btn.textContent = 'РЕВАНШ…'; }
+    launchPvpMatch(buildPvpOpponentFromBot(bot), true);
 }
 
 // ─── Онбординг ───────────────────────────────────────────────
@@ -8986,6 +9572,12 @@ function bindEvents() {
     $('vip-overlay')?.querySelector('.vip-panel')?.addEventListener('click', e => e.stopPropagation());
 
     $('btn-pvp').onclick = startPvP;
+    $('btn-pvp-start-battle')?.addEventListener('click', beginPvpBattle);
+    $('btn-pvp-result-ok')?.addEventListener('click', () => {
+        const p = pvpPendingBattle;
+        if (!p?.result || !p.opponent) return;
+        applyPvpBattleOutcome(p.result, p.opponent, p.procText || '', !!p.isRevenge);
+    });
 
     $('btn-pvp-help')?.addEventListener('click', e => {
         e.stopPropagation();
@@ -8999,8 +9591,13 @@ function bindEvents() {
         e.stopPropagation();
         togglePvpLeaderboard();
     });
+    $('btn-pvp-history')?.addEventListener('click', e => {
+        e.stopPropagation();
+        togglePvpHistory();
+    });
     document.addEventListener('click', () => {
         $('pvp-lb-dropdown')?.classList.add('hidden');
+        $('pvp-history-dropdown')?.classList.add('hidden');
     });
     $('win-pvp')?.addEventListener('click', e => e.stopPropagation());
 
