@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.52.4</title>
+    <title>Space Dream v2.52.5</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -2144,12 +2144,28 @@
         #win-pvp .pvp-status-line { flex-shrink: 0; font-size: 7px; }
         #win-pvp .pvp-actions { flex-shrink: 0; }
         .pvp-header {
-            display: flex;
+            display: grid;
+            grid-template-columns: 28px 1fr auto;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             margin-bottom: 6px;
         }
-        .pvp-header .wtitle { flex: 1; margin: 0; }
+        .pvp-header .wtitle {
+            flex: none;
+            margin: 0;
+            text-align: center;
+            grid-column: 2;
+        }
+        .pvp-header-actions {
+            grid-column: 3;
+            display: flex;
+            gap: 4px;
+            justify-content: flex-end;
+        }
+        .pvp-header-btn-left {
+            grid-column: 1;
+            justify-self: start;
+        }
         .pvp-lb-btn { font-size: 7px; line-height: 1; }
         .pvp-history-dropdown {
             position: absolute;
@@ -2488,18 +2504,9 @@
             filter: drop-shadow(0 0 8px rgba(0, 200, 255, 0.35));
             animation: pvpLobbyFloat 4.5s ease-in-out infinite;
             line-height: 0;
-        }
-        .pvp-lobby-tagline {
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 10px;
-            z-index: 4;
-            text-align: center;
-            font-size: 5px;
-            color: rgba(160, 200, 255, 0.55);
-            letter-spacing: 0.12em;
-            pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         @keyframes pvpLobbyFloat {
             0%, 100% { transform: translate(-50%, -50%); }
@@ -2749,14 +2756,11 @@
             50% { box-shadow: 0 0 8px rgba(255, 140, 60, 0.85); }
         }
         .pvp-ship-wrap {
+            position: relative;
             line-height: 0;
             filter: drop-shadow(0 0 8px rgba(0, 232, 255, 0.45));
             animation: pvpShipBob 2.8s ease-in-out infinite;
             flex-shrink: 0;
-        }
-        .pvp-ship-wrap,
-        .pvp-lobby-ship {
-            position: relative;
         }
         .pvp-ship-stack {
             position: relative;
@@ -3175,10 +3179,12 @@
     </div>
     <div class="window hidden" id="win-pvp">
         <div class="pvp-header">
-            <div class="wtitle">КОСМОБИТВА</div>
-            <button type="button" class="hangar-help-btn" id="btn-pvp-history" title="История атак">📜</button>
-            <button type="button" class="hangar-help-btn" id="btn-pvp-help" title="Правила PvP и награды">?</button>
-            <button type="button" class="hangar-help-btn pvp-lb-btn" id="btn-pvp-leaderboard" title="Суточный ТОП-50">🏆</button>
+            <button type="button" class="hangar-help-btn pvp-header-btn-left" id="btn-pvp-history" title="История атак">📜</button>
+            <div class="wtitle">ПАТРУЛЬ</div>
+            <div class="pvp-header-actions">
+                <button type="button" class="hangar-help-btn" id="btn-pvp-help" title="Правила PvP и награды">?</button>
+                <button type="button" class="hangar-help-btn pvp-lb-btn" id="btn-pvp-leaderboard" title="Суточный ТОП-50">🏆</button>
+            </div>
         </div>
         <div class="pvp-history-dropdown hidden" id="pvp-history-dropdown"></div>
         <div class="pvp-lb-dropdown hidden" id="pvp-lb-dropdown"></div>
@@ -3191,7 +3197,6 @@
                     <div class="pvp-starfield pvp-starfield-near"></div>
                 </div>
                 <div class="pvp-lobby-ship" id="pvp-lobby-ship"></div>
-                <div class="pvp-lobby-tagline">ПАТРУЛЬ · ОЖИДАНИЕ БОЯ</div>
             </div>
         </div>
         <div class="pvp-vs hidden" id="pvp-vs">
@@ -3352,7 +3357,7 @@
 <div class="help-overlay hidden" id="help-pvp-overlay">
     <div class="help-panel">
         <button type="button" class="help-close" id="btn-help-pvp-close" aria-label="Закрыть">✕</button>
-        <div class="help-title">КОСМОБИТВА · PvP</div>
+        <div class="help-title">ПАТРУЛЬ · PvP</div>
         <div class="help-body" id="help-pvp-body"></div>
     </div>
 </div>
@@ -3398,7 +3403,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.52.4';
+const VERSION = '2.52.5';
 
 // 8-бит иконки ресурсов (космос · металл · пиксель)
 const RES_GFX_SVG = {
@@ -8933,7 +8938,7 @@ function applyPvpBattleOutcome(result, opponent, procText, isRevenge = false) {
     const used = state.pvpDaily.attacksUsed;
     if (btn) {
         btn.disabled = !DEV_FREE_PVP && pvpAttacksLeft() <= 0;
-        btn.textContent = (!DEV_FREE_PVP && pvpAttacksLeft() <= 0) ? `ЛИМИТ ${used}/${maxAtk}` : 'ЕЩЁ БОЙ';
+        btn.textContent = (!DEV_FREE_PVP && pvpAttacksLeft() <= 0) ? `ЛИМИТ ${used}/${maxAtk}` : 'НАЙТИ БОЙ';
     }
 }
 
