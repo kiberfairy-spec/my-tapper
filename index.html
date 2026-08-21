@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.50.2</title>
+    <title>Space Dream v2.51.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -1831,12 +1831,14 @@
             line-height: 1;
         }
 
-        /* Чекин */
-        .overlay:has(#win-checkin:not(.hidden)) {
+        /* Чекин / батл-пасс */
+        .overlay:has(#win-checkin:not(.hidden)),
+        .overlay:has(#win-battlepass:not(.hidden)) {
             align-items: stretch;
             justify-content: stretch;
         }
-        #win-checkin {
+        #win-checkin,
+        #win-battlepass {
             width: 100%;
             height: 100%;
             max-width: none;
@@ -1849,7 +1851,12 @@
             border-width: 2px;
             border-style: solid;
         }
-        #win-checkin > .checkin-header {
+        #win-battlepass {
+            border-color: rgba(255, 212, 0, 0.45);
+            box-shadow: inset 0 0 24px rgba(255, 212, 0, 0.06);
+        }
+        #win-checkin > .checkin-header,
+        #win-battlepass > .checkin-header {
             flex-shrink: 0;
             display: flex;
             align-items: center;
@@ -1857,10 +1864,12 @@
             gap: 8px;
             margin-bottom: 6px;
         }
-        #win-checkin .checkin-title {
+        #win-checkin .checkin-title,
+        #win-battlepass .checkin-title {
             margin: 0;
             font-size: 10px;
         }
+        #win-battlepass .checkin-title { color: var(--gold); }
         .checkin-status {
             flex-shrink: 0;
             font-size: 7px;
@@ -1883,6 +1892,9 @@
             grid-template-columns: repeat(5, 1fr);
             gap: 4px;
             margin-bottom: 8px;
+        }
+        .checkin-grid-7 {
+            grid-template-columns: repeat(4, 1fr);
         }
         .checkin-cell {
             position: relative;
@@ -1930,6 +1942,10 @@
             content: ' ★';
             color: var(--gold);
             font-size: 6px;
+        }
+        .checkin-cell.bp-premium {
+            border-color: rgba(255, 212, 0, 0.35);
+            background: rgba(40, 32, 8, 0.35);
         }
         .checkin-cell.locked {
             opacity: 0.45;
@@ -1981,6 +1997,17 @@
             text-align: center;
             color: #44cc66;
             padding: 8px;
+        }
+        .bp-buy-bar {
+            flex-shrink: 0;
+            margin-top: 4px;
+        }
+        .bp-buy-bar .btn { margin: 4px 0 0; }
+        .bp-paid-badge {
+            font-size: 6px;
+            text-align: center;
+            color: var(--gold);
+            margin-top: 2px;
         }
         @keyframes mineLootFade {
             0% { opacity: 0; transform: translate(-50%, -40%) scale(0.9); }
@@ -2799,21 +2826,31 @@
     </div>
     <div class="window hidden" id="win-checkin">
         <div class="checkin-header">
-            <div class="wtitle checkin-title">ЕЖЕДНЕВНЫЙ ЧЕКИН</div>
+            <div class="wtitle checkin-title">БЕСПЛАТНЫЙ ЧЕКИН · 7 ДНЕЙ</div>
             <button type="button" class="hangar-help-btn" id="btn-checkin-help" title="Как работает чекин">?</button>
         </div>
         <div class="checkin-status" id="checkin-status"></div>
         <div class="checkin-scroll">
-            <div class="checkin-grid" id="checkin-grid"></div>
+            <div class="checkin-grid checkin-grid-7" id="checkin-grid"></div>
         </div>
         <div class="checkin-today" id="checkin-today"></div>
         <div class="checkin-actions" id="checkin-actions"></div>
     </div>
     <div class="window hidden" id="win-battlepass">
-        <div class="wtitle">БАТЛ-ПАСС</div>
-        <div id="bp-grid"></div>
-        <button class="btn" id="btn-bp-buy">КУПИТЬ (10 USDT)</button>
-        <button class="btn" id="btn-bp-claim">ЗАБРАТЬ</button>
+        <div class="checkin-header">
+            <div class="wtitle checkin-title">БАТЛ-ПАСС · 30 ДНЕЙ</div>
+            <button type="button" class="hangar-help-btn" id="btn-bp-help" title="Как работает батл-пасс">?</button>
+        </div>
+        <div class="checkin-status" id="bp-status"></div>
+        <div class="checkin-scroll">
+            <div class="checkin-grid" id="bp-grid"></div>
+        </div>
+        <div class="checkin-today" id="bp-today"></div>
+        <div class="checkin-actions" id="bp-actions"></div>
+        <div class="bp-buy-bar" id="bp-buy-bar">
+            <button class="btn" id="btn-bp-buy">КУПИТЬ БАТЛ-ПАСС (10 USDT)</button>
+            <p class="bp-paid-badge hidden" id="bp-paid-badge">✓ Пасс активен · награды каждый день</p>
+        </div>
     </div>
 </div>
 
@@ -2825,6 +2862,14 @@
         <div class="vip-daily-block" id="vip-daily-block"></div>
         <div class="vip-tiers" id="vip-tiers"></div>
         <p class="vip-note">Оплата скоро. Сейчас — тестовая активация уровня.</p>
+    </div>
+</div>
+
+<div class="help-overlay hidden" id="help-bp-overlay">
+    <div class="help-panel">
+        <button type="button" class="help-close" id="btn-help-bp-close" aria-label="Закрыть">✕</button>
+        <div class="help-title">БАТЛ-ПАСС</div>
+        <div class="help-body" id="help-bp-body"></div>
     </div>
 </div>
 
@@ -2901,7 +2946,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.50.2';
+const VERSION = '2.51.0';
 
 // 8-бит иконки ресурсов (космос · металл · пиксель)
 const RES_GFX_SVG = {
@@ -4716,11 +4761,27 @@ const PVP_REWARD_GROUPS = [
 
 const MINE_SOURCE_LABELS = { meteor: 'Метеорит', wreck: 'Обломки', pirate: 'Пират' };
 
-const CHECKIN_TOTAL_DAYS = 30;
-const CHECKIN_MILESTONE_DAYS = [7, 14, 21, 30];
-const CHECKIN_CHOICE_DAYS = [7, 14, 21];
+// ─── Бесплатный чекин (7 дней) ───────────────────────────────
+const CHECKIN_TOTAL_DAYS = 7;
+const CHECKIN_MILESTONE_DAYS = [7];
+const CHECKIN_CHOICE_DAYS = [];
 
-const CHECKIN_CHOICES = {
+const FREE_CHECKIN_REWARDS = {
+    1: { credits: 25 },
+    2: { fuel: 5 },
+    3: { credits: 20 },
+    4: { parts: { hp: 1 } },
+    5: { fuel: 8 },
+    6: { credits: 25, parts: { luck: 1 } },
+    7: { credits: 50, fuel: 8, spice: 1 },
+};
+
+// ─── Батл-пасс (30 дней, платный) ────────────────────────────
+const BP_TOTAL_DAYS = 30;
+const BP_MILESTONE_DAYS = [7, 14, 21, 30];
+const BP_CHOICE_DAYS = [7, 14, 21];
+
+const BP_CHOICES = {
     7: [
         { id: 'strike', title: 'Штурм', reward: { credits: 100, parts: { damage: 5 } } },
         { id: 'armor', title: 'Броня', reward: { credits: 80, parts: { shield: 5, hp: 5 } } },
@@ -4739,7 +4800,7 @@ const CHECKIN_CHOICES = {
     ],
 };
 
-const CHECKIN_REWARDS = {
+const BP_REWARDS = {
     1: { credits: 50 },
     2: { fuel: 10 },
     3: { credits: 30 },
@@ -4767,7 +4828,7 @@ const CHECKIN_REWARDS = {
     28: { credits: 120, spice: 2 },
     29: { parts: { speed: 4, damage: 2 } },
     30: {
-        credits: 500, fuel: 20, spice: 10, artifactParts: 5,
+        credits: 500, fuel: 20, spice: 10, artifactParts: 5, containers: 1,
         parts: { luck: 3, fuelTank: 3, hp: 2, damage: 2, shield: 2, speed: 2 },
     },
 };
@@ -4943,6 +5004,7 @@ function getPlayerStatsHtml() {
         renderStatsRow('PvP побед', ps.pvpWins),
         renderStatsRow('PvP поражений', ps.pvpLosses),
         renderStatsRow('Чекин', `день ${state.checkin.day} / ${CHECKIN_TOTAL_DAYS}`),
+        renderStatsRow('Батл-пасс', state.bp.paid ? `день ${state.bp.day} / ${BP_TOTAL_DAYS}` : 'не куплен'),
         renderStatsRow('Перки на корабле', equippedNames),
     ].join('');
 
@@ -5013,6 +5075,7 @@ function normalizeLoadedSave(raw) {
     base.upgrades = { ...defaultState().upgrades, ...(base.upgrades || {}) };
     base.resources = migrateResources(base.resources);
     base.checkin = { ...defaultState().checkin, ...(base.checkin || {}) };
+    base.bp = { ...defaultState().bp, ...(base.bp || {}) };
     base.vipDaily = { ...defaultState().vipDaily, ...(base.vipDaily || {}) };
     base.pvpDaily = { ...defaultState().pvpDaily, ...(base.pvpDaily || {}) };
     base.pvpBotWorld = { ...defaultState().pvpBotWorld, ...(base.pvpBotWorld || {}) };
@@ -5113,12 +5176,14 @@ const Storage = {
         state.upgrades = { ...defaultState().upgrades, ...(state.upgrades || {}) };
         state.resources = migrateResources(state.resources);
         state.checkin = { ...defaultState().checkin, ...(state.checkin || {}) };
+        state.bp = { ...defaultState().bp, ...(state.bp || {}) };
         state.vipDaily = { ...defaultState().vipDaily, ...(state.vipDaily || {}) };
         refreshVipDailyState();
         ensurePlayerStats();
         migratePerksFromLegacy();
         if ((state.upgrades.luck || 0) > LUCK_MAX_LEVEL) state.upgrades.luck = LUCK_MAX_LEVEL;
         refreshCheckinState();
+        refreshBpState();
         refreshPvpDailyState();
         state.pvpDaily = { ...defaultState().pvpDaily, ...(state.pvpDaily || {}) };
         state.pvpBotWorld = { ...defaultState().pvpBotWorld, ...(state.pvpBotWorld || {}) };
@@ -5755,6 +5820,7 @@ function openHudPanel(name) {
         return;
     }
     if (name === 'checkin') renderCheckin();
+    if (name === 'battlepass') renderBattlePass();
     showWindow(name);
     const overlay = $('overlay');
     overlay.classList.add('active', 'overlay-hud-modal');
@@ -6767,30 +6833,38 @@ function daysBetween(fromKey, toKey) {
     return Math.round((parseDayKey(toKey) - parseDayKey(fromKey)) / 86400000);
 }
 
-function refreshCheckinState() {
-    const c = state.checkin;
-    if (!c.day || c.day < 1) c.day = 1;
-    if (c.day > CHECKIN_TOTAL_DAYS) c.day = 1;
+function refreshStreakState(streak, totalDays) {
+    if (!streak.day || streak.day < 1) streak.day = 1;
+    if (streak.day > totalDays) streak.day = 1;
     const today = getTodayKey();
-    if (!c.lastClaim) {
-        c.claimedToday = false;
+    if (!streak.lastClaim) {
+        streak.claimedToday = false;
         return;
     }
-    if (c.lastClaim === today) {
-        c.claimedToday = true;
+    if (streak.lastClaim === today) {
+        streak.claimedToday = true;
         return;
     }
-    c.claimedToday = false;
-    if (daysBetween(c.lastClaim, today) > 1) c.day = 1;
+    streak.claimedToday = false;
+    if (daysBetween(streak.lastClaim, today) > 1) streak.day = 1;
 }
 
-function formatCheckinRewardText(reward) {
+function refreshCheckinState() {
+    refreshStreakState(state.checkin, CHECKIN_TOTAL_DAYS);
+}
+
+function refreshBpState() {
+    refreshStreakState(state.bp, BP_TOTAL_DAYS);
+}
+
+function formatDailyRewardText(reward) {
     if (!reward) return '—';
     const parts = [];
     if (reward.credits) parts.push(resAmtHtml('credits', reward.credits));
     if (reward.fuel) parts.push(resAmtHtml('fuel', reward.fuel));
     if (reward.spice) parts.push(resAmtHtml('spice', reward.spice));
     if (reward.artifactParts) parts.push(resAmtHtml('artifact', reward.artifactParts));
+    if (reward.containers) parts.push(containerIconHtml('silver') + ' ×' + reward.containers);
     if (reward.parts) {
         Object.entries(reward.parts).forEach(([key, n]) => {
             parts.push(partAmtHtml(key, n));
@@ -6799,12 +6873,21 @@ function formatCheckinRewardText(reward) {
     return parts.join(' ') || '—';
 }
 
-function getCheckinDayPreview(day) {
-    if (CHECKIN_CHOICE_DAYS.includes(day)) return 'выбор ×3';
-    return formatCheckinRewardText(CHECKIN_REWARDS[day]);
+/** @deprecated — используй formatDailyRewardText */
+function formatCheckinRewardText(reward) {
+    return formatDailyRewardText(reward);
 }
 
-function applyCheckinReward(reward) {
+function getFreeCheckinDayPreview(day) {
+    return formatDailyRewardText(FREE_CHECKIN_REWARDS[day]);
+}
+
+function getBpDayPreview(day) {
+    if (BP_CHOICE_DAYS.includes(day)) return 'выбор ×3';
+    return formatDailyRewardText(BP_REWARDS[day]);
+}
+
+function applyDailyReward(reward) {
     const r = state.resources;
     if (reward.credits) {
         r.credits += reward.credits;
@@ -6813,6 +6896,7 @@ function applyCheckinReward(reward) {
     if (reward.fuel) {
         const added = Math.min(reward.fuel, Math.max(0, state.maxFuel - r.fuel));
         r.fuel = Math.min(state.maxFuel, r.fuel + reward.fuel);
+        touchFuelTimestamp();
         trackEarned('fuel', added);
     }
     if (reward.spice) {
@@ -6822,30 +6906,56 @@ function applyCheckinReward(reward) {
     if (reward.artifactParts) {
         addArtifactParts(reward.artifactParts);
     }
+    if (reward.containers) {
+        addContainers(reward.containers);
+    }
     if (reward.parts) {
         Object.entries(reward.parts).forEach(([key, n]) => addUpgradePart(key, n));
     }
 }
 
-function completeCheckinClaim(reward) {
-    applyCheckinReward(reward);
-    const day = state.checkin.day;
-    state.checkin.lastClaim = getTodayKey();
-    state.checkin.claimedToday = true;
-    state.checkin.day = day >= CHECKIN_TOTAL_DAYS ? 1 : day + 1;
+/** @deprecated */
+function applyCheckinReward(reward) {
+    applyDailyReward(reward);
+}
+
+function completeStreakClaim(streakKey, totalDays, reward) {
+    applyDailyReward(reward);
+    const streak = state[streakKey];
+    const day = streak.day;
+    streak.lastClaim = getTodayKey();
+    streak.claimedToday = true;
+    streak.day = day >= totalDays ? 1 : day + 1;
     Storage.save();
     updateHUD();
-    showLoot(formatCheckinRewardText(reward));
+    showLoot(formatDailyRewardText(reward));
     hideOverlay();
+}
+
+function completeCheckinClaim(reward) {
+    completeStreakClaim('checkin', CHECKIN_TOTAL_DAYS, reward);
+}
+
+function completeBpClaim(reward) {
+    completeStreakClaim('bp', BP_TOTAL_DAYS, reward);
 }
 
 function getCheckinHelpHtml() {
     return `
-        <p><strong>30 дней</strong> — заходи каждый день и забирай награду. Цикл повторяется после 30-го дня.</p>
-        <p><strong>Пропуск:</strong> если не зашёл больше суток — серия сбрасывается на <strong>день 1</strong>.</p>
-        <p><strong>Дни 7, 14, 21:</strong> выбери <strong>1 из 3</strong> наборов наград — боевой, добычный или смешанный.</p>
-        <p><strong>День 30:</strong> главный приз цикла — большой набор ресурсов и деталей.</p>
-        <p>В таблице видно, что ты уже забрал (✓), текущий день подсвечен, вехи отмечены ★.</p>
+        <p><strong>7 дней</strong> — бесплатная серия для всех игроков. Скромные, но полезные награды.</p>
+        <p><strong>Пропуск:</strong> не зашёл больше суток — серия сбора с <strong>дня 1</strong>.</p>
+        <p><strong>День 7:</strong> небольшой приз недели — кредиты, топливо и спайс.</p>
+        <p>За полноценный 30-дневный цикл с вехами и выбором наград — см. <strong>Батл-пасс</strong>.</p>
+    `;
+}
+
+function getBpHelpHtml() {
+    return `
+        <p><strong>30 дней</strong> — премиум-серия после покупки батл-пасса. Награды сильнее бесплатного чекина.</p>
+        <p><strong>Пропуск:</strong> не зашёл больше суток — серия сбрасывается на <strong>день 1</strong> (пасс остаётся активным).</p>
+        <p><strong>Дни 7, 14, 21:</strong> выбери <strong>1 из 3–4</strong> наборов — боевой, добычный или смешанный.</p>
+        <p><strong>День 30:</strong> главный приз — ресурсы, детали, ядра и <strong>контейнер</strong>.</p>
+        <p>Оплата скоро. Сейчас — тестовая активация кнопкой «Купить».</p>
     `;
 }
 
@@ -6858,15 +6968,30 @@ function closeCheckinHelp() {
     $('help-checkin-overlay')?.classList.add('hidden');
 }
 
-function renderCheckinActions() {
-    const actions = $('checkin-actions');
-    const todayBox = $('checkin-today');
+function openBpHelp() {
+    $('help-bp-body').innerHTML = getBpHelpHtml();
+    $('help-bp-overlay')?.classList.remove('hidden');
+}
+
+function closeBpHelp() {
+    $('help-bp-overlay')?.classList.add('hidden');
+}
+
+function renderStreakActions(cfg) {
+    const { streak, totalDays, choiceDays, choices, rewards, actionsId, todayId, canClaim } = cfg;
+    const actions = $(actionsId);
+    const todayBox = $(todayId);
     if (!actions || !todayBox) return;
 
-    refreshCheckinState();
-    const day = state.checkin.day;
-    const claimed = state.checkin.claimedToday;
-    const claimedDay = claimed ? (day === 1 ? CHECKIN_TOTAL_DAYS : day - 1) : null;
+    const day = streak.day;
+    const claimed = streak.claimedToday;
+    const claimedDay = claimed ? (day === 1 ? totalDays : day - 1) : null;
+
+    if (!canClaim) {
+        todayBox.textContent = 'Купите батл-пасс, чтобы забирать награды.';
+        actions.innerHTML = '<div class="checkin-done-msg">🔒 Требуется батл-пасс</div>';
+        return;
+    }
 
     if (claimed) {
         todayBox.textContent = `День ${claimedDay} получен. Завтра — день ${day}.`;
@@ -6874,68 +6999,153 @@ function renderCheckinActions() {
         return;
     }
 
-    if (CHECKIN_CHOICE_DAYS.includes(day)) {
-        const options = CHECKIN_CHOICES[day] || [];
+    if (choiceDays.includes(day)) {
+        const options = choices[day] || [];
         todayBox.innerHTML = `<strong>День ${day}</strong> — выберите одну награду:`;
         actions.innerHTML =
             `<div class="checkin-choices">
                 <div class="checkin-choice-title">★ Веха · выбор награды</div>
                 ${options.map(opt => `
                     <button type="button" class="checkin-choice-btn" data-choice-day="${day}" data-choice-id="${opt.id}">
-                        <strong>${opt.title}</strong> — ${formatCheckinRewardText(opt.reward)}
+                        <strong>${opt.title}</strong> — ${formatDailyRewardText(opt.reward)}
                     </button>
                 `).join('')}
             </div>`;
         actions.querySelectorAll('.checkin-choice-btn').forEach(btn => {
             btn.onclick = () => {
                 const d = Number(btn.dataset.choiceDay);
-                const opt = CHECKIN_CHOICES[d]?.find(o => o.id === btn.dataset.choiceId);
-                if (opt) completeCheckinClaim(opt.reward);
+                const opt = choices[d]?.find(o => o.id === btn.dataset.choiceId);
+                if (opt) cfg.onComplete(opt.reward);
             };
         });
         return;
     }
 
-    const reward = CHECKIN_REWARDS[day];
-    todayBox.innerHTML = `<strong>День ${day}:</strong> ${formatCheckinRewardText(reward)}`;
-    actions.innerHTML = '<button class="btn" id="btn-checkin-claim">ЗАБРАТЬ</button>';
-    $('btn-checkin-claim').onclick = () => completeCheckinClaim(reward);
+    const reward = rewards[day];
+    todayBox.innerHTML = `<strong>День ${day}:</strong> ${formatDailyRewardText(reward)}`;
+    actions.innerHTML = '<button class="btn" id="' + cfg.claimBtnId + '">ЗАБРАТЬ</button>';
+    $(cfg.claimBtnId).onclick = () => cfg.onComplete(reward);
+}
+
+function renderStreakGrid(cfg) {
+    const { streak, totalDays, milestoneDays, getPreview, gridId, premium } = cfg;
+    const day = streak.day;
+    const claimed = streak.claimedToday;
+    const doneThrough = claimed
+        ? (day === 1 ? totalDays : day - 1)
+        : day - 1;
+
+    const grid = $(gridId);
+    if (!grid) return;
+    grid.innerHTML = '';
+    for (let d = 1; d <= totalDays; d++) {
+        const cell = document.createElement('div');
+        cell.className = 'checkin-cell';
+        if (milestoneDays.includes(d)) cell.classList.add('milestone');
+        if (premium) cell.classList.add('bp-premium');
+        if (d <= doneThrough) cell.classList.add('done');
+        else if (d === day && !claimed) cell.classList.add('current');
+        else if (d > day) cell.classList.add('locked');
+        cell.innerHTML =
+            `<span class="checkin-cell-day">${d}</span>` +
+            `<span class="checkin-cell-reward">${getPreview(d)}</span>`;
+        grid.appendChild(cell);
+    }
+}
+
+function renderCheckinActions() {
+    refreshCheckinState();
+    renderStreakActions({
+        streak: state.checkin,
+        totalDays: CHECKIN_TOTAL_DAYS,
+        choiceDays: CHECKIN_CHOICE_DAYS,
+        choices: {},
+        rewards: FREE_CHECKIN_REWARDS,
+        actionsId: 'checkin-actions',
+        todayId: 'checkin-today',
+        claimBtnId: 'btn-checkin-claim',
+        canClaim: true,
+        onComplete: completeCheckinClaim,
+    });
 }
 
 function renderCheckin() {
     refreshCheckinState();
     const day = state.checkin.day;
     const claimed = state.checkin.claimedToday;
-    const doneThrough = claimed
-        ? (day === 1 ? CHECKIN_TOTAL_DAYS : day - 1)
-        : day - 1;
 
     const status = $('checkin-status');
     if (status) {
         status.className = 'checkin-status' + (claimed ? '' : ' warn');
         status.innerHTML = claimed
-            ? `Серия: <strong>день ${day}</strong> / ${CHECKIN_TOTAL_DAYS} · сегодня уже забрали`
-            : `Серия: <strong>день ${day}</strong> / ${CHECKIN_TOTAL_DAYS} · пропуск = с начала`;
+            ? `Бесплатная серия: <strong>день ${day}</strong> / ${CHECKIN_TOTAL_DAYS} · сегодня уже забрали`
+            : `Бесплатная серия: <strong>день ${day}</strong> / ${CHECKIN_TOTAL_DAYS} · пропуск = с начала`;
     }
 
-    const grid = $('checkin-grid');
-    if (grid) {
-        grid.innerHTML = '';
-        for (let d = 1; d <= CHECKIN_TOTAL_DAYS; d++) {
-            const cell = document.createElement('div');
-            cell.className = 'checkin-cell';
-            if (CHECKIN_MILESTONE_DAYS.includes(d)) cell.classList.add('milestone');
-            if (d <= doneThrough) cell.classList.add('done');
-            else if (d === day && !claimed) cell.classList.add('current');
-            else if (d > day) cell.classList.add('locked');
-            cell.innerHTML =
-                `<span class="checkin-cell-day">${d}</span>` +
-                `<span class="checkin-cell-reward">${getCheckinDayPreview(d)}</span>`;
-            grid.appendChild(cell);
+    renderStreakGrid({
+        streak: state.checkin,
+        totalDays: CHECKIN_TOTAL_DAYS,
+        milestoneDays: CHECKIN_MILESTONE_DAYS,
+        getPreview: getFreeCheckinDayPreview,
+        gridId: 'checkin-grid',
+        premium: false,
+    });
+    renderCheckinActions();
+}
+
+function renderBattlePass() {
+    refreshBpState();
+    const bp = state.bp;
+    const day = bp.day;
+    const claimed = bp.claimedToday;
+    const paid = !!bp.paid;
+
+    const status = $('bp-status');
+    if (status) {
+        status.className = 'checkin-status' + (claimed || !paid ? '' : ' warn');
+        if (!paid) {
+            status.innerHTML = 'Премиум-серия <strong>30 дней</strong> · купите пасс, чтобы получать награды';
+        } else {
+            status.innerHTML = claimed
+                ? `Батл-пасс: <strong>день ${day}</strong> / ${BP_TOTAL_DAYS} · сегодня уже забрали`
+                : `Батл-пасс: <strong>день ${day}</strong> / ${BP_TOTAL_DAYS} · пропуск = с начала`;
         }
     }
 
-    renderCheckinActions();
+    renderStreakGrid({
+        streak: bp,
+        totalDays: BP_TOTAL_DAYS,
+        milestoneDays: BP_MILESTONE_DAYS,
+        getPreview: getBpDayPreview,
+        gridId: 'bp-grid',
+        premium: true,
+    });
+
+    renderStreakActions({
+        streak: bp,
+        totalDays: BP_TOTAL_DAYS,
+        choiceDays: BP_CHOICE_DAYS,
+        choices: BP_CHOICES,
+        rewards: BP_REWARDS,
+        actionsId: 'bp-actions',
+        todayId: 'bp-today',
+        claimBtnId: 'btn-bp-claim',
+        canClaim: paid,
+        onComplete: completeBpClaim,
+    });
+
+    const buyBtn = $('btn-bp-buy');
+    const paidBadge = $('bp-paid-badge');
+    if (buyBtn) buyBtn.classList.toggle('hidden', paid);
+    if (paidBadge) paidBadge.classList.toggle('hidden', !paid);
+}
+
+function buyBattlePassTest() {
+    state.bp.paid = true;
+    if (!state.bp.day || state.bp.day < 1) state.bp.day = 1;
+    Storage.save();
+    renderBattlePass();
+    showLoot('Батл-пасс активирован (тест)');
 }
 
 // ─── VIP ─────────────────────────────────────────────────────
@@ -8584,6 +8794,16 @@ function bindEvents() {
         if (e.target?.id === 'help-checkin-overlay') closeCheckinHelp();
     });
 
+    $('btn-bp-help')?.addEventListener('click', e => {
+        e.stopPropagation();
+        openBpHelp();
+    });
+    $('btn-help-bp-close')?.addEventListener('click', closeBpHelp);
+    $('help-bp-overlay')?.addEventListener('click', e => {
+        if (e.target?.id === 'help-bp-overlay') closeBpHelp();
+    });
+    $('btn-bp-buy')?.addEventListener('click', buyBattlePassTest);
+
     $('avatar')?.addEventListener('click', e => {
         e.stopPropagation();
         openPlayerStats();
@@ -8648,6 +8868,7 @@ function bindEvents() {
         if (document.visibilityState === 'visible') {
             playSessionStartedAt = Date.now();
             refreshCheckinState();
+            refreshBpState();
             refreshVipDailyState();
             applyGameInsets();
             syncPanelHeights();
