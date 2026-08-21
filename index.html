@@ -630,6 +630,11 @@
             --action-glow: rgba(255, 200, 0, 0.75);
             color: #ffe880;
             background-color: #1a1400;
+            width: 52px;
+            height: 26px;
+            font-size: 6px;
+            padding: 0 2px;
+            line-height: 1;
             background-image:
                 linear-gradient(180deg, rgba(255, 220, 100, 0.14) 0%, transparent 40%),
                 linear-gradient(180deg, #5a4800 0%, #322800 52%, #1a1400 100%);
@@ -1429,7 +1434,7 @@
         }
         .hangar-panel-track {
             display: flex;
-            width: 200%;
+            width: 300%;
             height: 100%;
             transition: transform 0.28s ease-out;
             will-change: transform;
@@ -1442,6 +1447,21 @@
             -webkit-overflow-scrolling: touch;
             padding: 6px 2px 8px 0;
             box-sizing: border-box;
+        }
+        #hangar-panel-containers {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding-bottom: 4px;
+        }
+        #hangar-panel-containers .upgrade-section-head {
+            flex-shrink: 0;
+        }
+        #container-panel-root {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
         .hangar-panel-dots {
             flex-shrink: 0;
@@ -1622,17 +1642,19 @@
         .res-node-spice { position: relative; }
         .spice-lb-dropdown {
             position: absolute;
-            top: 44px;
+            top: 34px;
             left: 6px;
             z-index: 50;
-            width: min(calc(100vw - 24px), 280px);
-            max-height: min(72vh, 380px);
+            width: min(calc(100vw - 24px), 260px);
+            max-height: min(72vh, 360px);
             overflow-y: auto;
-            background: rgba(4, 12, 24, 0.98);
-            border: 1px solid rgba(255, 200, 0, 0.45);
+            background: rgba(4, 12, 24, 0.62);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 200, 0, 0.35);
             border-radius: 6px;
             padding: 6px 0;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
             font-size: 4px;
         }
         .spice-lb-dropdown.hidden { display: none; }
@@ -2016,6 +2038,8 @@
         }
 
         /* Чекин / батл-пасс — компактные центрированные панели */
+        .overlay.overlay-hud-modal:has(#win-checkin:not(.hidden)),
+        .overlay.overlay-hud-modal:has(#win-battlepass:not(.hidden)),
         .overlay:has(#win-checkin:not(.hidden)),
         .overlay:has(#win-battlepass:not(.hidden)) {
             align-items: center;
@@ -3387,7 +3411,7 @@
 <div class="mining-screen" id="mining-screen">
     <div class="mining-hud" id="mining-hud">
         <div class="mining-hud-actions mining-hud-actions-left">
-            <button type="button" class="btn-action btn-action-spice" id="btn-spice-lb">🌶<br>ТОП</button>
+            <button type="button" class="btn-action btn-action-spice" id="btn-spice-lb">🏆<br>ТОП</button>
         </div>
         <div class="mining-hud-actions mining-hud-actions-right">
             <button type="button" class="btn-action" data-open="battlepass">🎫<br>БАТЛ-ПАСС</button>
@@ -3703,7 +3727,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.54.3';
+const VERSION = '2.54.4';
 
 // 8-бит иконки ресурсов (космос · металл · пиксель)
 const RES_GFX_SVG = {
@@ -6909,6 +6933,7 @@ function hideOverlay() {
 }
 
 function openHudPanel(name) {
+    closeSpiceLeaderboard();
     if (name === 'vip') {
         openVipPanel();
         return;
@@ -7012,6 +7037,20 @@ function showMineLoot(html, wx, wy) {
     setTimeout(() => el.remove(), 2500);
 }
 
+function hasEnoughFuelForFlight() {
+    return DEV_FREE_FUEL || state.resources.fuel >= FUEL_PER_FLIGHT;
+}
+
+let lastLowFuelMsgAt = 0;
+
+function showLowFuelMessage() {
+    const now = Date.now();
+    if (now - lastLowFuelMsgAt < 1400) return;
+    lastLowFuelMsgAt = now;
+    const home = getShipHome();
+    showMineLoot(`${resIconHtml('fuel', 'res-gfx-inline')} Мало топлива`, home.x, home.y + 60);
+}
+
 function flyToPlanetDock() {
     if (returningToPlanet || shipFlying) return;
     if (DEV_FREE_FUEL || state.resources.fuel >= FUEL_PER_FLIGHT) return;
@@ -7021,7 +7060,7 @@ function flyToPlanetDock() {
     flyShipTo(dock.x, dock.y, () => {
         returningToPlanet = false;
         shipFlying = false;
-        showMineLoot(`${resIconHtml('fuel', 'res-gfx-inline')} Нет топлива`, MAP_CENTER.x, MAP_CENTER.y + 60);
+        showLowFuelMessage();
     });
 }
 
@@ -7307,7 +7346,11 @@ function setShipPos(x, y, rot = shipRotation) {
 }
 
 function moveShip(wx, wy) {
-    if (shipFlying) return;
+    if (shipFlying || returningToPlanet) return;
+    if (!hasEnoughFuelForFlight()) {
+        showLowFuelMessage();
+        return;
+    }
     const p = clampWorld(wx, wy);
     flyShipTo(p.x, p.y);
 }
@@ -7666,12 +7709,11 @@ function fireMineEffect(obj, onDone) {
 function flyToMine(obj) {
     if (shipFlying || returningToPlanet) return;
     if (!mineObjects.includes(obj)) return;
-    if (obj.kind === 'pirate') obj.patrolPaused = true;
-    if (!DEV_FREE_FUEL && state.resources.fuel < FUEL_PER_FLIGHT) {
-        flyToPlanetDock();
+    if (!hasEnoughFuelForFlight()) {
+        showLowFuelMessage();
         return;
     }
-
+    if (obj.kind === 'pirate') obj.patrolPaused = true;
     shipFlying = true;
     if (!DEV_FREE_FUEL) {
         state.resources.fuel -= FUEL_PER_FLIGHT;
