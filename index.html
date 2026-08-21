@@ -4767,13 +4767,13 @@ const CHECKIN_MILESTONE_DAYS = [7];
 const CHECKIN_CHOICE_DAYS = [];
 
 const FREE_CHECKIN_REWARDS = {
-    1: { credits: 25 },
-    2: { fuel: 5 },
-    3: { credits: 20 },
-    4: { parts: { hp: 1 } },
-    5: { fuel: 8 },
-    6: { credits: 25, parts: { luck: 1 } },
-    7: { credits: 50, fuel: 8, spice: 1 },
+    1: { credits: 40 },
+    2: { fuel: 10 },
+    3: { credits: 35 },
+    4: { parts: { hp: 2 } },
+    5: { fuel: 12, credits: 15 },
+    6: { credits: 45, parts: { luck: 2 } },
+    7: { credits: 80, fuel: 15, spice: 2, artifactParts: 1 },
 };
 
 // ─── Батл-пасс (30 дней, платный) ────────────────────────────
@@ -6944,7 +6944,7 @@ function getCheckinHelpHtml() {
     return `
         <p><strong>7 дней</strong> — бесплатная серия для всех игроков. Скромные, но полезные награды.</p>
         <p><strong>Пропуск:</strong> не зашёл больше суток — серия сбора с <strong>дня 1</strong>.</p>
-        <p><strong>День 7:</strong> небольшой приз недели — кредиты, топливо и спайс.</p>
+        <p><strong>День 7:</strong> приз недели — кредиты, топливо, спайс и <strong>1 ядро перка</strong>.</p>
         <p>За полноценный 30-дневный цикл с вехами и выбором наград — см. <strong>Батл-пасс</strong>.</p>
     `;
 }
