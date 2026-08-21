@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.52.2</title>
+    <title>Space Dream v2.52.4</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -2754,6 +2754,10 @@
             animation: pvpShipBob 2.8s ease-in-out infinite;
             flex-shrink: 0;
         }
+        .pvp-ship-wrap,
+        .pvp-lobby-ship {
+            position: relative;
+        }
         .pvp-ship-stack {
             position: relative;
             display: inline-block;
@@ -2762,18 +2766,31 @@
         .pvp-ship-body {
             position: relative;
             z-index: 2;
+            display: inline-block;
+            line-height: 0;
         }
-        .pvp-ship-flame {
+        canvas.pvp-engine-flame.ship-flame {
             position: absolute;
-            left: 50%;
-            bottom: 2px;
-            transform: translateX(-50%);
-            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 8px !important;
+            height: 16px !important;
+            min-width: 0 !important;
+            min-height: 0 !important;
+            max-width: none !important;
+            max-height: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            image-rendering: pixelated !important;
+            image-rendering: crisp-edges !important;
             pointer-events: none;
-            image-rendering: pixelated;
-            image-rendering: crisp-edges;
+            z-index: 5;
+            opacity: 1 !important;
         }
-        .pvp-ship-flame[data-size="lg"] { bottom: 6px; }
+        canvas.pvp-engine-flame[data-size="lg"] {
+            width: 10px !important;
+            height: 20px !important;
+        }
         .pvp-shield-bubble {
             position: absolute;
             left: 50%;
@@ -2804,22 +2821,26 @@
             0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
             100% { opacity: 0; transform: translate(-50%, -50%) scale(1.18); filter: blur(2px); }
         }
-        .pvp-ship-wrap canvas,
         .pvp-ship-wrap .ship-sprite-img,
-        .pvp-ship-stack canvas,
-        .pvp-ship-stack .ship-sprite-img {
+        .pvp-ship-body .ship-sprite-img,
+        .pvp-ship-body > span .ship-sprite-img,
+        .pvp-ship-body canvas:not(.pvp-ship-flame) {
             display: block;
+            position: relative;
+            z-index: 2;
             width: 72px !important;
             height: 72px !important;
             max-height: none !important;
             object-fit: contain;
             image-rendering: auto;
         }
-        .pvp-lobby-ship canvas,
         .pvp-lobby-ship .ship-sprite-img,
-        .pvp-lobby-ship .pvp-ship-stack canvas,
-        .pvp-lobby-ship .pvp-ship-stack .ship-sprite-img {
+        .pvp-lobby-ship .pvp-ship-body .ship-sprite-img,
+        .pvp-lobby-ship .pvp-ship-body > span .ship-sprite-img,
+        .pvp-lobby-ship .pvp-ship-body canvas:not(.pvp-ship-flame) {
             display: block;
+            position: relative;
+            z-index: 2;
             width: 104px !important;
             height: 104px !important;
             object-fit: contain;
@@ -3377,7 +3398,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.52.2';
+const VERSION = '2.52.4';
 
 // 8-бит иконки ресурсов (космос · металл · пиксель)
 const RES_GFX_SVG = {
@@ -5903,25 +5924,38 @@ function drawShipFlame(cvs, frame) {
     }
 }
 
-function drawPvpShipFlame(cvs, frame) {
-    const size = cvs.dataset.size || 'md';
-    const scale = size === 'lg' ? 2.2 : size === 'sm' ? 1.3 : 1.7;
-    const sw = 5;
-    const sh = 10;
-    const w = Math.ceil(sw * scale);
-    const h = Math.ceil(sh * scale);
-    if (cvs.width !== w || cvs.height !== h) {
-        cvs.width = w;
-        cvs.height = h;
-    }
-    const ctx = cvs.getContext('2d');
-    ctx.clearRect(0, 0, w, h);
-    ctx.imageSmoothingEnabled = false;
-    const tmp = document.createElement('canvas');
-    tmp.width = sw;
-    tmp.height = sh;
-    drawShipFlame(tmp, frame);
-    ctx.drawImage(tmp, 0, 0, w, h);
+function layoutPvpEngineFlame(wrap) {
+    if (!wrap) return;
+    const flame = wrap.querySelector('.pvp-engine-flame');
+    const shipEl = wrap.querySelector('.pvp-ship-body .ship-sprite-img')
+        || wrap.querySelector('.pvp-ship-body canvas');
+    if (!flame || !shipEl) return;
+
+    const wrapRect = wrap.getBoundingClientRect();
+    const shipRect = shipEl.getBoundingClientRect();
+    if (shipRect.width < 4 || shipRect.height < 4) return;
+
+    const isLg = flame.dataset.size === 'lg';
+    const flameW = isLg ? 10 : 8;
+    const flameH = isLg ? 20 : 16;
+    flame.style.width = flameW + 'px';
+    flame.style.height = flameH + 'px';
+
+    const cx = shipRect.left + shipRect.width / 2 - wrapRect.left;
+    const engineY = shipRect.top - wrapRect.top + shipRect.height * 0.86;
+    flame.style.left = cx + 'px';
+    flame.style.top = engineY + 'px';
+    flame.style.bottom = 'auto';
+    flame.style.transform = 'translate(-50%, 0)';
+}
+
+function schedulePvpFlameLayout(wrap) {
+    if (!wrap) return;
+    const run = () => layoutPvpEngineFlame(wrap);
+    requestAnimationFrame(run);
+    setTimeout(run, 80);
+    setTimeout(run, 280);
+    setTimeout(run, 650);
 }
 
 let pvpFlameAnimFrame = null;
@@ -5931,7 +5965,10 @@ function ensurePvpFlameLoop() {
     if (pvpFlameAnimFrame) return;
     const tick = () => {
         pvpFlameTick += 1;
-        document.querySelectorAll('.pvp-ship-flame').forEach(c => drawPvpShipFlame(c, pvpFlameTick));
+        document.querySelectorAll('.pvp-engine-flame').forEach(c => drawShipFlame(c, pvpFlameTick));
+        if (pvpFlameTick % 40 === 0) {
+            document.querySelectorAll('.pvp-ship-wrap, .pvp-lobby-ship').forEach(layoutPvpEngineFlame);
+        }
         pvpFlameAnimFrame = requestAnimationFrame(tick);
     };
     pvpFlameAnimFrame = requestAnimationFrame(tick);
@@ -5945,22 +5982,17 @@ function stopPvpFlameLoop() {
 }
 
 function createPvpShipStack(options = {}) {
-    const { shieldActive = false, flameSize = 'md' } = options;
+    const { shieldActive = false } = options;
     const stack = document.createElement('div');
     stack.className = 'pvp-ship-stack';
 
     const bubble = document.createElement('div');
     bubble.className = 'pvp-shield-bubble' + (shieldActive ? ' active' : '');
 
-    const flame = document.createElement('canvas');
-    flame.className = 'pvp-ship-flame';
-    flame.dataset.size = flameSize;
-
     const body = document.createElement('div');
     body.className = 'pvp-ship-body';
 
     stack.appendChild(bubble);
-    stack.appendChild(flame);
     stack.appendChild(body);
     return stack;
 }
@@ -5970,9 +6002,19 @@ function mountPvpShipStack(container, shipNode, options = {}) {
     container.innerHTML = '';
     container.classList.remove('pvp-shoot');
     const stack = createPvpShipStack(options);
-    if (shipNode) stack.querySelector('.pvp-ship-body')?.appendChild(shipNode);
+    const body = stack.querySelector('.pvp-ship-body');
+    if (shipNode && body) body.appendChild(shipNode);
+
+    const flame = document.createElement('canvas');
+    flame.className = 'ship-flame pvp-engine-flame active';
+    flame.width = 5;
+    flame.height = 10;
+    flame.dataset.size = options.flameSize || 'md';
+
     container.appendChild(stack);
+    container.appendChild(flame);
     ensurePvpFlameLoop();
+    schedulePvpFlameLayout(container);
     return stack;
 }
 
