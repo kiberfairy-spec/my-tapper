@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.49.0</title>
+    <title>Space Dream v2.50.2</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -229,6 +229,96 @@
             22%  { left: 0%;   top: 0%;   opacity: 1; }
             23%  { opacity: 0; }
             100% { left: 0%;   top: 0%;   opacity: 0; }
+        }
+        .player-vip { cursor: pointer; }
+        .player-vip.vip-lvl-1 { border-color: #cd7f32; color: #e8c080; }
+        .player-vip.vip-lvl-3 {
+            border-color: #ffd400;
+            box-shadow: 0 0 8px rgba(255, 212, 0, 0.45);
+            animation: vipBadgeGlow 3s ease-in-out infinite;
+        }
+        @keyframes vipBadgeGlow {
+            0%, 100% { box-shadow: 0 0 6px rgba(255, 212, 0, 0.35); }
+            50% { box-shadow: 0 0 12px rgba(255, 212, 0, 0.65); }
+        }
+        .top-panel.vip-hud-frame {
+            box-shadow: inset 0 0 0 1px rgba(205, 127, 50, 0.4), 0 4px 20px rgba(255, 212, 0, 0.06);
+        }
+        #player-ship.vip-trail .ship-flame { filter: drop-shadow(0 0 4px rgba(192, 220, 255, 0.8)); }
+        .laser-beam.laser-gold {
+            stroke: #ffd400;
+            filter: drop-shadow(0 0 6px #ffd400) drop-shadow(0 0 12px rgba(255, 180, 0, 0.6));
+        }
+        .pvp-my-bars.vip-shield-pulse .pvp-bar-fill.shield {
+            animation: vipShieldPulse 1.4s ease-in-out infinite;
+        }
+        @keyframes vipShieldPulse {
+            0%, 100% { filter: brightness(1); box-shadow: none; }
+            50% { filter: brightness(1.35); box-shadow: 0 0 6px rgba(68, 136, 204, 0.8); }
+        }
+        .pvp-lb-row.vip-legend .pvp-lb-name { color: #ffd400; text-shadow: 0 0 6px rgba(255, 212, 0, 0.5); }
+        .pvp-lb-row.vip-admiral.me { border-color: rgba(255, 212, 0, 0.45); }
+
+        /* VIP-магазин */
+        .vip-current {
+            font-size: 7px;
+            color: #c8d8f0;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        .vip-daily-block {
+            margin-bottom: 10px;
+            padding: 6px 8px;
+            background: rgba(20, 30, 50, 0.6);
+            border: 1px solid rgba(0, 232, 255, 0.2);
+            border-radius: 4px;
+        }
+        .vip-daily-hint { font-size: 6px; color: #8899aa; margin-top: 4px; }
+        .vip-daily-done { font-size: 7px; color: #44cc88; }
+        .vip-daily-none { font-size: 6px; color: #8899aa; }
+        .vip-tiers {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 52vh;
+            overflow-y: auto;
+        }
+        .vip-tier-card {
+            padding: 6px 8px;
+            border: 1px solid rgba(80, 100, 130, 0.5);
+            border-radius: 4px;
+            background: rgba(8, 12, 24, 0.85);
+        }
+        .vip-tier-card.active { border-color: rgba(68, 204, 136, 0.6); background: rgba(20, 40, 30, 0.5); }
+        .vip-tier-card.vip-tier-rec {
+            border-color: rgba(255, 212, 0, 0.65);
+            box-shadow: 0 0 10px rgba(255, 212, 0, 0.15);
+        }
+        .vip-tier-head { font-size: 8px; color: #ffd400; font-weight: 600; }
+        .vip-tier-name { font-size: 7px; color: #a8c0e0; margin: 2px 0 4px; }
+        .vip-tier-perks {
+            font-size: 6px;
+            color: #8899aa;
+            margin: 0 0 6px;
+            padding-left: 12px;
+            line-height: 1.55;
+        }
+        .vip-tier-btn { width: 100%; font-size: 6px; padding: 5px; }
+        .vip-tier-btn.disabled { opacity: 0.55; }
+        .vip-reset-btn { margin-top: 4px; font-size: 6px; opacity: 0.7; }
+        .vip-note { font-size: 5px; color: #667; margin-top: 8px; text-align: center; }
+        #win-vip { position: relative; max-height: 80vh; }
+        #win-vip .vip-close,
+        #vip-overlay .vip-close {
+            position: absolute;
+            top: 6px;
+            right: 8px;
+            z-index: 2;
+        }
+        .vip-panel {
+            width: min(100%, 360px);
+            max-height: 88vh;
+            overflow-y: auto;
         }
 
         /* Шина проводов — на всю ширину панели */
@@ -971,6 +1061,17 @@
             pointer-events: none;
         }
         .overlay.active { display: flex; }
+        .overlay.overlay-hud-modal {
+            z-index: 200000;
+            top: var(--game-inset-top);
+            bottom: var(--game-inset-bottom);
+            left: var(--game-inset-left);
+            right: var(--game-inset-right);
+            pointer-events: auto;
+            cursor: pointer;
+        }
+        .overlay.overlay-hud-modal::before { pointer-events: none; }
+        .overlay.overlay-hud-modal > .window { cursor: default; }
         .overlay.overlay-pvp {
             align-items: stretch;
             justify-content: center;
@@ -2558,9 +2659,9 @@
 <div class="mining-screen" id="mining-screen">
     <div class="mining-hud" id="mining-hud">
         <div class="mining-hud-actions">
-            <button class="btn-action" data-open="battlepass">🎫<br>БАТЛ-ПАСС</button>
-            <button class="btn-action" data-open="boosts">⚡<br>УСИЛЕНИЯ</button>
-            <button class="btn-action" data-open="checkin">📅<br>ЧЕКИН</button>
+            <button type="button" class="btn-action" data-open="battlepass">🎫<br>БАТЛ-ПАСС</button>
+            <button type="button" class="btn-action" data-open="vip">⭐<br>VIP</button>
+            <button type="button" class="btn-action" data-open="checkin">📅<br>ЧЕКИН</button>
         </div>
     </div>
     <div class="mining-viewport" id="mining-viewport">
@@ -2714,10 +2815,16 @@
         <button class="btn" id="btn-bp-buy">КУПИТЬ (10 USDT)</button>
         <button class="btn" id="btn-bp-claim">ЗАБРАТЬ</button>
     </div>
-    <div class="window hidden" id="win-boosts">
-        <div class="wtitle">УСИЛЕНИЯ</div>
-        <div id="boost-list"></div>
-        <button class="btn" id="btn-boost-buy">КУПИТЬ</button>
+</div>
+
+<div class="help-overlay hidden" id="vip-overlay">
+    <div class="help-panel vip-panel">
+        <button type="button" class="help-close vip-close" id="btn-vip-close" aria-label="Закрыть">✕</button>
+        <div class="help-title">VIP-ПРОГРАММА</div>
+        <div class="vip-current" id="vip-current"></div>
+        <div class="vip-daily-block" id="vip-daily-block"></div>
+        <div class="vip-tiers" id="vip-tiers"></div>
+        <p class="vip-note">Оплата скоро. Сейчас — тестовая активация уровня.</p>
     </div>
 </div>
 
@@ -2794,7 +2901,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.49.0';
+const VERSION = '2.50.2';
 
 // 8-бит иконки ресурсов (космос · металл · пиксель)
 const RES_GFX_SVG = {
@@ -3019,11 +3126,12 @@ function applyOfflineFuelRegen() {
         return;
     }
     const elapsed = Math.max(0, now - state.fuelUpdatedAt);
-    const gained = Math.floor(elapsed / FUEL_REGEN_MS);
+    const regenMs = getVipRegenMs();
+    const gained = Math.floor(elapsed / regenMs);
     if (gained > 0 && state.resources.fuel < state.maxFuel) {
         state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + gained);
     }
-    state.fuelUpdatedAt = now - (elapsed % FUEL_REGEN_MS);
+    state.fuelUpdatedAt = now - (elapsed % regenMs);
 }
 
 function syncBotMaxFuel(live) {
@@ -4407,7 +4515,99 @@ const MINE_LOOT_TABLE = [
 const PIRATE_ARTIFACT_BONUS_CHANCE = 0.28;
 
 // ─── PvP: суточный рейтинг и награды ─────────────────────────
-const PVP_ATTACKS_PER_DAY = 5;
+const PVP_ATTACKS_PER_DAY = 5; // базовый лимит (free / боты)
+
+/** VIP 1–5: regenMult ускоряет реген топлива, creditMult — бонус к кредитам с добычи */
+const VIP_TIERS = {
+    1: {
+        name: 'Novobyte',
+        regenMult: 1.14,
+        pvpAttacks: 5,
+        creditMult: 1.05,
+        cosmetic: 'Рамка HUD',
+        daily: { credits: 20 },
+    },
+    2: {
+        name: 'Pilot',
+        regenMult: 1.33,
+        pvpAttacks: 5,
+        creditMult: 1.10,
+        cosmetic: 'След двигателя',
+        daily: { luckParts: 1 },
+    },
+    3: {
+        name: 'Commander',
+        regenMult: 1.60,
+        pvpAttacks: 6,
+        creditMult: 1.15,
+        cosmetic: 'Золотой луч',
+        recommended: true,
+        daily: { containerEvery: 3 },
+    },
+    4: {
+        name: 'Admiral',
+        regenMult: 2.00,
+        pvpAttacks: 6,
+        creditMult: 1.20,
+        cosmetic: 'Аним. щит',
+        daily: { spice: 2 },
+    },
+    5: {
+        name: 'Legend',
+        regenMult: 2.67,
+        pvpAttacks: 7,
+        creditMult: 1.25,
+        cosmetic: 'Скин корабля',
+        daily: { eliteEvery: 7 },
+    },
+};
+
+function getVipLevel() {
+    const n = Math.floor(Number(state.vip) || 0);
+    return n < 0 ? 0 : Math.min(5, n);
+}
+
+function getVipTier(level = getVipLevel()) {
+    if (level <= 0) return null;
+    return VIP_TIERS[level] || null;
+}
+
+function getVipRegenMs() {
+    const mult = getVipTier()?.regenMult || 1;
+    return Math.round(FUEL_REGEN_MS / mult);
+}
+
+function getVipPvpAttacksPerDay() {
+    return getVipTier()?.pvpAttacks ?? PVP_ATTACKS_PER_DAY;
+}
+
+function getVipCreditMult() {
+    return getVipTier()?.creditMult ?? 1;
+}
+
+function formatVipRegenMin(level = getVipLevel()) {
+    const mult = level > 0 ? (VIP_TIERS[level]?.regenMult || 1) : 1;
+    const min = (FUEL_REGEN_MS / mult) / 60000;
+    if (Math.abs(min - Math.round(min)) < 0.01) return `${Math.round(min)} мин`;
+    return `${min.toFixed(1).replace('.', ',')} мин`;
+}
+
+function estimateVipFuelPerDay(level = getVipLevel()) {
+    const regenMs = level > 0
+        ? Math.round(FUEL_REGEN_MS / (VIP_TIERS[level]?.regenMult || 1))
+        : FUEL_REGEN_MS;
+    return Math.floor(86400000 / regenMs);
+}
+
+function getVipDisplayName(level = getVipLevel()) {
+    if (level <= 0) return 'Free';
+    return VIP_TIERS[level]?.name || `VIP ${level}`;
+}
+
+function getPlayerLaserColor() {
+    return getVipLevel() >= 3 ? 'gold' : 'blue';
+}
+
 const PVP_MAX_REPEAT_OPPONENT = 2;
 const PVP_SCORE_WIN = 15;
 const PVP_SCORE_LOSE = 7;
@@ -4584,6 +4784,7 @@ const UPGRADES = [
 // ─── Состояние ───────────────────────────────────────────────
 const defaultState = () => ({
     version: VERSION,
+    savedAt: 0,
     playerName: '',
     factionId: null,
     shipIndex: null,
@@ -4600,6 +4801,7 @@ const defaultState = () => ({
     upgrades: { hp:0, damage:0, shield:0, speed:0, luck:0, fuelTank:0 },
     perks: { levels: defaultPerkLevels(), equipped: [null, null] },
     checkin: { day:1, lastClaim:null, claimedToday:false },
+    vipDaily: { lastClaimKey: null, claimedToday: false, containerStreak: 0, eliteStreak: 0 },
     bp: { paid:false, day:1, lastClaim:null, claimedToday:false },
     boosts: [],
     leaderboard: [],
@@ -4701,7 +4903,7 @@ function getPlayerStatsHtml() {
         renderStatsRow('Фракция', faction?.name || '—'),
         renderStatsRow('Корабль', ship?.name || '—'),
         renderStatsRow('Уровень', `${state.level} · ${state.exp}/${state.level * 100} опыта`),
-        renderStatsRow('VIP', state.vip),
+        renderStatsRow('VIP', `${state.vip} · ${getVipDisplayName()}`),
         renderStatsRow('PvP очки', state.pvpScore),
         renderStatsRow('Время в игре', formatPlayTime(getTotalPlayTimeMs())),
     ].join('');
@@ -4793,6 +4995,35 @@ let piratePatrolFrame = null;
 let selectedBoost = null;
 let returningToPlanet = false;
 
+function persistMiningSnapshot() {
+    if (!state.profileComplete) return;
+    ensureMiningState();
+    if (mineObjects.length > 0) saveMiningWave();
+}
+
+function getSaveRevision(s) {
+    if (!s) return 0;
+    if (s.savedAt) return s.savedAt;
+    const ps = s.playerStats || {};
+    return (ps.playTimeMs || 0) + (ps.minedObjects || 0) * 60000 + (s.level || 1) * 1000;
+}
+
+function normalizeLoadedSave(raw) {
+    const base = { ...defaultState(), ...(raw || {}) };
+    base.upgrades = { ...defaultState().upgrades, ...(base.upgrades || {}) };
+    base.resources = migrateResources(base.resources);
+    base.checkin = { ...defaultState().checkin, ...(base.checkin || {}) };
+    base.vipDaily = { ...defaultState().vipDaily, ...(base.vipDaily || {}) };
+    base.pvpDaily = { ...defaultState().pvpDaily, ...(base.pvpDaily || {}) };
+    base.pvpBotWorld = { ...defaultState().pvpBotWorld, ...(base.pvpBotWorld || {}) };
+    base.mining = { objects: [], ...(base.mining || {}) };
+    if (!Array.isArray(base.mining.objects)) base.mining.objects = [];
+    if (base.fuelUpdatedAt == null && base.resources?.fuel != null) {
+        base.fuelUpdatedAt = Date.now();
+    }
+    return base;
+}
+
 // ─── Хранилище ───────────────────────────────────────────────
 const Storage = {
     cloud() {
@@ -4802,6 +5033,9 @@ const Storage = {
 
     save() {
         flushPlayTime();
+        persistMiningSnapshot();
+        state.savedAt = Date.now();
+        state.version = VERSION;
         const json = JSON.stringify(state);
         try { localStorage.setItem(SAVE_KEY, json); } catch (e) {}
         try {
@@ -4813,6 +5047,9 @@ const Storage = {
     saveAsync() {
         return new Promise(resolve => {
             flushPlayTime();
+            persistMiningSnapshot();
+            state.savedAt = Date.now();
+            state.version = VERSION;
             const json = JSON.stringify(state);
             try { localStorage.setItem(SAVE_KEY, json); } catch (e) {}
             try {
@@ -4829,7 +5066,7 @@ const Storage = {
     loadLocal() {
         try {
             const raw = localStorage.getItem(SAVE_KEY);
-            if (raw) return { ...defaultState(), ...JSON.parse(raw) };
+            if (raw) return normalizeLoadedSave(JSON.parse(raw));
         } catch (e) {}
         return defaultState();
     },
@@ -4848,7 +5085,7 @@ const Storage = {
                 if (!cloud) return finish(null);
                 cloud.getItem(SAVE_KEY, (err, val) => {
                     if (err || !val) return finish(null);
-                    try { finish({ ...defaultState(), ...JSON.parse(val) }); }
+                    try { finish(normalizeLoadedSave(JSON.parse(val))); }
                     catch (e) { finish(null); }
                 });
             } catch (e) {
@@ -4861,9 +5098,12 @@ const Storage = {
         if (!cloud) return local;
         if (!local?.playerName && !local?.profileComplete) return cloud;
         if (!cloud.playerName && !cloud.profileComplete) return local;
+        const localRev = getSaveRevision(local);
+        const cloudRev = getSaveRevision(cloud);
+        if (localRev !== cloudRev) return localRev > cloudRev ? local : cloud;
         if (local.profileComplete && !cloud.profileComplete) return local;
         if (cloud.profileComplete && !local.profileComplete) return cloud;
-        return cloud.playerName ? cloud : local;
+        return local;
     },
 
     async load() {
@@ -4873,6 +5113,8 @@ const Storage = {
         state.upgrades = { ...defaultState().upgrades, ...(state.upgrades || {}) };
         state.resources = migrateResources(state.resources);
         state.checkin = { ...defaultState().checkin, ...(state.checkin || {}) };
+        state.vipDaily = { ...defaultState().vipDaily, ...(state.vipDaily || {}) };
+        refreshVipDailyState();
         ensurePlayerStats();
         migratePerksFromLegacy();
         if ((state.upgrades.luck || 0) > LUCK_MAX_LEVEL) state.upgrades.luck = LUCK_MAX_LEVEL;
@@ -4882,8 +5124,10 @@ const Storage = {
         state.pvpBotWorld = { ...defaultState().pvpBotWorld, ...(state.pvpBotWorld || {}) };
         state.mining = { objects: [], ...(state.mining || {}) };
         if (!Array.isArray(state.mining.objects)) state.mining.objects = [];
+        if (state.fuelUpdatedAt == null) state.fuelUpdatedAt = Date.now();
         syncPlayerMaxFuel();
         applyOfflineFuelRegen();
+        applyVipCosmetics();
         if (state.factionId != null) {
             const list = SHIP_CATALOG[state.factionId] || SHIP_CATALOG.tank;
             if (state.shipIndex == null || state.shipIndex < 0) state.shipIndex = 0;
@@ -5500,7 +5744,43 @@ function showWindow(name) {
 }
 
 function hideOverlay() {
-    $('overlay').classList.remove('active');
+    const overlay = $('overlay');
+    overlay.classList.remove('active', 'overlay-hud-modal');
+    overlay.onclick = null;
+}
+
+function openHudPanel(name) {
+    if (name === 'vip') {
+        openVipPanel();
+        return;
+    }
+    if (name === 'checkin') renderCheckin();
+    showWindow(name);
+    const overlay = $('overlay');
+    overlay.classList.add('active', 'overlay-hud-modal');
+    overlay.onclick = e => {
+        if (e.target === overlay) hideOverlay();
+    };
+}
+
+function openVipPanel() {
+    renderVipShop();
+    $('vip-overlay')?.classList.remove('hidden');
+}
+
+function closeVipPanel() {
+    $('vip-overlay')?.classList.add('hidden');
+}
+
+function bindHudOpenButton(btn) {
+    const name = btn.dataset.open;
+    const open = e => {
+        e?.stopPropagation?.();
+        e?.preventDefault?.();
+        openHudPanel(name);
+    };
+    btn.addEventListener('click', open);
+    btn.addEventListener('touchend', open, { passive: false });
 }
 
 function initTopNeonFlicker() {
@@ -5523,14 +5803,16 @@ function showGameUI() {
     $('bottom-nav').classList.remove('hidden');
     syncPanelHeights();
     applyGameInsets();
+    applyVipCosmetics();
     initTopNeonFlicker();
 }
 
 function updateHUD() {
     const r = state.resources;
+    const vipLvl = getVipLevel();
     $('ui-name').textContent = state.playerName || 'Игрок';
     $('ui-level').textContent = `· L${state.level}`;
-    $('ui-vip').textContent = `⭐ VIP ${state.vip}`;
+    $('ui-vip').textContent = vipLvl > 0 ? `⭐ VIP ${vipLvl} · ${getVipDisplayName()}` : '⭐ VIP 0';
     $('ui-spice').textContent = r.spice;
     $('ui-fuel').textContent = `${Math.floor(r.fuel)}/${state.maxFuel}`;
     $('ui-credits').textContent = Math.floor(r.credits);
@@ -5862,10 +6144,15 @@ function layoutMining() {
     initMiningWorld();
     resetShipToOrbit();
     ensureMiningState();
-    if (state.mining.objects.length > 0) {
+    const savedCount = state.mining.objects.length;
+    if (savedCount > 0) {
         restoreMiningWave();
     } else if (!mineObjects.length) {
         generateMineObjects();
+    }
+    if (mineObjects.length > 0) {
+        saveMiningWave();
+        Storage.save();
     }
     ensurePiratePatrolLoop();
     if (planetRenderState) startPlanetSpin();
@@ -6073,9 +6360,11 @@ function rollLootForKind(kind) {
         addUpgradePart(entry.partKey, amount);
         items.push({ type: 'part', key: entry.partKey, amount });
     } else if (entry.id === 'credits') {
-        state.resources.credits += amount;
-        trackEarned('credits', amount);
-        items.push({ type: 'res', resType: entry.id, amount });
+        const bonus = Math.floor(amount * (getVipCreditMult() - 1));
+        const total = amount + bonus;
+        state.resources.credits += total;
+        trackEarned('credits', total);
+        items.push({ type: 'res', resType: entry.id, amount: total });
     } else if (entry.id === 'fuel') {
         const added = Math.min(amount, Math.max(0, state.maxFuel - state.resources.fuel));
         state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + amount);
@@ -6109,7 +6398,10 @@ function getPirateNose(obj, offset = 22) {
 
 function appendLaserBeam(layer, x1, y1, x2, y2, color = 'blue') {
     const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    line.setAttribute('class', color === 'red' ? 'laser-beam laser-red' : 'laser-beam laser-blue');
+    const cls = color === 'red' ? 'laser-beam laser-red'
+        : color === 'gold' ? 'laser-beam laser-gold'
+        : 'laser-beam laser-blue';
+    line.setAttribute('class', cls);
     line.setAttribute('x1', x1);
     line.setAttribute('y1', y1);
     line.setAttribute('x2', x2);
@@ -6195,7 +6487,7 @@ function fireSoundWavesAt(obj, onDone) {
 
 function fireMineEffect(obj, onDone) {
     if (obj.kind === 'meteor') fireSoundWavesAt(obj, onDone);
-    else if (obj.kind === 'wreck') fireLasersAt(obj, onDone, 'blue');
+    else if (obj.kind === 'wreck') fireLasersAt(obj, onDone, getPlayerLaserColor());
     else firePirateDuel(obj, onDone);
 }
 
@@ -6646,6 +6938,180 @@ function renderCheckin() {
     renderCheckinActions();
 }
 
+// ─── VIP ─────────────────────────────────────────────────────
+function refreshVipDailyState() {
+    const v = state.vipDaily;
+    if (!v) state.vipDaily = defaultState().vipDaily;
+    const today = getTodayKey();
+    if (!state.vipDaily.lastClaimKey) {
+        state.vipDaily.claimedToday = false;
+        return;
+    }
+    state.vipDaily.claimedToday = state.vipDaily.lastClaimKey === today;
+}
+
+function formatVipDailyHint() {
+    const t = getVipTier();
+    if (!t?.daily) return '';
+    const d = t.daily;
+    if (d.credits) return `+${d.credits} кредитов каждый день`;
+    if (d.luckParts) return `+${d.luckParts} luckPart каждый день`;
+    if (d.spice) return `+${d.spice} спайс каждый день`;
+    if (d.containerEvery) {
+        const left = d.containerEvery - (state.vipDaily.containerStreak || 0);
+        return left <= 1 ? 'Сегодня: серебряный контейнер!' : `Контейнер через ${left} дн.`;
+    }
+    if (d.eliteEvery) {
+        const left = d.eliteEvery - (state.vipDaily.eliteStreak || 0);
+        return left <= 1 ? 'Сегодня: элитный контейнер!' : `Элит-контейнер через ${left} дн.`;
+    }
+    return '';
+}
+
+function claimVipDailyBonus(silent = false) {
+    refreshVipDailyState();
+    const lvl = getVipLevel();
+    if (lvl <= 0 || state.vipDaily.claimedToday) return false;
+
+    const d = getVipTier()?.daily;
+    if (!d) return false;
+
+    const parts = [];
+    if (d.credits) {
+        state.resources.credits += d.credits;
+        trackEarned('credits', d.credits);
+        parts.push(formatCheckinRewardText({ credits: d.credits }));
+    }
+    if (d.luckParts) {
+        addUpgradePart('luck', d.luckParts);
+        parts.push(partAmtHtml('luck', d.luckParts));
+    }
+    if (d.spice) {
+        state.resources.spice += d.spice;
+        trackEarned('spice', d.spice);
+        parts.push(resAmtHtml('spice', d.spice));
+    }
+    if (d.containerEvery) {
+        state.vipDaily.containerStreak = (state.vipDaily.containerStreak || 0) + 1;
+        if (state.vipDaily.containerStreak >= d.containerEvery) {
+            addContainers(1);
+            state.vipDaily.containerStreak = 0;
+            parts.push(containerIconHtml('silver') + ' ×1');
+        }
+    }
+    if (d.eliteEvery) {
+        state.vipDaily.eliteStreak = (state.vipDaily.eliteStreak || 0) + 1;
+        if (state.vipDaily.eliteStreak >= d.eliteEvery) {
+            addContainers(1);
+            state.vipDaily.eliteStreak = 0;
+            parts.push(containerIconHtml('elite') + ' ×1');
+        }
+    }
+
+    state.vipDaily.lastClaimKey = getTodayKey();
+    state.vipDaily.claimedToday = true;
+    Storage.save();
+    updateHUD();
+    if (!silent && parts.length) showLoot('VIP: ' + parts.join(' '));
+    return true;
+}
+
+function applyVipCosmetics() {
+    const lvl = getVipLevel();
+    const vipEl = $('ui-vip');
+    const topPanel = $('top-panel');
+    const ship = $('player-ship');
+    if (vipEl) {
+        vipEl.classList.toggle('vip-lvl-1', lvl >= 1);
+        vipEl.classList.toggle('vip-lvl-3', lvl >= 3);
+    }
+    topPanel?.classList.toggle('vip-hud-frame', lvl >= 1);
+    ship?.classList.toggle('vip-trail', lvl >= 2);
+}
+
+function setVipLevel(level) {
+    state.vip = Math.max(0, Math.min(5, level));
+    applyVipCosmetics();
+    startFuelRegenLoop();
+    updateHUD();
+    renderPvpDailyBar();
+    Storage.save();
+}
+
+function renderVipShop() {
+    refreshVipDailyState();
+    const cur = $('vip-current');
+    const dailyBlock = $('vip-daily-block');
+    const tiersEl = $('vip-tiers');
+    if (!cur || !dailyBlock || !tiersEl) return;
+
+    const lvl = getVipLevel();
+    const tier = getVipTier();
+    cur.innerHTML = lvl > 0
+        ? `<strong>VIP ${lvl} · ${tier?.name || getVipDisplayName()}</strong><br>` +
+          `Реген ${formatVipRegenMin()} · ~${estimateVipFuelPerDay()} топл./сут · ` +
+          `PvP ${getVipPvpAttacksPerDay()}/сут · кредиты +${Math.round((getVipCreditMult() - 1) * 100)}%`
+        : 'Без VIP — реген 4 мин · 5 PvP-атак · без бонуса к кредитам';
+
+    if (lvl <= 0) {
+        dailyBlock.innerHTML = '<p class="vip-daily-none">Ежедневный бонус доступен с VIP 1</p>';
+    } else if (state.vipDaily.claimedToday) {
+        dailyBlock.innerHTML =
+            `<p class="vip-daily-done">✓ Ежедневный бонус получен</p>` +
+            `<p class="vip-daily-hint">${formatVipDailyHint()}</p>`;
+    } else {
+        dailyBlock.innerHTML =
+            `<button class="btn" id="btn-vip-claim">ЗАБРАТЬ БОНУС</button>` +
+            `<p class="vip-daily-hint">${formatVipDailyHint()}</p>`;
+        $('btn-vip-claim').onclick = () => {
+            claimVipDailyBonus();
+            renderVipShop();
+        };
+    }
+
+    tiersEl.innerHTML = [1, 2, 3, 4, 5].map(n => {
+        const t = VIP_TIERS[n];
+        const active = lvl === n;
+        const rec = t.recommended ? ' vip-tier-rec' : '';
+        return `<div class="vip-tier-card${rec}${active ? ' active' : ''}">
+            <div class="vip-tier-head">VIP ${n}${t.recommended ? ' ★ ЛУЧШИЙ' : ''}</div>
+            <div class="vip-tier-name">${t.name}</div>
+            <ul class="vip-tier-perks">
+                <li>Реген: ${formatVipRegenMin(n)} (~${estimateVipFuelPerDay(n)} топл./сут)</li>
+                <li>PvP: ${t.pvpAttacks} атак/сут</li>
+                <li>Кредиты с добычи: +${Math.round((t.creditMult - 1) * 100)}%</li>
+                <li>${t.cosmetic}</li>
+            </ul>
+            <button class="btn vip-tier-btn${active ? ' disabled' : ''}" data-set-vip="${n}" ${active ? 'disabled' : ''}>
+                ${active ? 'АКТИВЕН' : 'АКТИВИРОВАТЬ (ТЕСТ)'}
+            </button>
+        </div>`;
+    }).join('') + (lvl > 0 ? `<button class="btn vip-reset-btn" id="btn-vip-reset">СБРОСИТЬ VIP (ТЕСТ)</button>` : '');
+
+    document.querySelectorAll('#vip-tiers [data-set-vip]').forEach(btn => {
+        btn.onclick = () => {
+            setVipLevel(Number(btn.dataset.setVip));
+            renderVipShop();
+        };
+    });
+    $('btn-vip-reset')?.addEventListener('click', () => {
+        setVipLevel(0);
+        renderVipShop();
+    });
+}
+
+function startFuelRegenLoop() {
+    if (window._fuelRegenTimer) clearInterval(window._fuelRegenTimer);
+    window._fuelRegenTimer = setInterval(() => {
+        const prev = state.resources.fuel;
+        applyOfflineFuelRegen();
+        if (state.resources.fuel !== prev) {
+            updateHUD();
+            if (state.resources.fuel < state.maxFuel) Storage.save();
+        }
+    }, Math.max(8000, Math.floor(getVipRegenMs() / 3)));
+}
+
 function renderHangar() {
     const r = state.resources;
     const spreadHint = getUpgradeSpreadHint();
@@ -6755,7 +7221,7 @@ function addPvpDailyScore(delta) {
 function pvpAttacksLeft() {
     if (DEV_FREE_PVP) return 999;
     refreshPvpDailyState();
-    return Math.max(0, PVP_ATTACKS_PER_DAY - state.pvpDaily.attacksUsed);
+    return Math.max(0, getVipPvpAttacksPerDay() - state.pvpDaily.attacksUsed);
 }
 
 function canAttackOpponent(opponentId) {
@@ -7250,7 +7716,7 @@ function getPvpRewardHelpHtml() {
     }).join('');
     return `
         <p><strong>Суточный рейтинг</strong> (сброс 00:00 MSK). Награды выдаёт сервер по итогам дня.</p>
-        <p><strong>Бои:</strong> ${PVP_ATTACKS_PER_DAY} атак/сутки · повтор с тем же игроком ≤ ${PVP_MAX_REPEAT_OPPONENT} · бой ${PVP_BATTLE_DURATION_MS / 1000} сек.</p>
+        <p><strong>Бои:</strong> 5 атак/сутки (free) · VIP 3: 6 · VIP 5: 7 · повтор с тем же игроком ≤ ${PVP_MAX_REPEAT_OPPONENT} · бой ${PVP_BATTLE_DURATION_MS / 1000} сек.</p>
         <p><strong>Очки:</strong> победа +${PVP_SCORE_WIN} · поражение −${PVP_SCORE_LOSE} · ничья +${PVP_SCORE_DRAW} обоим.</p>
         <p>Учитываются все статы ангара, удача и 2 экипированных PvP-перка. <strong>15 ботов</strong> играют автономно: добыча → прокачка → PvP (симуляция раз в сутки).</p>
         <table class="help-table"><thead><tr><th>Место</th><th>Приз</th></tr></thead>
@@ -7287,7 +7753,13 @@ function renderPvpLeaderboardDropdown() {
     let html = `<div class="pvp-lb-title">СУТОЧНЫЙ ТОП-${PVP_LB_DISPLAY}</div>`;
     html += top.map(p => {
         const tag = p.isBot ? ` · T${p.tier || '?'}` : '';
-        return `<div class="pvp-lb-row${p.isMe ? ' me' : ''}"><span>#${p.rank} ${p.name}${tag}</span><span>⭐ ${p.dailyScore}</span></div>`;
+        const vipTag = p.isMe && getVipLevel() >= 3 ? ' ⭐' : '';
+        const rowCls = [
+            p.isMe ? ' me' : '',
+            p.isMe && getVipLevel() >= 4 ? ' vip-admiral' : '',
+            p.isMe && getVipLevel() >= 5 ? ' vip-legend' : '',
+        ].join('');
+        return `<div class="pvp-lb-row${rowCls}"><span class="pvp-lb-name">#${p.rank} ${p.name}${vipTag}${tag}</span><span>⭐ ${p.dailyScore}</span></div>`;
     }).join('');
     if (myRank && !inTop) {
         const me = list.find(p => p.isMe);
@@ -7300,11 +7772,12 @@ function renderPvpLeaderboardDropdown() {
 function renderPvpDailyBar() {
     refreshPvpDailyState();
     const left = pvpAttacksLeft();
-    const score = state.pvpDaily.score;
+    const maxAtk = getVipPvpAttacksPerDay();
     const used = state.pvpDaily.attacksUsed;
+    const score = state.pvpDaily.score;
     const list = buildPvpLeaderboardList();
     const rank = used > 0 ? getMyPvpRank(list) : null;
-    const atkLabel = DEV_FREE_PVP ? '⚔️ ∞' : `⚔️ ${left}/${PVP_ATTACKS_PER_DAY}`;
+    const atkLabel = DEV_FREE_PVP ? '⚔️ ∞' : `⚔️ ${left}/${maxAtk}`;
     $('pvp-daily-bar').innerHTML =
         `Сегодня: ⭐ <strong>${score}</strong> очк.` +
         (rank ? ` · место <strong>#${rank}</strong>` : '') +
@@ -7316,7 +7789,7 @@ function renderPvpDailyBar() {
     const btn = $('btn-pvp');
     if (btn) {
         btn.disabled = !DEV_FREE_PVP && left <= 0;
-        btn.textContent = (!DEV_FREE_PVP && left <= 0) ? 'ЛИМИТ 5/5' : (pvpBattleRunning ? 'ИДЁТ БОЙ…' : 'НАЙТИ БОЙ');
+        btn.textContent = (!DEV_FREE_PVP && left <= 0) ? `ЛИМИТ ${used}/${maxAtk}` : (pvpBattleRunning ? 'ИДЁТ БОЙ…' : 'НАЙТИ БОЙ');
     }
 }
 
@@ -7337,6 +7810,7 @@ function renderPvpBarRow(label, cls, pct, cur, max, broken = false) {
 function renderPvpBars(side, fighter) {
     const el = $(side === 'player' ? 'pvp-my-bars' : 'pvp-en-bars');
     if (!el || !fighter) return;
+    el.classList.toggle('vip-shield-pulse', side === 'player' && getVipLevel() >= 4);
     const shPct = fighter.maxShield > 0 ? Math.max(0, fighter.shield / fighter.maxShield * 100) : 0;
     const hpPct = fighter.maxHp > 0 ? Math.max(0, fighter.hp / fighter.maxHp * 100) : 0;
     el.innerHTML =
@@ -7398,9 +7872,11 @@ function renderPvpLobby() {
         ? 'Лимит атак на сегодня исчерпан'
         : 'Нажмите НАЙТИ БОЙ';
     const btn = $('btn-pvp');
+    const maxAtk = getVipPvpAttacksPerDay();
+    const used = state.pvpDaily.attacksUsed;
     if (btn && !pvpBattleRunning) {
         btn.disabled = !DEV_FREE_PVP && pvpAttacksLeft() <= 0;
-        btn.textContent = (!DEV_FREE_PVP && pvpAttacksLeft() <= 0) ? 'ЛИМИТ 5/5' : 'НАЙТИ БОЙ';
+        btn.textContent = (!DEV_FREE_PVP && pvpAttacksLeft() <= 0) ? `ЛИМИТ ${used}/${maxAtk}` : 'НАЙТИ БОЙ';
     }
 }
 
@@ -7582,7 +8058,7 @@ function firePvpLaser(fromPlayer) {
     const y1 = fromPlayer ? h * 0.85 : h * 0.15;
     const y2 = fromPlayer ? h * 0.15 : h * 0.85;
     const x = w * (0.42 + Math.random() * 0.16);
-    appendLaserBeam(layer, x, y1, x + (Math.random() * 10 - 5), y2, fromPlayer ? 'blue' : 'red');
+    appendLaserBeam(layer, x, y1, x + (Math.random() * 10 - 5), y2, fromPlayer ? getPlayerLaserColor() : 'red');
     const wrap = fromPlayer ? $('pvp-my-ship') : $('pvp-en-ship');
     wrap?.classList.add('pvp-shoot');
     setTimeout(() => wrap?.classList.remove('pvp-shoot'), 220);
@@ -7631,9 +8107,11 @@ function finishPvpBattleResult(result, opponent, procText) {
     setPvpView('lobby');
     renderPvpLobby();
     const btn = $('btn-pvp');
+    const maxAtk = getVipPvpAttacksPerDay();
+    const used = state.pvpDaily.attacksUsed;
     if (btn) {
         btn.disabled = !DEV_FREE_PVP && pvpAttacksLeft() <= 0;
-        btn.textContent = (!DEV_FREE_PVP && pvpAttacksLeft() <= 0) ? 'ЛИМИТ 5/5' : 'ЕЩЁ БОЙ';
+        btn.textContent = (!DEV_FREE_PVP && pvpAttacksLeft() <= 0) ? `ЛИМИТ ${used}/${maxAtk}` : 'ЕЩЁ БОЙ';
     }
 }
 
@@ -8124,12 +8602,24 @@ function bindEvents() {
         btn.onclick = () => switchTab(btn.dataset.tab);
     });
 
-    document.querySelectorAll('[data-open]').forEach(btn => {
-        btn.onclick = () => {
-            if (btn.dataset.open === 'checkin') renderCheckin();
-            showWindow(btn.dataset.open);
-        };
+    document.querySelectorAll('[data-open]').forEach(bindHudOpenButton);
+
+    const openVipFromBadge = e => {
+        e.stopPropagation();
+        e.preventDefault();
+        openVipPanel();
+    };
+    $('ui-vip')?.addEventListener('click', openVipFromBadge);
+    $('ui-vip')?.addEventListener('touchend', openVipFromBadge, { passive: false });
+
+    $('btn-vip-close')?.addEventListener('click', e => {
+        e.stopPropagation();
+        closeVipPanel();
     });
+    $('vip-overlay')?.addEventListener('click', e => {
+        if (e.target?.id === 'vip-overlay') closeVipPanel();
+    });
+    $('vip-overlay')?.querySelector('.vip-panel')?.addEventListener('click', e => e.stopPropagation());
 
     $('btn-pvp').onclick = startPvP;
 
@@ -8158,6 +8648,7 @@ function bindEvents() {
         if (document.visibilityState === 'visible') {
             playSessionStartedAt = Date.now();
             refreshCheckinState();
+            refreshVipDailyState();
             applyGameInsets();
             syncPanelHeights();
             onMiningResize();
@@ -8219,15 +8710,9 @@ async function boot() {
         window.__pvpBotWorld = () => state.pvpBotWorld;
     }
 
-    // Восстановление топлива: +1 каждые 4 минуты до maxFuel (онлайн)
-    setInterval(() => {
-        if (state.resources.fuel < state.maxFuel) {
-            state.resources.fuel = Math.min(state.maxFuel, state.resources.fuel + 1);
-            touchFuelTimestamp();
-            updateHUD();
-            Storage.save();
-        }
-    }, FUEL_REGEN_MS);
+    // Восстановление топлива с учётом VIP-регена
+    startFuelRegenLoop();
+    if (getVipLevel() > 0) claimVipDailyBonus();
 }
 
 document.addEventListener('DOMContentLoaded', boot);
