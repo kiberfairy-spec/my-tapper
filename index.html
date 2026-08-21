@@ -612,12 +612,18 @@
         .mining-hud-actions {
             position: absolute;
             top: 6px;
-            right: 6px;
             display: flex;
             flex-direction: column;
-            align-items: flex-end;
             gap: 3px;
             pointer-events: auto;
+        }
+        .mining-hud-actions-left {
+            left: 6px;
+            align-items: flex-start;
+        }
+        .mining-hud-actions-right {
+            right: 6px;
+            align-items: flex-end;
         }
         .btn-action-spice {
             --action-neon: #c8a020;
@@ -1616,10 +1622,10 @@
         .res-node-spice { position: relative; }
         .spice-lb-dropdown {
             position: absolute;
-            top: 6px;
-            right: 82px;
+            top: 44px;
+            left: 6px;
             z-index: 50;
-            width: min(calc(100vw - 96px), 280px);
+            width: min(calc(100vw - 24px), 280px);
             max-height: min(72vh, 380px);
             overflow-y: auto;
             background: rgba(4, 12, 24, 0.98);
@@ -3380,8 +3386,10 @@
 <!-- Экран добычи — единое поле -->
 <div class="mining-screen" id="mining-screen">
     <div class="mining-hud" id="mining-hud">
-        <div class="mining-hud-actions">
+        <div class="mining-hud-actions mining-hud-actions-left">
             <button type="button" class="btn-action btn-action-spice" id="btn-spice-lb">🌶<br>ТОП</button>
+        </div>
+        <div class="mining-hud-actions mining-hud-actions-right">
             <button type="button" class="btn-action" data-open="battlepass">🎫<br>БАТЛ-ПАСС</button>
             <button type="button" class="btn-action" data-open="vip">⭐<br>VIP</button>
             <button type="button" class="btn-action" data-open="checkin">📅<br>ЧЕКИН</button>
@@ -3695,7 +3703,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.54.2';
+const VERSION = '2.54.3';
 
 // 8-бит иконки ресурсов (космос · металл · пиксель)
 const RES_GFX_SVG = {
