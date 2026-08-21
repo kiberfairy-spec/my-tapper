@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.52.0</title>
+    <title>Space Dream v2.52.1</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -2349,8 +2349,20 @@
         .pvp-vs-power-fill.you { background: linear-gradient(90deg, #0088aa, var(--neon-cyan)); }
         .pvp-vs-power-fill.en { background: linear-gradient(90deg, #aa3333, #ff6655); }
         .pvp-vs-power-val { width: 24px; text-align: left; flex-shrink: 0; color: #a0c8e0; }
-        .pvp-vs-actions { margin-top: 4px; }
-        .pvp-vs-actions .btn { font-size: 7px; padding: 6px 14px; }
+        .pvp-vs-countdown {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ff6655;
+            letter-spacing: 0.12em;
+            text-shadow: 0 0 12px rgba(255, 80, 60, 0.65);
+            min-height: 24px;
+            line-height: 24px;
+            animation: pvpVsCountPulse 1s ease-in-out infinite;
+        }
+        @keyframes pvpVsCountPulse {
+            0%, 100% { transform: scale(1); opacity: 0.85; }
+            50% { transform: scale(1.08); opacity: 1; }
+        }
         #pvp-vs-my-ship canvas, #pvp-vs-en-ship canvas,
         #pvp-vs-my-ship .ship-sprite-img, #pvp-vs-en-ship .ship-sprite-img {
             width: 56px !important;
@@ -3133,7 +3145,7 @@
                         <span class="pvp-vs-power-val" id="pvp-vs-en-power-val">0</span>
                     </div>
                 </div>
-                <div class="pvp-vs-actions"><button class="btn" id="btn-pvp-start-battle">В БОЙ!</button></div>
+                <div class="pvp-vs-countdown" id="pvp-vs-countdown">3</div>
             </div>
         </div>
         <div class="pvp-arena hidden" id="pvp-arena">
@@ -3309,7 +3321,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.52.0';
+const VERSION = '2.52.1';
 
 // 8-бит иконки ресурсов (космос · металл · пиксель)
 const RES_GFX_SVG = {
@@ -8468,15 +8480,26 @@ function renderPvpDailyBar() {
 }
 
 // ─── PvP: арена и бой (вариант A) ────────────────────────────
+const PVP_VS_COUNTDOWN_SEC = 3;
+
 let pvpBattleRunning = false;
 let pvpPendingBattle = null;
 let pvpBattleAnimTimer = null;
+let pvpVsTimer = null;
+
+function clearPvpVsTimer() {
+    if (pvpVsTimer) {
+        clearInterval(pvpVsTimer);
+        pvpVsTimer = null;
+    }
+}
 
 function clearPvpBattleAnimTimer() {
     if (pvpBattleAnimTimer) {
         clearTimeout(pvpBattleAnimTimer);
         pvpBattleAnimTimer = null;
     }
+    clearPvpVsTimer();
 }
 
 function setPvpView(mode) {
@@ -8548,10 +8571,11 @@ function showPvpVsScreen(opponent, playerPower, isRevenge = false) {
     setPvpView('vs');
     const scan = $('pvp-vs-scan');
     const match = $('pvp-vs-match');
-    const startBtn = $('btn-pvp-start-battle');
-    if (startBtn) startBtn.disabled = true;
+    const countdownEl = $('pvp-vs-countdown');
+    clearPvpVsTimer();
     scan?.classList.remove('hidden');
     match?.classList.add('hidden');
+    if (countdownEl) countdownEl.textContent = String(PVP_VS_COUNTDOWN_SEC);
     $('pvp-status').textContent = isRevenge ? `Реванш vs ${opponent.name}…` : 'Сканирование сектора…';
     const btn = $('btn-pvp');
     if (btn) { btn.disabled = true; btn.textContent = 'ПОДГОТОВКА…'; }
@@ -8559,8 +8583,6 @@ function showPvpVsScreen(opponent, playerPower, isRevenge = false) {
     const reveal = () => {
         scan?.classList.add('hidden');
         match?.classList.remove('hidden');
-        const startBtn = $('btn-pvp-start-battle');
-        if (startBtn) startBtn.disabled = false;
         $('pvp-vs-my-name').textContent = state.playerName || 'Вы';
         $('pvp-vs-en-name').textContent = opponent.name;
         const myMeta = `${getFactionLabel(state.factionId)} · сила ${playerPower}`;
@@ -8579,13 +8601,33 @@ function showPvpVsScreen(opponent, playerPower, isRevenge = false) {
             const enShip = (SHIP_CATALOG[opponent.factionId] || SHIP_CATALOG.tank)[0];
             $('pvp-vs-en-ship').appendChild(renderShipGraphic(enShip, opponent.factionId, PVP_SHIP_PIXEL, 'pvp'));
         }
-        $('pvp-status').textContent = isRevenge
-            ? `Реванш: ${opponent.name}`
-            : `Противник найден: ${opponent.name}`;
-        if (btn) btn.textContent = 'ПОДГОТОВКА…';
+        startPvpVsCountdown(opponent, isRevenge);
     };
 
     setTimeout(reveal, 1200);
+}
+
+function startPvpVsCountdown(opponent, isRevenge = false) {
+    clearPvpVsTimer();
+    const el = $('pvp-vs-countdown');
+    let left = PVP_VS_COUNTDOWN_SEC;
+    if (el) el.textContent = String(left);
+    $('pvp-status').textContent = isRevenge
+        ? `Реванш vs ${opponent.name} · старт через ${left}`
+        : `Противник: ${opponent.name} · старт через ${left}`;
+    pvpVsTimer = setInterval(() => {
+        left -= 1;
+        if (left <= 0) {
+            clearPvpVsTimer();
+            if (el) el.textContent = 'БОЙ!';
+            beginPvpBattle();
+            return;
+        }
+        if (el) el.textContent = String(left);
+        $('pvp-status').textContent = isRevenge
+            ? `Реванш vs ${opponent.name} · старт через ${left}`
+            : `Противник: ${opponent.name} · старт через ${left}`;
+    }, 1000);
 }
 
 function computePvpBattleStats(battle) {
@@ -9253,10 +9295,9 @@ function launchPvpMatch(opponent, isRevenge = false) {
 
 function beginPvpBattle() {
     const pending = pvpPendingBattle;
-    if (!pending?.opponent) return;
-    const startBtn = $('btn-pvp-start-battle');
-    if (startBtn?.disabled) return;
-    if (startBtn) startBtn.disabled = true;
+    if (!pending?.opponent || pending.battleStarted) return;
+    pending.battleStarted = true;
+    clearPvpVsTimer();
     const { opponent, playerStats, playerLuck, playerPerks, playerPower, isRevenge } = pending;
     setPvpView('battle');
     preparePvpBattleField(playerStats, playerLuck, playerPerks);
@@ -9572,7 +9613,6 @@ function bindEvents() {
     $('vip-overlay')?.querySelector('.vip-panel')?.addEventListener('click', e => e.stopPropagation());
 
     $('btn-pvp').onclick = startPvP;
-    $('btn-pvp-start-battle')?.addEventListener('click', beginPvpBattle);
     $('btn-pvp-result-ok')?.addEventListener('click', () => {
         const p = pvpPendingBattle;
         if (!p?.result || !p.opponent) return;
