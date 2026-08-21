@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.52.1</title>
+    <title>Space Dream v2.52.2</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -2365,10 +2365,11 @@
         }
         #pvp-vs-my-ship canvas, #pvp-vs-en-ship canvas,
         #pvp-vs-my-ship .ship-sprite-img, #pvp-vs-en-ship .ship-sprite-img {
-            width: 56px !important;
-            height: 56px !important;
+            width: 72px !important;
+            height: 72px !important;
             object-fit: contain;
             margin: 0 auto;
+            image-rendering: auto;
         }
         .pvp-half { overflow: visible; }
         .pvp-result {
@@ -2459,7 +2460,7 @@
                 radial-gradient(1px 1px at 58px 42px, rgba(170, 190, 255, 0.28), transparent),
                 radial-gradient(1px 1px at 88px 76px, rgba(255, 255, 255, 0.22), transparent);
             background-size: 100px 100px;
-            animation: pvpStarFlyUpFar 20s linear infinite;
+            animation: pvpStarFlyDownFar 20s linear infinite;
             opacity: 0.5;
         }
         .pvp-lobby-stars .pvp-starfield-mid {
@@ -2467,7 +2468,7 @@
                 radial-gradient(1.5px 1.5px at 24px 12px, rgba(255, 255, 255, 0.5), transparent),
                 radial-gradient(1px 1px at 72px 48px, rgba(180, 210, 255, 0.4), transparent);
             background-size: 80px 80px;
-            animation: pvpStarFlyUpMid 12s linear infinite;
+            animation: pvpStarFlyDownMid 12s linear infinite;
             opacity: 0.65;
         }
         .pvp-lobby-stars .pvp-starfield-near {
@@ -2475,7 +2476,7 @@
                 radial-gradient(2px 2px at 16px 8px, rgba(255, 255, 255, 0.85), transparent),
                 radial-gradient(1.5px 1.5px at 48px 32px, rgba(200, 230, 255, 0.7), transparent);
             background-size: 60px 60px;
-            animation: pvpStarFlyUpNear 7s linear infinite;
+            animation: pvpStarFlyDownNear 7s linear infinite;
             opacity: 0.85;
         }
         .pvp-lobby-ship {
@@ -2486,6 +2487,7 @@
             z-index: 3;
             filter: drop-shadow(0 0 8px rgba(0, 200, 255, 0.35));
             animation: pvpLobbyFloat 4.5s ease-in-out infinite;
+            line-height: 0;
         }
         .pvp-lobby-tagline {
             position: absolute;
@@ -2550,7 +2552,7 @@
                 radial-gradient(1px 1px at 88px 76px, rgba(255, 255, 255, 0.22), transparent),
                 radial-gradient(1px 1px at 34px 92px, rgba(200, 220, 255, 0.2), transparent);
             background-size: 100px 100px;
-            animation: pvpStarFlyUpFar 22s linear infinite;
+            animation: pvpStarFlyDownFar 22s linear infinite;
             opacity: 0.55;
         }
         .pvp-stars-top .pvp-starfield-mid {
@@ -2560,7 +2562,7 @@
                 radial-gradient(1.5px 1.5px at 44px 68px, rgba(255, 255, 255, 0.45), transparent),
                 radial-gradient(1px 1px at 8px 54px, rgba(255, 255, 255, 0.4), transparent);
             background-size: 80px 80px;
-            animation: pvpStarFlyUpMid 14s linear infinite;
+            animation: pvpStarFlyDownMid 14s linear infinite;
             opacity: 0.7;
         }
         .pvp-stars-top .pvp-starfield-near {
@@ -2570,7 +2572,7 @@
                 radial-gradient(2px 2px at 62px 52px, rgba(255, 255, 255, 0.9), transparent),
                 radial-gradient(1px 1px at 28px 44px, rgba(255, 255, 255, 0.75), transparent);
             background-size: 64px 64px;
-            animation: pvpStarFlyUpNear 8s linear infinite;
+            animation: pvpStarFlyDownNear 8s linear infinite;
             opacity: 0.9;
         }
         .pvp-stars-bottom .pvp-starfield-far {
@@ -2618,7 +2620,7 @@
                 rgba(255, 255, 255, 0.06) 18px,
                 transparent 20px
             );
-            animation: pvpSpeedLinesUp 0.35s linear infinite;
+            animation: pvpSpeedLinesDown 0.35s linear infinite;
         }
         .pvp-stars-bottom .pvp-speed-lines {
             background: repeating-linear-gradient(
@@ -2752,22 +2754,76 @@
             animation: pvpShipBob 2.8s ease-in-out infinite;
             flex-shrink: 0;
         }
+        .pvp-ship-stack {
+            position: relative;
+            display: inline-block;
+            line-height: 0;
+        }
+        .pvp-ship-body {
+            position: relative;
+            z-index: 2;
+        }
+        .pvp-ship-flame {
+            position: absolute;
+            left: 50%;
+            bottom: 2px;
+            transform: translateX(-50%);
+            z-index: 1;
+            pointer-events: none;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        .pvp-ship-flame[data-size="lg"] { bottom: 6px; }
+        .pvp-shield-bubble {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 88%;
+            height: 94%;
+            border-radius: 46% 46% 42% 42%;
+            border: 1px solid rgba(85, 187, 255, 0.5);
+            box-shadow: 0 0 10px rgba(68, 170, 255, 0.35), inset 0 0 10px rgba(85, 187, 255, 0.12);
+            z-index: 3;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.22s ease, transform 0.22s ease;
+        }
+        .pvp-shield-bubble.active {
+            opacity: 1;
+            animation: pvpShieldBubblePulse 2.2s ease-in-out infinite;
+        }
+        .pvp-shield-bubble.breaking {
+            animation: pvpShieldBubbleBreak 0.45s ease forwards;
+        }
+        @keyframes pvpShieldBubblePulse {
+            0%, 100% { box-shadow: 0 0 8px rgba(68, 170, 255, 0.28), inset 0 0 8px rgba(85, 187, 255, 0.1); transform: translate(-50%, -50%) scale(1); }
+            50% { box-shadow: 0 0 16px rgba(68, 170, 255, 0.55), inset 0 0 12px rgba(85, 187, 255, 0.2); transform: translate(-50%, -50%) scale(1.04); }
+        }
+        @keyframes pvpShieldBubbleBreak {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.18); filter: blur(2px); }
+        }
         .pvp-ship-wrap canvas,
-        .pvp-ship-wrap .ship-sprite-img {
+        .pvp-ship-wrap .ship-sprite-img,
+        .pvp-ship-stack canvas,
+        .pvp-ship-stack .ship-sprite-img {
             display: block;
             width: 72px !important;
             height: 72px !important;
             max-height: none !important;
             object-fit: contain;
-            image-rendering: pixelated;
+            image-rendering: auto;
         }
         .pvp-lobby-ship canvas,
-        .pvp-lobby-ship .ship-sprite-img {
+        .pvp-lobby-ship .ship-sprite-img,
+        .pvp-lobby-ship .pvp-ship-stack canvas,
+        .pvp-lobby-ship .pvp-ship-stack .ship-sprite-img {
             display: block;
-            width: 88px !important;
-            height: 88px !important;
+            width: 104px !important;
+            height: 104px !important;
             object-fit: contain;
-            image-rendering: pixelated;
+            image-rendering: auto;
         }
         .pvp-half-enemy .pvp-ship-wrap {
             animation: pvpShipBobEn 2.8s ease-in-out infinite;
@@ -3321,7 +3377,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.52.1';
+const VERSION = '2.52.2';
 
 // 8-бит иконки ресурсов (космос · металл · пиксель)
 const RES_GFX_SVG = {
@@ -3986,7 +4042,8 @@ const SHIP_FACTION_DISPLAY_SCALE = {
 };
 const SHIP_MINING_BOX = 50;
 const SHIP_PVP_BOX = 72;
-const SHIP_PVP_LOBBY_BOX = 88;
+const SHIP_PVP_LOBBY_BOX = 104;
+const SHIP_PVP_RENDER_SCALE = 2;
 const SHIP_SELECT_H = 200;
 const SHIP_EXTRA = { o:'#e87828', r:'#cc3038', g:'#40e8ff', y:'#d8b030', p:'#a048e0' };
 let _shipDrawExtras = SHIP_EXTRA;
@@ -4132,7 +4189,15 @@ function buildFactionShipImage(src, factionId, sizeStyle, onReady) {
         let outW = SHIP_NORM_W;
         let outH = SHIP_NORM_H;
         if (sizeStyle.box) {
-            // Добыча и PvP — компактная нормализация в фиксированную «коробку»
+            const targetDisplay = sizeStyle.box === 'mining' ? SHIP_MINING_BOX
+                : sizeStyle.box === 'pvp' ? SHIP_PVP_BOX
+                : sizeStyle.box === 'pvp-lobby' ? SHIP_PVP_LOBBY_BOX
+                : SHIP_NORM_H;
+            if (hiRes) {
+                const b = getSpriteContentBounds(tctx);
+                outH = Math.round(targetDisplay * SHIP_PVP_RENDER_SCALE);
+                outW = Math.max(1, Math.round(outH * (b.w / b.h)));
+            }
         } else {
             const targetH = parseInt(sizeStyle.height || sizeStyle.maxHeight || String(SHIP_NORM_H), 10);
             if (hiRes && targetH > SHIP_NORM_H) {
@@ -5838,6 +5903,94 @@ function drawShipFlame(cvs, frame) {
     }
 }
 
+function drawPvpShipFlame(cvs, frame) {
+    const size = cvs.dataset.size || 'md';
+    const scale = size === 'lg' ? 2.2 : size === 'sm' ? 1.3 : 1.7;
+    const sw = 5;
+    const sh = 10;
+    const w = Math.ceil(sw * scale);
+    const h = Math.ceil(sh * scale);
+    if (cvs.width !== w || cvs.height !== h) {
+        cvs.width = w;
+        cvs.height = h;
+    }
+    const ctx = cvs.getContext('2d');
+    ctx.clearRect(0, 0, w, h);
+    ctx.imageSmoothingEnabled = false;
+    const tmp = document.createElement('canvas');
+    tmp.width = sw;
+    tmp.height = sh;
+    drawShipFlame(tmp, frame);
+    ctx.drawImage(tmp, 0, 0, w, h);
+}
+
+let pvpFlameAnimFrame = null;
+let pvpFlameTick = 0;
+
+function ensurePvpFlameLoop() {
+    if (pvpFlameAnimFrame) return;
+    const tick = () => {
+        pvpFlameTick += 1;
+        document.querySelectorAll('.pvp-ship-flame').forEach(c => drawPvpShipFlame(c, pvpFlameTick));
+        pvpFlameAnimFrame = requestAnimationFrame(tick);
+    };
+    pvpFlameAnimFrame = requestAnimationFrame(tick);
+}
+
+function stopPvpFlameLoop() {
+    if (pvpFlameAnimFrame) {
+        cancelAnimationFrame(pvpFlameAnimFrame);
+        pvpFlameAnimFrame = null;
+    }
+}
+
+function createPvpShipStack(options = {}) {
+    const { shieldActive = false, flameSize = 'md' } = options;
+    const stack = document.createElement('div');
+    stack.className = 'pvp-ship-stack';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'pvp-shield-bubble' + (shieldActive ? ' active' : '');
+
+    const flame = document.createElement('canvas');
+    flame.className = 'pvp-ship-flame';
+    flame.dataset.size = flameSize;
+
+    const body = document.createElement('div');
+    body.className = 'pvp-ship-body';
+
+    stack.appendChild(bubble);
+    stack.appendChild(flame);
+    stack.appendChild(body);
+    return stack;
+}
+
+function mountPvpShipStack(container, shipNode, options = {}) {
+    if (!container) return null;
+    container.innerHTML = '';
+    container.classList.remove('pvp-shoot');
+    const stack = createPvpShipStack(options);
+    if (shipNode) stack.querySelector('.pvp-ship-body')?.appendChild(shipNode);
+    container.appendChild(stack);
+    ensurePvpFlameLoop();
+    return stack;
+}
+
+function updatePvpShieldVisual(side, fighter, prevBroken = null) {
+    const wrapId = side === 'player' ? 'pvp-my-ship' : 'pvp-en-ship';
+    const bubble = $(wrapId)?.querySelector('.pvp-shield-bubble');
+    if (!bubble || !fighter) return;
+    const active = fighter.maxShield > 0 && !fighter.shieldBroken && fighter.shield > 0;
+    if (prevBroken === false && fighter.shieldBroken && bubble.classList.contains('active')) {
+        bubble.classList.remove('active');
+        bubble.classList.add('breaking');
+        setTimeout(() => bubble.classList.remove('breaking'), 460);
+    } else {
+        bubble.classList.toggle('active', active);
+        if (active) bubble.classList.remove('breaking');
+    }
+}
+
 function updateShipVisual() {
     const el = $('player-ship');
     el.style.left = shipPos.x + 'px';
@@ -6372,6 +6525,7 @@ function switchTab(tab) {
         if (tab === 'hangar') { showWindow('hangar'); renderHangar(); }
         if (tab === 'pvp')     { showWindow('pvp'); renderPvP(); }
         if (tab === 'minigames') showWindow('minigames');
+        if (tab !== 'pvp') stopPvpFlameLoop();
     }
 }
 
@@ -8486,6 +8640,8 @@ let pvpBattleRunning = false;
 let pvpPendingBattle = null;
 let pvpBattleAnimTimer = null;
 let pvpVsTimer = null;
+let pvpPrevPlayerShieldBroken = false;
+let pvpPrevEnemyShieldBroken = false;
 
 function clearPvpVsTimer() {
     if (pvpVsTimer) {
@@ -8759,6 +8915,10 @@ function renderPvpBars(side, fighter) {
     el.innerHTML =
         renderPvpBarRow('Щ', 'shield', shPct, fighter.shield, fighter.maxShield, fighter.shieldBroken) +
         renderPvpBarRow('HP', 'hp', hpPct, fighter.hp, fighter.maxHp);
+    const prevBroken = side === 'player' ? pvpPrevPlayerShieldBroken : pvpPrevEnemyShieldBroken;
+    updatePvpShieldVisual(side, fighter, prevBroken);
+    if (side === 'player') pvpPrevPlayerShieldBroken = fighter.shieldBroken;
+    else pvpPrevEnemyShieldBroken = fighter.shieldBroken;
 }
 
 function renderPvpEnemyPerksRow(elId, perkFx) {
@@ -8790,12 +8950,15 @@ function renderPvpPerksRow(elId, equipped) {
 function mountPvpLobbyShip() {
     const el = $('pvp-lobby-ship');
     if (!el) return;
-    el.innerHTML = '';
-    if (state.profileComplete) el.appendChild(drawCurrentShip(PVP_SHIP_PIXEL + 1, 'pvp-lobby'));
+    const stats = getShipCombatStats();
+    const hasShield = stats.shield > 0;
+    const shipNode = state.profileComplete ? drawCurrentShip(PVP_SHIP_PIXEL + 1, 'pvp-lobby') : null;
+    mountPvpShipStack(el, shipNode, { shieldActive: hasShield, flameSize: 'lg' });
 }
 
 function renderPvpLobby() {
     mountPvpLobbyShip();
+    ensurePvpFlameLoop();
     $('pvp-status').textContent = (!DEV_FREE_PVP && pvpAttacksLeft() <= 0)
         ? 'Лимит атак на сегодня исчерпан'
         : 'Нажмите НАЙТИ БОЙ';
@@ -8809,7 +8972,9 @@ function renderPvpLobby() {
 }
 
 function preparePvpBattleField(playerStats, playerLuck, playerPerks) {
-    mountPvpPlayerShip();
+    pvpPrevPlayerShieldBroken = false;
+    pvpPrevEnemyShieldBroken = false;
+    mountPvpPlayerShip(playerStats, playerLuck, playerPerks);
     $('pvp-my-name').textContent = state.playerName || 'Вы';
     renderPvpPerksRow('pvp-my-perks');
     renderPvpBars('player', cloneFighter(playerStats, playerLuck, playerPerks));
@@ -8823,22 +8988,27 @@ function preparePvpBattleField(playerStats, playerLuck, playerPerks) {
     $('pvp-timer').classList.remove('urgent');
 }
 
-function mountPvpPlayerShip() {
+function mountPvpPlayerShip(playerStats, playerLuck, playerPerks) {
     const el = $('pvp-my-ship');
     if (!el) return;
-    el.innerHTML = '';
-    el.classList.remove('pvp-shoot');
-    if (state.profileComplete) el.appendChild(drawCurrentShip(PVP_SHIP_PIXEL, 'pvp'));
+    const fighter = playerStats
+        ? cloneFighter(playerStats, playerLuck, playerPerks)
+        : cloneFighter(getShipCombatStats(), getLuckPvpBonuses(), getEquippedPvpPerkFx());
+    const hasShield = fighter.maxShield > 0;
+    const shipNode = state.profileComplete ? drawCurrentShip(PVP_SHIP_PIXEL, 'pvp') : null;
+    mountPvpShipStack(el, shipNode, { shieldActive: hasShield && fighter.shield > 0, flameSize: 'md' });
 }
 
-function mountPvpEnemyShip(factionId) {
+function mountPvpEnemyShip(factionId, fighterState = null) {
     const el = $('pvp-en-ship');
     if (!el) return;
-    el.innerHTML = '';
-    el.classList.remove('pvp-shoot');
     const fid = factionId || 'dps';
     const ship = (SHIP_CATALOG[fid] || SHIP_CATALOG.tank)[0];
-    el.appendChild(renderShipGraphic(ship, fid, PVP_SHIP_PIXEL, 'pvp'));
+    const hasShield = fighterState
+        ? fighterState.maxShield > 0 && !fighterState.shieldBroken && fighterState.shield > 0
+        : true;
+    const shipNode = renderShipGraphic(ship, fid, PVP_SHIP_PIXEL, 'pvp');
+    mountPvpShipStack(el, shipNode, { shieldActive: hasShield, flameSize: 'md' });
 }
 
 function cloneFighter(stats, luck, perkFx) {
@@ -9303,7 +9473,7 @@ function beginPvpBattle() {
     preparePvpBattleField(playerStats, playerLuck, playerPerks);
     const factionName = getFactionLabel(opponent.factionId);
     $('pvp-en-name').textContent = opponent.name;
-    mountPvpEnemyShip(opponent.factionId);
+    mountPvpEnemyShip(opponent.factionId, cloneFighter(opponent.stats, opponent.luck, opponent.perks));
     $('pvp-en-combatant')?.classList.remove('hidden');
     renderPvpEnemyPerksRow('pvp-en-perks', opponent.perks);
     renderPvpBars('enemy', cloneFighter(opponent.stats, opponent.luck, opponent.perks));
