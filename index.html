@@ -166,11 +166,92 @@
         }
         .player-row-top {
             display: flex;
-            align-items: baseline;
+            align-items: center;
             gap: 3px;
             min-width: 0;
             max-width: 100%;
         }
+        .hud-mail-wrap {
+            position: relative;
+            flex-shrink: 0;
+            margin-left: 1px;
+        }
+        .hud-mail-btn {
+            -webkit-appearance: none;
+            appearance: none;
+            border: 1px solid rgba(0, 232, 255, 0.4);
+            background: rgba(0, 10, 28, 0.85);
+            border-radius: 4px;
+            width: 18px;
+            height: 18px;
+            padding: 0;
+            font-size: 9px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 6px rgba(0, 232, 255, 0.12);
+        }
+        .hud-mail-btn:active { transform: scale(0.92); }
+        .hud-mail-dot {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #ff3344;
+            border: 1px solid rgba(255, 255, 255, 0.85);
+            box-shadow: 0 0 6px rgba(255, 50, 60, 0.95);
+            pointer-events: none;
+        }
+        .hud-mail-dot.hidden { display: none; }
+        .hud-mail-dropdown {
+            position: absolute;
+            top: 46px;
+            left: 6px;
+            z-index: 250;
+            width: min(calc(100vw - 16px), 290px);
+            max-height: min(58vh, 340px);
+            overflow-y: auto;
+            background: rgba(4, 12, 24, 0.94);
+            border: 1px solid rgba(0, 232, 255, 0.4);
+            border-radius: 6px;
+            padding: 6px 0;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+            font-size: 4px;
+            pointer-events: auto;
+        }
+        .hud-mail-dropdown.hidden { display: none; }
+        .hud-mail-title {
+            color: #ffd480;
+            font-size: 5px;
+            letter-spacing: 0.08em;
+            margin-bottom: 4px;
+            text-align: center;
+            padding: 0 8px;
+        }
+        .hud-mail-row {
+            padding: 5px 8px;
+            border-bottom: 1px solid rgba(0, 232, 255, 0.12);
+        }
+        .hud-mail-row:last-child { border-bottom: none; }
+        .hud-mail-row-head { display: flex; align-items: center; gap: 4px; margin-bottom: 3px; }
+        .hud-mail-icon { font-size: 8px; flex-shrink: 0; }
+        .hud-mail-subject { flex: 1; color: #e8d8b0; line-height: 1.35; }
+        .hud-mail-reward { color: #a0c8e0; font-size: 4px; margin: 2px 0 4px; line-height: 1.4; }
+        .hud-mail-claim {
+            width: 100%;
+            font-size: 5px;
+            padding: 4px;
+            border: 1px solid rgba(255, 212, 0, 0.45);
+            background: rgba(40, 32, 0, 0.55);
+            color: #ffe880;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .hud-mail-empty { text-align: center; color: #8898aa; padding: 10px 8px; font-size: 5px; }
         .top-player .pname {
             font-size: 9px;
             font-weight: 600;
@@ -3362,6 +3443,10 @@
                 <div class="player-row-top">
                     <span class="pname" id="ui-name">Игрок</span>
                     <span class="plevel" id="ui-level">· L1</span>
+                    <span class="hud-mail-wrap">
+                        <button type="button" class="hud-mail-btn" id="btn-hud-mail" title="Почта · награды и сообщения">📬</button>
+                        <span class="hud-mail-dot hidden" id="hud-mail-dot"></span>
+                    </span>
                 </div>
                 <span class="player-vip" id="ui-vip">⭐ VIP 0</span>
             </div>
@@ -3404,6 +3489,7 @@
             </div>
         </div>
     </div>
+    <div class="hud-mail-dropdown hidden" id="hud-mail-dropdown"></div>
     </div>
 </div>
 
@@ -3501,15 +3587,10 @@
             <button type="button" class="hangar-help-btn pvp-header-btn-left" id="btn-pvp-history" title="История атак">📜</button>
             <div class="wtitle">ПАТРУЛЬ</div>
             <div class="pvp-header-actions">
-                <span class="pvp-mail-wrap">
-                    <button type="button" class="hangar-help-btn" id="btn-pvp-mail" title="Награды рейтинга">📬</button>
-                    <span class="pvp-mail-badge hidden" id="pvp-mail-badge">0</span>
-                </span>
                 <button type="button" class="hangar-help-btn" id="btn-pvp-help" title="Правила PvP и награды">?</button>
                 <button type="button" class="hangar-help-btn pvp-lb-btn" id="btn-pvp-leaderboard" title="Рейтинг: суточный и недельный ТОП">🏆</button>
             </div>
         </div>
-        <div class="pvp-mail-dropdown hidden" id="pvp-mail-dropdown"></div>
         <div class="pvp-history-dropdown hidden" id="pvp-history-dropdown"></div>
         <div class="pvp-lb-dropdown hidden" id="pvp-lb-dropdown"></div>
         <div class="pvp-daily-bar" id="pvp-daily-bar"></div>
@@ -3727,7 +3808,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Константы ───────────────────────────────────────────────
-const VERSION = '2.54.4';
+const VERSION = '2.54.5';
 
 // 8-бит иконки ресурсов (космос · металл · пиксель)
 const RES_GFX_SVG = {
@@ -6934,6 +7015,7 @@ function hideOverlay() {
 
 function openHudPanel(name) {
     closeSpiceLeaderboard();
+    closeHudMail();
     if (name === 'vip') {
         openVipPanel();
         return;
@@ -7004,6 +7086,7 @@ function updateHUD() {
     $('ui-artifacts').textContent = getArtifactParts();
     $('ui-containers').textContent = getContainerCount();
     applyTelegramAvatar();
+    renderHudMailBadge();
 }
 
 function showLoot(text) {
@@ -8351,7 +8434,7 @@ function toggleSpiceLeaderboard() {
     const el = $('spice-lb-dropdown');
     if (!el) return;
     $('pvp-lb-dropdown')?.classList.add('hidden');
-    $('pvp-mail-dropdown')?.classList.add('hidden');
+    $('hud-mail-dropdown')?.classList.add('hidden');
     if (!el.classList.contains('hidden')) {
         el.classList.add('hidden');
         return;
@@ -9307,7 +9390,7 @@ function applyPvpReward(reward) {
     }
 }
 
-function getPvpMailSubject(kind, periodKey, rank) {
+function getInboxMailSubject(kind, periodKey, rank) {
     if (kind === 'spice-monthly') {
         return `Спайс-рейтинг · ${formatUtcMonthLabel(periodKey)} · место #${rank}`;
     }
@@ -9317,13 +9400,19 @@ function getPvpMailSubject(kind, periodKey, rank) {
     return `Суточный рейтинг · ${formatUtcDayLabel(periodKey)} · место #${rank}`;
 }
 
+function getInboxMailIcon(kind) {
+    if (kind === 'spice-monthly') return '🌶';
+    if (kind === 'weekly') return '🏆';
+    return '⚔️';
+}
+
 function pushPvpInboxMail(kind, periodKey, rank, reward) {
     if (!reward || !rank) return;
     ensurePvpInbox();
     const dup = state.pvpInbox.some(m => m.kind === kind && m.periodKey === periodKey);
     if (dup) return;
     state.pvpInbox.unshift({
-        id: `pvp-mail-${kind}-${periodKey}-${Date.now()}`,
+        id: `mail-${kind}-${periodKey}-${Date.now()}`,
         kind,
         periodKey,
         rank,
@@ -9332,14 +9421,15 @@ function pushPvpInboxMail(kind, periodKey, rank, reward) {
         createdAt: Date.now(),
     });
     if (state.pvpInbox.length > 30) state.pvpInbox.length = 30;
+    renderHudMailBadge();
 }
 
-function getUnclaimedPvpMailCount() {
+function getUnclaimedInboxCount() {
     ensurePvpInbox();
     return state.pvpInbox.filter(m => !m.claimed).length;
 }
 
-function claimPvpInboxMail(mailId) {
+function claimInboxMail(mailId) {
     ensurePvpInbox();
     const mail = state.pvpInbox.find(m => m.id === mailId && !m.claimed);
     if (!mail?.reward) return false;
@@ -9348,63 +9438,85 @@ function claimPvpInboxMail(mailId) {
     Storage.save();
     updateHUD();
     showRewardLoot(formatPvpRewardText(mail.reward));
-    renderPvpMailBadge();
-    renderPvpMailDropdown();
+    renderHudMailBadge();
+    renderHudMailDropdown();
     return true;
 }
 
-function renderPvpMailBadge() {
-    const badge = $('pvp-mail-badge');
-    if (!badge) return;
-    const n = getUnclaimedPvpMailCount();
-    if (n > 0) {
-        badge.textContent = String(Math.min(9, n)) + (n > 9 ? '+' : '');
-        badge.classList.remove('hidden');
-    } else {
-        badge.classList.add('hidden');
-    }
+function renderHudMailBadge() {
+    const dot = $('hud-mail-dot');
+    if (!dot) return;
+    dot.classList.toggle('hidden', getUnclaimedInboxCount() <= 0);
 }
 
-function togglePvpMail() {
-    const el = $('pvp-mail-dropdown');
+function closeHudMail() {
+    $('hud-mail-dropdown')?.classList.add('hidden');
+}
+
+function toggleHudMail() {
+    const el = $('hud-mail-dropdown');
     if (!el) return;
+    $('spice-lb-dropdown')?.classList.add('hidden');
     $('pvp-lb-dropdown')?.classList.add('hidden');
     $('pvp-history-dropdown')?.classList.add('hidden');
     if (!el.classList.contains('hidden')) {
         el.classList.add('hidden');
         return;
     }
-    renderPvpMailDropdown();
+    renderHudMailDropdown();
     el.classList.remove('hidden');
 }
 
-function renderPvpMailDropdown() {
+function renderHudMailDropdown() {
     ensurePvpInbox();
-    const el = $('pvp-mail-dropdown');
+    const el = $('hud-mail-dropdown');
     if (!el) return;
     const pending = state.pvpInbox.filter(m => !m.claimed);
     if (!pending.length) {
-        el.innerHTML = '<div class="pvp-mail-title">НАГРАДЫ ПАТРУЛЯ</div><div class="pvp-mail-empty">Нет неполученных наград</div>';
+        el.innerHTML = '<div class="hud-mail-title">ПОЧТА</div><div class="hud-mail-empty">Нет новых сообщений</div>';
         return;
     }
-    const rows = pending.map(m => {
-        const icon = m.kind === 'weekly' ? '🏆' : '📅';
-        return `<div class="pvp-mail-row">
-            <div class="pvp-mail-row-head">
-                <span class="pvp-mail-icon">${icon}</span>
-                <span class="pvp-mail-subject">${getPvpMailSubject(m.kind, m.periodKey, m.rank)}</span>
+    const rows = pending.map(m => `
+        <div class="hud-mail-row">
+            <div class="hud-mail-row-head">
+                <span class="hud-mail-icon">${getInboxMailIcon(m.kind)}</span>
+                <span class="hud-mail-subject">${getInboxMailSubject(m.kind, m.periodKey, m.rank)}</span>
             </div>
-            <div class="pvp-mail-reward">${formatPvpRewardText(m.reward, true)}</div>
-            <button type="button" class="pvp-mail-claim" data-claim-mail="${m.id}">ЗАБРАТЬ</button>
-        </div>`;
-    }).join('');
-    el.innerHTML = `<div class="pvp-mail-title">НАГРАДЫ ПАТРУЛЯ</div>${rows}`;
+            <div class="hud-mail-reward">${formatPvpRewardText(m.reward, true)}</div>
+            <button type="button" class="hud-mail-claim" data-claim-mail="${m.id}">ЗАБРАТЬ</button>
+        </div>`).join('');
+    el.innerHTML = `<div class="hud-mail-title">ПОЧТА · ${pending.length}</div>${rows}`;
     el.querySelectorAll('[data-claim-mail]').forEach(btn => {
         btn.onclick = e => {
             e.stopPropagation();
-            claimPvpInboxMail(btn.dataset.claimMail);
+            claimInboxMail(btn.dataset.claimMail);
         };
     });
+}
+
+/** @deprecated */
+function getPvpMailSubject(kind, periodKey, rank) {
+    return getInboxMailSubject(kind, periodKey, rank);
+}
+
+/** @deprecated */
+function claimPvpInboxMail(mailId) {
+    return claimInboxMail(mailId);
+}
+
+/** @deprecated */
+function renderPvpMailBadge() {
+    renderHudMailBadge();
+}
+
+/** @deprecated */
+function togglePvpMail() {
+    toggleHudMail();
+}
+
+/** @deprecated */
+function renderPvpMailDropdown() {
+    renderHudMailDropdown();
 }
 
 function getPvpLeaderboardScore(entry, period = 'daily') {
@@ -9855,7 +9967,7 @@ function closePvpHelp() {
 function togglePvpLeaderboard() {
     const el = $('pvp-lb-dropdown');
     if (!el) return;
-    $('pvp-mail-dropdown')?.classList.add('hidden');
+    $('hud-mail-dropdown')?.classList.add('hidden');
     $('pvp-history-dropdown')?.classList.add('hidden');
     if (!el.classList.contains('hidden')) {
         el.classList.add('hidden');
@@ -9934,9 +10046,9 @@ function renderPvpDailyBar() {
     if (dailyRank) previewParts.push(formatPvpRankPreviewLine('daily', dailyRank));
     if (weeklyRank) previewParts.push(formatPvpRankPreviewLine('weekly', weeklyRank));
     $('pvp-reward-preview').innerHTML = previewParts.length
-        ? `Ваши призы сейчас: ${previewParts.join(' · ')} · 📬 после периода · 🏆 полная таблица`
+        ? `Ваши призы сейчас: ${previewParts.join(' · ')} · награды в почту · 🏆 полная таблица`
         : (used > 0 ? 'Продолжайте бои · 🏆 смотрите призы за места' : 'Сделайте бой · 🏆 рейтинг и призы за #1–500');
-    renderPvpMailBadge();
+    renderHudMailBadge();
     const btn = $('btn-pvp');
     if (btn) {
         btn.disabled = !DEV_FREE_PVP && left <= 0;
@@ -9992,7 +10104,7 @@ function togglePvpHistory() {
     const el = $('pvp-history-dropdown');
     if (!el) return;
     $('pvp-lb-dropdown')?.classList.add('hidden');
-    $('pvp-mail-dropdown')?.classList.add('hidden');
+    $('hud-mail-dropdown')?.classList.add('hidden');
     if (!el.classList.contains('hidden')) {
         el.classList.add('hidden');
         return;
@@ -10765,10 +10877,10 @@ function renderPvP() {
     setPvpView('lobby');
     $('pvp-lb-dropdown')?.classList.add('hidden');
     $('pvp-history-dropdown')?.classList.add('hidden');
-    $('pvp-mail-dropdown')?.classList.add('hidden');
+    $('hud-mail-dropdown')?.classList.add('hidden');
     renderPvpLobby();
     renderPvpDailyBar();
-    renderPvpMailBadge();
+    renderHudMailBadge();
 }
 
 function launchPvpMatch(opponent, isRevenge = false) {
@@ -11091,8 +11203,15 @@ function bindEvents() {
     $('ui-vip')?.addEventListener('click', openVipFromBadge);
     $('ui-vip')?.addEventListener('touchend', openVipFromBadge, { passive: false });
 
+    $('btn-hud-mail')?.addEventListener('click', e => {
+        e.stopPropagation();
+        toggleHudMail();
+    });
+    $('hud-mail-dropdown')?.addEventListener('click', e => e.stopPropagation());
+
     $('btn-spice-lb')?.addEventListener('click', e => {
         e.stopPropagation();
+        closeHudMail();
         toggleSpiceLeaderboard();
     });
     $('mining-screen')?.addEventListener('click', e => e.stopPropagation());
@@ -11129,14 +11248,10 @@ function bindEvents() {
         e.stopPropagation();
         togglePvpHistory();
     });
-    $('btn-pvp-mail')?.addEventListener('click', e => {
-        e.stopPropagation();
-        togglePvpMail();
-    });
     document.addEventListener('click', () => {
         $('pvp-lb-dropdown')?.classList.add('hidden');
         $('pvp-history-dropdown')?.classList.add('hidden');
-        $('pvp-mail-dropdown')?.classList.add('hidden');
+        $('hud-mail-dropdown')?.classList.add('hidden');
         $('spice-lb-dropdown')?.classList.add('hidden');
     });
     $('win-pvp')?.addEventListener('click', e => e.stopPropagation());
