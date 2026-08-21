@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.51.2</title>
+    <title>Space Dream v2.51.3</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -959,8 +959,9 @@
             display: block;
             image-rendering: pixelated;
             image-rendering: crisp-edges;
-            height: 56px;
-            width: auto;
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
             pointer-events: none;
         }
         .ship-flame {
@@ -2520,11 +2521,21 @@
             animation: pvpShipBob 2.8s ease-in-out infinite;
             flex-shrink: 0;
         }
-        .pvp-ship-wrap canvas {
+        .pvp-ship-wrap canvas,
+        .pvp-ship-wrap .ship-sprite-img {
             display: block;
-            max-height: 80px;
-            width: auto !important;
-            height: auto !important;
+            width: 72px !important;
+            height: 72px !important;
+            max-height: none !important;
+            object-fit: contain;
+            image-rendering: pixelated;
+        }
+        .pvp-lobby-ship canvas,
+        .pvp-lobby-ship .ship-sprite-img {
+            display: block;
+            width: 88px !important;
+            height: 88px !important;
+            object-fit: contain;
             image-rendering: pixelated;
         }
         .pvp-half-enemy .pvp-ship-wrap {
@@ -3697,6 +3708,15 @@ const SHIP_W = 40, SHIP_H = 56;
 const SHIP_NORM_W = 49;
 const SHIP_NORM_H = 54;
 const SHIP_MINING_H = 56;
+/** Визуальное выравнивание PNG-спрайтов: Конфедерация шире и кажется крупнее при одной высоте */
+const SHIP_FACTION_DISPLAY_SCALE = {
+    tank: 0.84,
+    dps: 1.0,
+    sniper: 1.05,
+};
+const SHIP_MINING_BOX = 50;
+const SHIP_PVP_BOX = 72;
+const SHIP_PVP_LOBBY_BOX = 88;
 const SHIP_SELECT_H = 200;
 const SHIP_EXTRA = { o:'#e87828', r:'#cc3038', g:'#40e8ff', y:'#d8b030', p:'#a048e0' };
 let _shipDrawExtras = SHIP_EXTRA;
@@ -3806,7 +3826,7 @@ function getSpriteContentBounds(ctx) {
     return { minX, minY, w: maxX - minX + 1, h: maxY - minY + 1 };
 }
 
-function normalizeShipCanvas(srcCanvas, outW = SHIP_NORM_W, outH = SHIP_NORM_H) {
+function normalizeShipCanvas(srcCanvas, outW = SHIP_NORM_W, outH = SHIP_NORM_H, displayScale = 1) {
     const srcCtx = srcCanvas.getContext('2d');
     const b = getSpriteContentBounds(srcCtx);
     const out = document.createElement('canvas');
@@ -3817,7 +3837,7 @@ function normalizeShipCanvas(srcCanvas, outW = SHIP_NORM_W, outH = SHIP_NORM_H) 
     const pad = Math.max(1, Math.round(Math.min(outW, outH) * 0.04));
     const availW = outW - pad * 2;
     const availH = outH - pad * 2;
-    const scale = Math.min(availW / b.w, availH / b.h);
+    const scale = Math.min(availW / b.w, availH / b.h) * displayScale;
     const dw = Math.max(1, Math.round(b.w * scale));
     const dh = Math.max(1, Math.round(b.h * scale));
     const dx = Math.floor((outW - dw) / 2);
@@ -3837,22 +3857,28 @@ function buildFactionShipImage(src, factionId, sizeStyle, onReady) {
         if (needsBackgroundKey(src)) removeDarkBackground(tctx);
         recolorAccentStripes(tctx, getFactionStripeColor(factionId), factionId);
 
-        const targetH = parseInt(sizeStyle.height || sizeStyle.maxHeight || String(SHIP_NORM_H), 10);
         const hiRes = loader.naturalWidth > 80 || loader.naturalHeight > 80;
-        let outW = SHIP_NORM_W;
-        let outH = SHIP_NORM_H;
-        if (hiRes) {
-            const b = getSpriteContentBounds(tctx);
-            outH = targetH;
-            outW = Math.max(1, Math.round(targetH * (b.w / b.h)));
-        }
-
-        const cvs = normalizeShipCanvas(tmp, outW, outH);
+        const factionScale = SHIP_FACTION_DISPLAY_SCALE[factionId] ?? 1;
+        const cvs = normalizeShipCanvas(tmp, SHIP_NORM_W, SHIP_NORM_H, factionScale);
         cvs.className = 'ship-sprite-img';
-        if (sizeStyle.height) cvs.style.height = sizeStyle.height;
-        if (sizeStyle.maxHeight) cvs.style.maxHeight = sizeStyle.maxHeight;
-        if (sizeStyle.width) cvs.style.width = sizeStyle.width;
-        else cvs.style.width = 'auto';
+        if (sizeStyle.box === 'mining') {
+            cvs.style.width = SHIP_MINING_BOX + 'px';
+            cvs.style.height = SHIP_MINING_BOX + 'px';
+            cvs.style.objectFit = 'contain';
+        } else if (sizeStyle.box === 'pvp') {
+            cvs.style.width = SHIP_PVP_BOX + 'px';
+            cvs.style.height = SHIP_PVP_BOX + 'px';
+            cvs.style.objectFit = 'contain';
+        } else if (sizeStyle.box === 'pvp-lobby') {
+            cvs.style.width = SHIP_PVP_LOBBY_BOX + 'px';
+            cvs.style.height = SHIP_PVP_LOBBY_BOX + 'px';
+            cvs.style.objectFit = 'contain';
+        } else {
+            if (sizeStyle.height) cvs.style.height = sizeStyle.height;
+            if (sizeStyle.maxHeight) cvs.style.maxHeight = sizeStyle.maxHeight;
+            if (sizeStyle.width) cvs.style.width = sizeStyle.width;
+            else cvs.style.width = 'auto';
+        }
         cvs.style.imageRendering = hiRes ? 'auto' : 'pixelated';
         onReady(cvs);
     };
@@ -4280,16 +4306,18 @@ const SHIP_CATALOG = {
     ],
 };
 
-function renderShipGraphic(ship, factionId, pixelSize = 4) {
+function renderShipGraphic(ship, factionId, pixelSize = 4, displayBox = null) {
     if (ship.image) {
         const wrap = document.createElement('span');
         wrap.style.display = 'inline-block';
         wrap.style.lineHeight = '0';
-        const sizeStyle = pixelSize >= 6
-            ? { height: SHIP_SELECT_H + 'px' }
-            : pixelSize >= 4
-                ? { height: '160px' }
-                : { height: '96px' };
+        const sizeStyle = displayBox
+            ? { box: displayBox }
+            : pixelSize >= 6
+                ? { height: SHIP_SELECT_H + 'px' }
+                : pixelSize >= 4
+                    ? { height: '160px' }
+                    : { height: '96px' };
         buildFactionShipImage(ship.image, factionId, sizeStyle, cvs => {
             wrap.textContent = '';
             wrap.appendChild(cvs);
@@ -5436,9 +5464,9 @@ function getShipMiningSrc(ship = getCurrentShip()) {
     return ship.miningImage || ship.image || null;
 }
 
-function drawCurrentShip(pixelSize = 3) {
+function drawCurrentShip(pixelSize = 3, displayBox = null) {
     const ship = getCurrentShip();
-    return renderShipGraphic(ship, state.factionId, pixelSize);
+    return renderShipGraphic(ship, state.factionId, pixelSize, displayBox);
 }
 
 function lerpAngle(from, to, t) {
@@ -5872,7 +5900,7 @@ function renderPlayerShip() {
     const ship = getCurrentShip();
     const miningSrc = getShipMiningSrc(ship);
     if (miningSrc) {
-        buildFactionShipImage(miningSrc, state.factionId, { height: SHIP_MINING_H + 'px' }, cvs => {
+        buildFactionShipImage(miningSrc, state.factionId, { box: 'mining' }, cvs => {
             el.appendChild(cvs);
             updateShipVisual();
         });
@@ -8177,7 +8205,7 @@ function mountPvpLobbyShip() {
     const el = $('pvp-lobby-ship');
     if (!el) return;
     el.innerHTML = '';
-    if (state.profileComplete) el.appendChild(drawCurrentShip(PVP_SHIP_PIXEL + 1));
+    if (state.profileComplete) el.appendChild(drawCurrentShip(PVP_SHIP_PIXEL + 1, 'pvp-lobby'));
 }
 
 function renderPvpLobby() {
@@ -8214,7 +8242,7 @@ function mountPvpPlayerShip() {
     if (!el) return;
     el.innerHTML = '';
     el.classList.remove('pvp-shoot');
-    if (state.profileComplete) el.appendChild(drawCurrentShip(PVP_SHIP_PIXEL));
+    if (state.profileComplete) el.appendChild(drawCurrentShip(PVP_SHIP_PIXEL, 'pvp'));
 }
 
 function mountPvpEnemyShip(factionId) {
@@ -8224,7 +8252,7 @@ function mountPvpEnemyShip(factionId) {
     el.classList.remove('pvp-shoot');
     const fid = factionId || 'dps';
     const ship = (SHIP_CATALOG[fid] || SHIP_CATALOG.tank)[0];
-    el.appendChild(renderShipGraphic(ship, fid, PVP_SHIP_PIXEL));
+    el.appendChild(renderShipGraphic(ship, fid, PVP_SHIP_PIXEL, 'pvp'));
 }
 
 function cloneFighter(stats, luck, perkFx) {
