@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Space Dream v2.51.3</title>
+    <title>Space Dream v2.51.4</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -3859,7 +3859,19 @@ function buildFactionShipImage(src, factionId, sizeStyle, onReady) {
 
         const hiRes = loader.naturalWidth > 80 || loader.naturalHeight > 80;
         const factionScale = SHIP_FACTION_DISPLAY_SCALE[factionId] ?? 1;
-        const cvs = normalizeShipCanvas(tmp, SHIP_NORM_W, SHIP_NORM_H, factionScale);
+        let outW = SHIP_NORM_W;
+        let outH = SHIP_NORM_H;
+        if (sizeStyle.box) {
+            // Добыча и PvP — компактная нормализация в фиксированную «коробку»
+        } else {
+            const targetH = parseInt(sizeStyle.height || sizeStyle.maxHeight || String(SHIP_NORM_H), 10);
+            if (hiRes && targetH > SHIP_NORM_H) {
+                const b = getSpriteContentBounds(tctx);
+                outH = targetH;
+                outW = Math.max(1, Math.round(targetH * (b.w / b.h)));
+            }
+        }
+        const cvs = normalizeShipCanvas(tmp, outW, outH, factionScale);
         cvs.className = 'ship-sprite-img';
         if (sizeStyle.box === 'mining') {
             cvs.style.width = SHIP_MINING_BOX + 'px';
